@@ -360,9 +360,44 @@ namespace Chapter3
 
             /* The GetType Method and typeof Operator
              
+            All types in C# are represented at runtime with an instance of System.Type. 
+            There are two basic ways to get a System.Type object:
+
+            1. Call GetType on the instance
+            -The GetType() method is used to obtain the runtime type of an instance. 
+            It is called on an object and provides details about the object’s type at runtime.
+            -It is evaluated when the program runs, so the exact type is determined during execution.
+
+            2. Use the typeof operator on a type name
+            -The typeof operator is used to get the System. Type object for a type name at compile-time. 
+            It doesn’t require an instance to be called and provides type information based on the type definition.
+            -This is evaluated statically (during compilation), which means the type is known at compile time.
+
+            Examples:
+
+            var point = new Point();
+
+            // Example 1: Using GetType on an instance
+            Console.WriteLine(point.GetType().Name);                // Output: Point
+            Console.WriteLine(point.GetType().FullName);            // Output: Namespace.Point (if namespace exists)
+
+            // Example 2: Using typeof with the type name
+            Console.WriteLine(typeof(Point).Name);                  // Output: Point
+            Console.WriteLine(typeof(Point).FullName);              // Output: Namespace.Point (if namespace exists)
+
+            // Example 3: Comparing GetType and typeof
+            Console.WriteLine(point.GetType() == typeof(Point));    // True
+
+            // Note: without name, it prints Fullname
             */
+
         }
     }
+
+    //public class Point
+    //{
+    //    public int X, Y;
+    //}
 
     //public class BaseClass
     //{
