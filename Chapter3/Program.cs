@@ -1,8 +1,4 @@
-﻿using System.Collections.Specialized;
-using System.Runtime.Intrinsics.X86;
-using System.Text;
-
-namespace Chapter3
+﻿namespace Chapter3
 {
     internal class Program
     {
@@ -543,8 +539,116 @@ namespace Chapter3
             3. ReferenceEquals() checks if two variables point to the exact same memory.
             */
 
+            /* Structs in C#: Full Explanation
+            
+            A struct in C# is a value type and is often used for lightweight objects 
+            where memory efficiency and performance are crucial. 
+            While similar to classes in many ways, structs differ significantly in their behavior and use cases.
+
+            public struct Point
+            {
+                public int X;
+                public int Y;
+
+                public Point(int x, int y)
+                {
+                    X = x;
+                    Y = y;
+                }
+            }
+
+            ---Key Differences Between Structs and Classes
+
+            1. Value Type vs Reference Type:
+            A struct is a value type, meaning that it is stored on the stack (unless it's part of a reference type). 
+            When you assign a struct to another variable, it copies the entire object, including its data.
+
+            A class is a reference type. A class instance is stored on the heap, and when you assign it to another variable, 
+            it passes the reference (or pointer) to the object, not a copy of the object.
+
+            2. Inheritance
+            Structs do not support inheritance, except for deriving implicitly from System.ValueType, which is itself derived from Object. 
+            This means you cannot create a struct hierarchy or use polymorphism with structs.
+
+            3. Default Constructors:
+            Structs have an implicit, parameterless constructor that initializes all fields to their default values (e.g., integers to 0, booleans to false).
+            Classes can define parameterless constructors with custom logic, but structs cannot.
+
+            ---Why Use Structs?
+
+            1. You want to represent small, lightweight objects.
+            2. You want to avoid heap allocations for performance reasons.
+            3. You want value semantics. For example, when copying a struct, you want a copy of the data, not a reference.
+
+            Examples of good use cases for structs are points in 2D or 3D space, rectangles, complex numbers, and colors.
+
+            ---Struct Construction Semantics
+
+            1. Parameterless Constructor: Every struct has an implicit parameterless constructor that sets all fields to their default values (e.g., integers to 0).
+            2. Custom Constructors: When you define a constructor for a struct, every field must be explicitly assigned. 
+            You cannot leave a field unassigned, and you cannot use field initializers.
+
+            ---Example of Struct vs Class
+
+            StructPoint sp1 = new StructPoint { X = 1, Y = 2 };
+            StructPoint sp2 = sp1;  // Copies the value (not a reference)
+            sp2.X = 10;
+            Console.WriteLine($"Struct: sp1.X = {sp1.X}, sp2.X = {sp2.X}");  // sp1.X remains 1
+
+            ClassPoint cp1 = new ClassPoint { X = 1, Y = 2 };
+            ClassPoint cp2 = cp1;  // Copies the reference
+            cp2.X = 10;
+            Console.WriteLine($"Class: cp1.X = {cp1.X}, cp2.X = {cp2.X}");  // cp1.X changes to 10
+
+            */
+
+            /* Explicit Interface Implementation
+             
+            */
         }
     }
+
+    //public interface IEnumerator
+    //{
+    //    bool MoveNext();
+    //    object Current { get; }
+    //    void Reset();
+    //}
+
+    //internal class Countdown : IEnumerator
+    //{
+    //    private int _count = 1;
+
+    //    public Countdown(int startPoint = 0)
+    //    {
+    //        _count = startPoint;
+    //    }
+
+    //    public bool MoveNext() => _count-- > 0;
+    //    public object Current => _count;
+    //    public void Reset() => _count = 0;
+    //}
+
+    //public struct StructPoint
+    //{
+    //    public int X, Y;
+    //}
+
+    //public class ClassPoint
+    //{
+    //    public int X, Y;
+    //}
+
+    //public struct Point
+    //{
+    //    public int X, Y;
+
+    //    public Point(int x, int y)
+    //    {
+    //        X = x;
+    //        Y = y;
+    //    }
+    //}
 
     //public class Car
     //{
