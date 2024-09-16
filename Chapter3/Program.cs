@@ -391,8 +391,178 @@ namespace Chapter3
             // Note: without name, it prints Fullname
             */
 
+            /* Object member listing
+             
+            In C#, all types (classes, structs, etc.) automatically inherit from the Object class, 
+            which is the root of the type hierarchy. 
+            This means every type in C# has access to the members of the Object class. 
+            Here is an explanation of the key methods of Object and how you can use them:
+             
+            1. GetType()
+            2. Equals(object obj)
+            3. Equals(object objA, object objB)
+            4. ReferenceEquals(object objA, object objB)
+            5. GetHashCode()
+            6. ToString()
+            7. Finalize()
+            8. MemberwiseClone()
+
+            1. GetType()
+            Description: Returns the System.Type of the current instance. 
+            It gives information about the type of the object at runtime.
+
+            object obj = new object();
+            Console.WriteLine(obj.GetType());  // Output: System.Object
+
+            2. Equals(Object obj)
+            Description: Determines whether the current instance is equal to another object. 
+            The default implementation checks for reference equality (i.e., whether both objects are the same instance).
+
+            Override: You can override Equals in your custom class to compare values or fields instead of reference equality.
+
+            object obj1 = new object();
+            object obj2 = obj1;
+            Console.WriteLine(obj1.Equals(obj2));  // Output: True (same instance)
+
+            3. Equals(object objA, object objB) (Static)
+            Description: Compares two objects for equality. 
+            By default, it checks reference equality unless overridden by one of the objects.
+
+            object obj1 = new object();
+            object obj2 = new object();
+            Console.WriteLine(Object.Equals(obj1, obj2));  // Output: False (different instances)
+
+            4. ReferenceEquals(object objA, object objB) (Static)
+            Description: Determines whether two object references refer to the same instance in memory. 
+            This method does not consider value equality or overridden Equals methods.
+
+            5. GetHashCode()
+            Description: Returns a hash code for the object. 
+            It’s often used in hashing algorithms and data structures like hash tables. 
+            The default GetHashCode() is based on the object’s reference.
+
+            object obj = new object();
+            Console.WriteLine(obj.GetHashCode());  // Outputs a unique hash code
+         
+            6. ToString()
+
+            7. Finalize()
+
+            8. MemberwiseClone()
+            Description: Creates a shallow copy of the current object. 
+            A shallow copy means it copies the values of the fields, 
+            but if any of those fields are references to objects, 
+            it only copies the reference and not the actual object (hence shallow).
+
+            public class Person
+            {
+                public string Name { get; set; }
+            }
+            
+            Person p1 = new Person { Name = "John" };
+            Person p2 = (Person)p1.MemberwiseClone();  // p2 is a shallow copy of p1
+            */
+
+            /* Differences between Equals(), Object.Equals(), and ReferenceEquals() in C#
+             
+            1. Equals(object obj) (Instance Method)
+
+            The Equals() method is meant to compare content or state of objects. 
+            It can be overridden by classes to provide custom logic for comparing the values of objects.
+
+            By default, if Equals() is not overridden, it behaves like ReferenceEquals() 
+            and compares object references (memory locations). 
+            But for many built-in types (e.g., string, int), Equals() is overridden to compare the values.
+
+            public class Car
+            {
+                public string Model { get; set; } = string.Empty;
+                public int Year { get; set; }
+
+                public override bool Equals(object? obj)
+                {
+                    if (obj is Car other)
+                    {
+                        return Model == other.Model && Year == other.Year;
+                    }
+
+                    return false;
+                }
+
+                public override int GetHashCode() => base.GetHashCode();
+            }
+
+            Car car1 = new() { Model = "Tesla", Year = 2021 };
+            Car car2 = new() { Model = "Tesla", Year = 2021 };
+            Car car3 = new() { Model = "Ford", Year = 2020 };
+
+            Console.WriteLine(car1.Equals(car2));  // True (same values)
+            Console.WriteLine(car1.Equals(car3));  // False (different values)
+            
+        
+            2. Object.Equals(object objA, object objB) (Static Method)
+            This static method provides a null-safe comparison at first, calling Equals() on the first object (objA).
+
+
+            ---If either objA or objB is null, it handles that properly.
+            * Return false, if one is null but not the other.
+            * Return true if both are null.
+
+            ---Otherwise, it calls overriden Equals method
+
+            Car car1 = new() { Model = "Tesla", Year = 2021 };
+            Car car2 = new() { Model = "Tesla", Year = 2021 };
+            Car car3 = new() { Model = "Ford", Year = 2020 };
+            Car? car4 = null;
+
+            Console.WriteLine(Object.Equals(car1, car2));  // True (same values)
+            Console.WriteLine(Object.Equals(car1, car4));  // False (one is null)
+            Console.WriteLine(Object.Equals(car4, car4));  // True (both are null)
+             
+
+            3. ReferenceEquals(object objA, object objB) (Static Method)
+            ReferenceEquals() checks if two objects are the exact same instance in memory, regardless of their content. 
+            It always returns true if the two references point to the same memory location, even if they have the different values.
+
+            Car car1 = new() { Model = "Tesla", Year = 2021 };
+            Car car2 = new() { Model = "Tesla", Year = 2021 };
+            Car car3 = new() { Model = "Ford", Year = 2020 };
+            Car car5 = car1;        // Assigning the same reference
+
+            Console.WriteLine(ReferenceEquals(car1, car2));  // False (different instances)
+            Console.WriteLine(ReferenceEquals(car1, car5));  // True (same reference)
+            Console.WriteLine(ReferenceEquals(car1, car3));  // False (different instances)
+
+            Even though car1 and car2 have the same values, ReferenceEquals() returns false because they are different instances. 
+            car5 is assigned to the same reference as car1, so ReferenceEquals() returns true.
+
+            KEY CONCEPTS:
+
+            1. Equals() compares values (if overridden).
+            2. Object.Equals() is a null-safe comparison.
+            3. ReferenceEquals() checks if two variables point to the exact same memory.
+            */
+
         }
     }
+
+    //public class Car
+    //{
+    //    public string Model { get; set; } = string.Empty;
+    //    public int Year { get; set; }
+
+    //    public override bool Equals(object? obj)
+    //    {
+    //        if (obj is Car other)
+    //        {
+    //            return Model == other.Model && Year == other.Year;
+    //        }
+
+    //        return false;
+    //    }
+
+    //    public override int GetHashCode() => base.GetHashCode();
+    //}
 
     //public class Point
     //{
