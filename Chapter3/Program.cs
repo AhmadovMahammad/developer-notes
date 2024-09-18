@@ -1,4 +1,6 @@
-﻿namespace Chapter3
+﻿using System.Text;
+
+namespace Chapter3
 {
     internal class Program
     {
@@ -604,149 +606,569 @@
 
             /* Explicit Interface Implementation
              
+            Implementing multiple interfaces can sometimes result in a collision between member signatures. 
+            You can resolve such collisions by explicitly implementing an interface member. 
+            Consider the following example:
+
+            Widget w = new Widget();
+            w.Foo();            // Widget's implementation of I1.Foo
+            ((i1)w).Foo();      // Widget's implementation of I1.Foo
+            ((i2)w).Foo();      // Widget's implementation of I2.Foo
+            if (w is i2 i2)
+                i2.Foo();       // Widget's implementation of I2.Foo
             */
+
+            /* Enum Conversions
+             
+            An enum is a special value type that lets you specify a group of named numeric constants.
+            For example:
+            public enum BorderSide { Left, Right, Top, Bottom }
+             
+            We can use this enum type as follows:
+            BorderSide topSide = BorderSide.Top;
+            bool isTop = (topSide == BorderSide.Top); // true
+
+            Each enum member has an underlying integral value. These are by default:
+            • Underlying values are of type int.
+            • The constants 0, 1, 2... are automatically assigned, in the declaration order of the enum members.
+
+            You can specify an alternative integral type, as follows:
+            public enum BorderSide : byte { Left, Right, Top, Bottom }
+
+
+            ---You can convert an enum instance to and from its underlying integral value with an explicit cast:
+
+            byte i = (byte)BorderSide.Left;
+            BorderSide side = (BorderSide)i;
+
+            Console.WriteLine(i);
+            Console.WriteLine(side);
+            
+            var enumValuesAsEnumerator = Enum.GetValues(typeof(BorderSide)).GetEnumerator();
+            while (enumValuesAsEnumerator.MoveNext())
+            {
+                var cur = enumValuesAsEnumerator.Current;
+                Console.WriteLine((byte)cur);
+            }
+
+            ---You can also explicitly cast one enum type to another. 
+            Suppose that Horizontal Alignment is defined as follows:
+
+            A translation between the enum types uses the underlying integral values
+
+            //HorizontalAlignment h = (HorizontalAlignment)BorderSide.Right;
+            // same as:
+            //HorizontalAlignment h1 = (HorizontalAlignment)(BorderSide)2;
+            // same as:
+            //HorizontalAlignment h = (HorizontalAlignment)(int)BorderSide.Right;
+
+            BorderSide side = (BorderSide)1234567890;
+            bool sideIsDefinedFromBorder = Enum.IsDefined(typeof(BorderSide), side);
+            Console.WriteLine($"{nameof(sideIsDefinedFromBorder)}: {sideIsDefinedFromBorder}");
+            */
+
+            /* Bitwise Operators
+             
+            Bitwise operators in C# work at the binary level on integers and are used to manipulate individual bits. 
+            These operators are useful for tasks that involve binary data manipulation, 
+            such as low-level hardware programming, encryption, and optimizing performance. 
+            Here’s a breakdown of bitwise operators and how they work:
+
+            AND (&), OR (|), XOR (^)
+            NOT (~), Left Shift (<<), Right Shift (>>)
+
+            1. AND (&) Operator
+            The bitwise AND operator compares each bit of two numbers and 
+            returns 1 only if both bits are 1; otherwise, it returns 0.
+
+            A	B	A & B
+            0	0	  0
+            0	1	  0
+            1	0	  0
+            1	1	  1
+
+            To calculate the bitwise AND (&) of two integers, 
+            you compare their binary representations bit by bit. 
+            For each pair of corresponding bits, the result is 1 only if both bits are 1; otherwise, it's 0.
+
+             int a = 6;  // 6 in binary: 110
+             int b = 3;  // 3 in binary: 011
+             int result = a & b; // result: 2 (in binary: 010)
+             Console.WriteLine(result); // Output: 2
+
+            2. OR (|) Operator
+            The bitwise OR operator compares each bit of two numbers and 
+            returns 1 if at least one of the bits is 1; otherwise, it returns 0.
+
+            int a = 6;  // 6 in binary: 110
+            int b = 3;  // 3 in binary: 011
+            int result = a | b; // result: 7 (in binary: 111)
+            Console.WriteLine(result); // Output: 7
+
+            3. XOR (^) Operator
+            The bitwise XOR (exclusive OR) operator compares each bit of two numbers and 
+            returns 1 if only one of the bits is 1; otherwise, it returns 0.
+
+            int a = 6;  // 6 in binary: 110
+            int b = 3;  // 3 in binary: 011
+            int result = a ^ b; // result: 5 (in binary: 101)
+            Console.WriteLine(result); // Output: 5
+
+            4. Left Shift (<<) Operator
+            The left shift operator shifts all bits of its first operand to the left 
+            by the number of positions specified by its second operand. 
+            It essentially multiplies the number by powers of two.
+
+            int a = 6;  // 6 in binary: 0000 0110
+            int b = 7;  // 7 in binary: 0000 0111
+
+            int result = a << 1;  // result: 12 (in binary: 0000 1100, shifted one bit left)
+            int result2 = b << 1; // result: 12 (in binary: 0001 1100, shifted two bits left)
+            Console.WriteLine(result);  // Output: 12
+            Console.WriteLine(result2); // Output: 28
+
+            ---What Happens If We Go Past 8 Bits?
+            When you're shifting bits left by more than the width of the system (e.g., 8 bits in an 8-bit system), 
+            any bits that exceed the width get discarded, and it becomes 0 in that case.
+
+            However, if you're in a larger system like a 32-bit or 64-bit system, 
+            shifting left by 8 bits will still yield a valid number 
+            because those extra bits are within the width of the system. Let's break it down:
+
+            Example: Shifting 7 Left by 8 Bits
+            Original 7 in binary (8-bit): 0000 0111
+            When shifted left by 8 bits:
+
+            1. 32-bit system: You get something like this:
+            0000 0111 << 8  = 0000 0111 0000 0000 = 1792 in decimal
+
+            2. 8-bit system: The result becomes 0 because all the bits are shifted out of the 8-bit range:
+            0000 0111 << 8  = 0000 0000 (all bits discarded)
+
+            5. Right Shift (>>) Operator
+            The right shift operator shifts all bits of its first operand to the right 
+            by the number of positions specified by its second operand. 
+            It essentially divides the number by powers of two.
+
+            int a = 6;  // 6 in binary: 0000 0110
+            int result = a >> 1; // result: 3 (in binary: 0000 0011, shifted one bit right)
+            Console.WriteLine(result); // Output: 3
+
+            */
+
+            /* MSB and LSB
+             
+            The terms "most significant bit" (MSB) and "least significant bit" (LSB) are used 
+            to describe the importance or position of bits within a binary number.
+
+            1. Most Significant Bit (MSB)
+            * The MSB is the bit in the binary number with the highest place value.
+            * In a binary number, it is the leftmost bit.
+            * It plays a key role in determining the magnitude (value) of the number.
+
+            2. Least Significant Bit (LSB)
+            * The LSB is the bit with the lowest place value.
+            * It is the rightmost bit in the binary number.
+            * It contributes the smallest value to the overall number.
+              For example, in an 8-bit binary number, the LSB represents 2^0 (which is 1).
+
+
+            Example Breakdown:
+            Let’s consider the 8-bit binary number 1101 1010:
+            
+            1. Most Significant Bit (MSB): 
+            The leftmost 1. In an unsigned 8-bit number, this 1 represents 2^7 = 128.
+            2. Least Significant Bit (LSB): 
+            The rightmost 0. This 0 represents 2^0 = 0.
+            */
+
+            /*Bitwise Manupilation related questions
+             */
+
+            /*1. Question : Check if a Number is a Power of 2
+            
+            Concept : A number is a power of 2 if it has exactly one 1 bit in its binary representation. 
+            For example:
+            
+            2 is 0010 in binary.
+            4 is 0100 in binary.
+            8 is 1000 in binary.
+
+            In general, powers of 2 in binary are represented as a single 1 bit followed by 0s.
+            Subtracting 1 from n will flip all the bits to the right of the 1 bit (including the 1 bit itself).
+            Because, Right shift reduces number, Left shift increases number.
+
+            If n is not a power of 2:
+            * n has multiple 1 bits.
+            * Subtracting 1 from n flips all bits to the right of the rightmost 1 bit, 
+              but there will still be at least one 1 bit in the result.
+            * So, performing n & (n - 1) will not be 0.
+            
+            Solution: 
+            private static bool IsPowerOfTwo(int n)
+            {
+                return n > 0 && (n & (n - 1)) == 0;
+            }
+
+            Console.WriteLine(IsPowerOfTwo(6));     // False
+            Console.WriteLine(IsPowerOfTwo(8));     // True
+            Console.WriteLine(IsPowerOfTwo(7));     // False
+
+
+            2. Question : 
+            */
+
+            /* What is n & (n - 1)?
+
+            The expression n & (n - 1) is used to turn off the rightmost set bit
+            (the rightmost 1) in a binary number.
+            It changes the lowest set bit to 0 and leaves all higher-order bits unchanged. 
+            This is a crucial operation when working with bit manipulation. 
+
+            Example: 7 (n = 7)
+            0111   (7 in binary)
+          & 0110   (6 in binary)
+          --------
+            0110   (Result) = 6
+
+            0110   (6 in binary)
+          & 0101   (5 in binary)
+         --------   
+            0100   (Result) = 4
+
+            */
+
+            /* Flag Enums
+            You can combine enum members. 
+            
+            enum UserRoles
+            {
+                None = 0,               // 0000
+                Admin = 1,              // 0001
+                Moderator = 1 << 1,     // 0010 (same as 2)
+                Editor = 1 << 2,        // 0100 (same as 4)
+                Contributor = 1 << 3,   // 1000 (same as 8)
+                Viewer = 1 << 4         // 10000 (same as 16)
+            }
+
+            1. Combining Roles
+            You can combine roles using the bitwise OR (|) operator, 
+            which is equivalent to adding their respective powers of two.
+
+            UserRoles user = UserRoles.Admin | UserRoles.Editor;
+            Console.WriteLine(user); // Output: Admin, Editor
+
+            Admin is 0001
+            Editor is 0100
+            When OR'd together: 0001 | 0100 = 0101 (which represents both Admin and Editor).
+
+            2. Checking Roles
+            To check if a user has a particular role, you can use the bitwise AND (&) operator:
+
+            UserRoles user = UserRoles.Admin | UserRoles.Editor;
+
+            if ((user & UserRoles.Admin) != 0)
+                Console.WriteLine("User is an Admin");
+            else if ((user & UserRoles.Editor) != 0)
+                Console.WriteLine("User is Editor");
+            else
+                Console.WriteLine("User has to another role");
+
+            user is 0101 (Admin and Editor).
+            We AND it with 0001 (Admin).
+            If the result is non-zero, the user has the Admin role.
+
+            Adding or Removing Roles
+            
+            user |= UserRoles.Moderator;  // Adds the Moderator role
+            it means -> user = user.current roles (admin | editor) | new role Moderator and combines them
+            Console.WriteLine(user);      // Output: Admin, Editor, Moderator
+
+            Bitwise NOT (~):
+            The ~ (NOT) operator inverts all the bits. 
+            So, if the Editor role is 0100 in binary, 
+            the NOT operator will flip all bits, resulting in:
+            ~UserRoles.Editor = 1011
+
+            This gives us the negated value of Editor, 
+            where the Editor bit is now "off" (0), and all other bits are "on" (1).
+
+            current user roles are :
+            0111  // Admin, Moderator, Editor (before removal)
+
+            1011  // Result of ~Editor
+
+            UserRoles user = UserRoles.Admin | UserRoles.Moderator | UserRoles.Editor;
+            // 0001
+            // 0010
+            // 0100
+            //-----
+            // 0111 all the roles
+
+            // removing editor
+            // editor is 0100 and not operator will flip it into : 1011
+
+            //0111
+            //1011
+            //----
+            //0011 is equal to admin and moderator
+
+            user &= ~UserRoles.Editor; // admin and moderator
+
+            Console.WriteLine(user);
+            */
+        }
+
+        static T FindMax<T>(T a, T b) where T : IComparable<T>
+        {
+            return a.CompareTo(b) > 0 ? a : b;
+        }
+
+        //Q1
+        private static bool IsPowerOfTwo(int n)
+        {
+            return n > 0 && (n & (n - 1)) == 0;
+        }
+
+        //Q2
+        private static int CountSetBits(int n)
+        {
+            int count = 0;
+
+            while (n > 0)
+            {
+                count++;
+                n &= (n - 1);
+            }
+
+            return count;
         }
     }
 
-    //public interface IEnumerator
-    //{
-    //    bool MoveNext();
-    //    object Current { get; }
-    //    void Reset();
-    //}
+    class ZooCleaner
+    {
+        public static void Wash<T>(T animal) where T : Animal
+        {
+            Console.WriteLine($"animal: {animal.GetType().Name} is washed");
+        }
+    }
+    
+    class Animal
+    {
+        public string Name { get; set; } = string.Empty;
+    }
+    
+    class Bear : Animal
+    {
+        public int SoundDecibel { get; set; }
+    }
+    
+    class Camel : Animal
+    {
+        public int NumberOfMountains { get; set; }
+    }
 
-    //internal class Countdown : IEnumerator
-    //{
-    //    private int _count = 1;
+    public class CustomStack<T>
+    {
+        private int position;
+        private T[] data { get; } = Array.Empty<T>();
 
-    //    public Countdown(int startPoint = 0)
-    //    {
-    //        _count = startPoint;
-    //    }
+        public void Push(T obj) => data[position++] = obj;
+        public T Pop() => data[--position];
+    }
 
-    //    public bool MoveNext() => _count-- > 0;
-    //    public object Current => _count;
-    //    public void Reset() => _count = 0;
-    //}
+    [Flags]
+    enum UserRoles
+    {
+        None = 0,               // 0000
+        Admin = 1,              // 0001
+        Moderator = 1 << 1,     // 0010 (same as 2)
+        Editor = 1 << 2,        // 0100 (same as 4)
+        Contributor = 1 << 3,   // 1000 (same as 8)
+        Viewer = 1 << 4         // 10000 (same as 16)
+    }
 
-    //public struct StructPoint
-    //{
-    //    public int X, Y;
-    //}
+    [Flags]
+    public enum Border
+    {
+        None,
+        Left,
+        Right,
+        Top,
+        Bottom,
+    }
 
-    //public class ClassPoint
-    //{
-    //    public int X, Y;
-    //}
+    public enum HorizontalAlignment
+    {
+        Left = BorderSide.Left,
+        Right = BorderSide.Right,
+        Center
+    }
 
-    //public struct Point
-    //{
-    //    public int X, Y;
+    public enum BorderSide
+    {
+        Left,
+        Right,
+        Top,
+        Bottom,
+    }
 
-    //    public Point(int x, int y)
-    //    {
-    //        X = x;
-    //        Y = y;
-    //    }
-    //}
+    public interface i1 { void Foo(); }
+    public interface i2 { int Foo(); }
 
-    //public class Car
-    //{
-    //    public string Model { get; set; } = string.Empty;
-    //    public int Year { get; set; }
+    public class Widget : i1, i2
+    {
+        public void Foo()
+        {
+            Console.WriteLine("Widget's implementation of I1.Foo");
+        }
 
-    //    public override bool Equals(object? obj)
-    //    {
-    //        if (obj is Car other)
-    //        {
-    //            return Model == other.Model && Year == other.Year;
-    //        }
+        int i2.Foo()
+        {
+            Console.WriteLine("Widget's implementation of I2.Foo");
+            return 0;
+        }
+    }
 
-    //        return false;
-    //    }
+    public interface IEnumerator
+    {
+        bool MoveNext();
+        object Current { get; }
+        void Reset();
+    }
 
-    //    public override int GetHashCode() => base.GetHashCode();
-    //}
+    internal class Countdown : IEnumerator
+    {
+        private int _count = 1;
+
+        public Countdown(int startPoint = 0)
+        {
+            _count = startPoint;
+        }
+
+        public bool MoveNext() => _count-- > 0;
+        public object Current => _count;
+        public void Reset() => _count = 0;
+    }
+
+    public struct StructPoint
+    {
+        public int X, Y;
+    }
+
+    public class ClassPoint
+    {
+        public int X, Y;
+    }
+
+    public struct Point
+    {
+        public int X, Y;
+
+        public Point(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
+    public class Car
+    {
+        public string Model { get; set; } = string.Empty;
+        public int Year { get; set; }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj is Car other)
+            {
+                return Model == other.Model && Year == other.Year;
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode() => base.GetHashCode();
+    }
 
     //public class Point
     //{
     //    public int X, Y;
     //}
 
-    //public class BaseClass
-    //{
-    //    public virtual void Foo()
-    //    {
-    //        Console.WriteLine("BaseClass.Foo");
-    //    }
-    //}
-    //public class Overrider : BaseClass
-    //{
-    //    public override void Foo()
-    //    {
-    //        Console.WriteLine("Overrider.Foo");
-    //    }
-    //}
-    //public class Hider : BaseClass
-    //{
-    //    public new void Foo()
-    //    {
-    //        Console.WriteLine("Hider.Foo");
-    //    }
-    //}
+    public class BaseClass
+    {
+        public virtual void Foo()
+        {
+            Console.WriteLine("BaseClass.Foo");
+        }
+    }
+    public class Overrider : BaseClass
+    {
+        public override void Foo()
+        {
+            Console.WriteLine("Overrider.Foo");
+        }
+    }
+    public class Hider : BaseClass
+    {
+        public new void Foo()
+        {
+            Console.WriteLine("Hider.Foo");
+        }
+    }
 
-    //public class A { public int Counter = 1; }
-    //public class B : A { public new int Counter = 2; }
+    public class A { public int Counter = 1; }
+    public class B : A { public new int Counter = 2; }
 
-    //public class FileHandler : IDisposable
-    //{
-    //    private readonly IntPtr fileHandle;
-    //    private bool disposed = false;
+    public class FileHandler : IDisposable
+    {
+        private readonly IntPtr fileHandle;
+        private bool disposed = false;
 
-    //    public FileHandler(string filePath)
-    //    {
-    //        fileHandle = OpenFile(filePath);
-    //    }
+        public FileHandler(string filePath)
+        {
+            fileHandle = OpenFile(filePath);
+        }
 
-    //    public void Dispose()
-    //    {
-    //        Console.WriteLine("dispose is called");
-    //        Dispose(true);
-    //        GC.SuppressFinalize(this);  // Prevent finalizer from running
-    //    }
+        public void Dispose()
+        {
+            Console.WriteLine("dispose is called");
+            Dispose(true);
+            GC.SuppressFinalize(this);  // Prevent finalizer from running
+        }
 
-    //    protected virtual void Dispose(bool disposing)
-    //    {
-    //        if (!disposed)
-    //        {
-    //            if (disposing)
-    //            {
-    //                Console.WriteLine("Clean up managed resources (if any)");
-    //            }
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposed)
+            {
+                if (disposing)
+                {
+                    Console.WriteLine("Clean up managed resources (if any)");
+                }
 
-    //            Console.WriteLine("Clean up unmanaged resources");
-    //            CloseFile(fileHandle);
-    //            disposed = true;
-    //        }
-    //    }
+                Console.WriteLine("Clean up unmanaged resources");
+                CloseFile(fileHandle);
+                disposed = true;
+            }
+        }
 
-    //    ~FileHandler()
-    //    {
-    //        Console.WriteLine("finalizer");
-    //        Dispose(false);  // Cleanup in case Dispose wasn't called
-    //    }
+        ~FileHandler()
+        {
+            Console.WriteLine("finalizer");
+            Dispose(false);  // Cleanup in case Dispose wasn't called
+        }
 
-    //    private IntPtr OpenFile(string path)
-    //    {
-    //        Console.WriteLine("File opened.");
-    //        return new IntPtr(123);  // Simulated handle
-    //    }
+        private IntPtr OpenFile(string path)
+        {
+            Console.WriteLine("File opened.");
+            return new IntPtr(123);  // Simulated handle
+        }
 
-    //    private void CloseFile(IntPtr handle)
-    //    {
-    //        Console.WriteLine("File closed.");
-    //    }
-    //}
+        private void CloseFile(IntPtr handle)
+        {
+            Console.WriteLine("File closed.");
+        }
+    }
 
     //public class FileHandler
     //{
@@ -778,48 +1200,48 @@
     //    }
     //}
 
-    //public class Sentence
-    //{
-    //    private readonly string[] _words = "Lorem Ipsum is simply dummy text of the printing and typesetting industry".Split();
-    //    public string this[int index] // indexer
-    //    {
-    //        get => _words[index];
-    //        set => _words[index] = value;
-    //    }
+    public class Sentence
+    {
+        private readonly string[] _words = "Lorem Ipsum is simply dummy text of the printing and typesetting industry".Split();
+        public string this[int index] // indexer
+        {
+            get => _words[index];
+            set => _words[index] = value;
+        }
 
-    //    public string this[int arg1, int arg2]
-    //    {
-    //        get
-    //        {
-    //            var sb = new StringBuilder();
-    //            sb.Append(_words[arg1]);
-    //            sb.Append(_words[arg2]);
+        public string this[int arg1, int arg2]
+        {
+            get
+            {
+                var sb = new StringBuilder();
+                sb.Append(_words[arg1]);
+                sb.Append(_words[arg2]);
 
-    //            return sb.ToString();
-    //        }
-    //    }
-    //}
+                return sb.ToString();
+            }
+        }
+    }
 
-    //public class Note
-    //{
-    //    public int Pitch { get; set; }
-    //    public decimal Duration { get; init; }
-    //}
+    public class Note
+    {
+        public int Pitch { get; set; }
+        public decimal Duration { get; init; }
+    }
 
-    //public class Rectangle
-    //{
-    //    public readonly float Width, Height;
+    public class Rectangle
+    {
+        public readonly float Width, Height;
 
-    //    public Rectangle(float width, float height)
-    //    {
-    //        Width = width;
-    //        Height = height;
-    //    }
+        public Rectangle(float width, float height)
+        {
+            Width = width;
+            Height = height;
+        }
 
-    //    public void Deconstruct(out float width, out float height)
-    //    {
-    //        width = Width;
-    //        height = Height;
-    //    }
-    //}
+        public void Deconstruct(out float width, out float height)
+        {
+            width = Width;
+            height = Height;
+        }
+    }
 }
