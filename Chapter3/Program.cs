@@ -252,7 +252,7 @@ namespace Chapter3
             }
             public class Hider : BaseClass
             {
-                public new void Foo() 
+                public new void Foo()
                 { 
                     Console.WriteLine ("Hider.Foo"); 
                 }
