@@ -759,8 +759,36 @@ namespace Chapter4
 
             /* Patterns
              
-             
+            object obj = "mahammad";
+
+            if (obj is string)
+            {
+                Console.WriteLine(((string)obj).Length);
+            }
+ 
+            Or, more concisely:
+            
+            if (obj is string s)
+            {
+                Console.WriteLine(s.Length);
+            }
+
+
+            This employs one kind of pattern called a type pattern. 
+            The is operator also supports other patterns that were introduced in recent versions of C#, such as the property pattern:
+
+            if (obj is string { Length: 4 })
+            {
+                Console.WriteLine("A string with 4 characters.");
+            }
+            
+            Patterns are supported in the following contexts:
+            1. After the is operator (variable is pattern)
+            2. In switch statements
+            3. In switch expressions 
+
             */
+
         }
 
         static IEnumerable<string> Foo(bool breakEarly)
