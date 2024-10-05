@@ -1,7 +1,10 @@
-﻿using System.Net;
+﻿using System;
+using System.Data.SqlTypes;
+using System.Net;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.X86;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Chapter4
@@ -164,11 +167,10 @@ namespace Chapter4
 
         public static bool operator !=(GeneratedPoint left, GeneratedPoint right) => !Equals(left, right);
     }
-    record Student(string ID, string LastName, string GivenName)
+    public record Student(string ID, string LastName, string GivenName)
     {
         public string ID { get; } = ID;
     }
-
     public record PointValidation
     {
         public PointValidation(double x, double y) => (X, Y) = (x, y);
@@ -186,10 +188,11 @@ namespace Chapter4
         }
         public double Y { get; init; }
     }
+    struct Geometry { public int x, y; }
 
     internal class Program
     {
-        private static void Main(string[] args)
+        static unsafe void Main(string[] args)
         {
             /* Delegates
 
@@ -758,16 +761,16 @@ namespace Chapter4
             */
 
             /* Patterns
-             
+
             object obj = "mahammad";
 
             if (obj is string)
             {
                 Console.WriteLine(((string)obj).Length);
             }
- 
+
             Or, more concisely:
-            
+
             if (obj is string s)
             {
                 Console.WriteLine(s.Length);
@@ -781,7 +784,7 @@ namespace Chapter4
             {
                 Console.WriteLine("A string with 4 characters.");
             }
-            
+
             Patterns are supported in the following contexts:
             1. After the is operator (variable is pattern)
             2. In switch statements
@@ -789,6 +792,389 @@ namespace Chapter4
 
             */
 
+            /* Caller Info Attributes
+
+            You can tag optional parameters with one of three caller info attributes, 
+            which instruct the compiler to feed information obtained from the caller’s source code 
+            into the parameter’s default value:
+
+            1. [CallerMemberName] applies the caller’s member name.
+            2. [CallerFilePath] applies the path to the caller’s source code file.
+            3. [CallerLineNumber] applies the line number in the caller’s source code file.
+
+            */
+
+            /* Operator Overloading
+
+            You overload an operator by declaring an operator function. 
+            An operator function has the following rules:
+
+            1. The name of the function is specified with the operator keyword followed by an operator symbol.
+            2. The operator function must be marked as static and public.
+            3. The parameters of the operator function represent the operands.
+            4. At least one of the parameters of a binary operator must be the containing type.
+
+            In the following example, we define a struct called Note representing a musical note 
+            and then overload the + operator:
+
+            public class Note
+            {
+                private int _value;
+
+                public Note(int Value)
+                {
+                    _value = Value;
+                }
+
+                public int Value
+                {
+                    get => _value;
+                    set
+                    {
+                        if (_value != value)
+                        {
+                            _value = value;
+                        }
+                    }
+                }
+
+                public static Note operator +(Note previousNote, int value)
+                {
+                    return new Note(previousNote._value + value);
+                }
+            }
+
+            // Using overloaded operators
+            Note noteA = new Note(0);  // A4 (440 Hz)
+            Note noteB = noteA + 12;   // One octave above A4 (A5)
+
+            Overloading an operator automatically overloads the corresponding compound assignment operator. 
+            In our example, because we overrode +, we can use +=, too: CSharp += 2;
+
+            // Loop until note value exceeds a specific frequency threshold
+            int loopInitializingCount = 0;
+            while ((double)noteA < 800.0)  // Compare note to frequency
+            {
+                noteA += 1;
+                loopInitializingCount++;
+            }
+
+            Console.WriteLine($"Loop initializing count: {loopInitializingCount}, new note: {noteA}, frequency: {(double)noteA} Hz");
+
+
+            ---Overloading Equality and Comparison Operators
+            Equality and comparison operators are sometimes overridden when writing structs, 
+            and in rare cases when writing classes.
+
+            1. Pairing
+            The C# compiler enforces operators that are logical pairs to both be defined.
+            These operators are logical pairs: 
+            1. (== . !=), 
+            2. (< . >), and 
+            3. (<= . >=).
+
+            bool isHigher = noteB > noteA.Value;
+            Console.WriteLine($"Is {noteB} higher than {noteA}? {isHigher}");
+
+            2. Equals and GetHashCode
+            In most cases, if you overload (==) and (!=), you must override the Equals and GetHashCode methods 
+            defined on object in order to get meaningful behavior.
+
+            3. IComparable and IComparable<T>
+            If you overload (< >) and (<= >=), you should implement IComparable and IComparable<T>.
+            */
+
+            /* Custom Implicit and Explicit Conversions
+             
+            Implicit and explicit conversions are overloadable operators. 
+            Overloading implicit and explicit conversions requires you to define methods that 
+            convert between types in a natural, readable way.
+
+            For implicit conversions, the conversion should be safe, meaning it won’t lose information. 
+            For explicit conversions, which need a cast, 
+            there’s a possibility of losing data or the conversion failing under certain conditions.
+
+            public static implicit operator double(Note note)
+            {
+                return 440 * Math.Pow(2, (double)note.Value / 12);
+            }
+
+            public static explicit operator Note(double frequency)
+            {
+                return new Note((int)(0.5 + 12 * (Math.Log(frequency / 440) / Math.Log(2))));
+            }
+
+           // Explicit conversion from frequency to Note
+            Note noteFromFrequency = (Note)554.37;
+            Console.WriteLine($"Note from 554.37 Hz: {noteFromFrequency}");
+
+            // Implicit conversion from Note to frequency
+            double frequency = noteFromFrequency;
+            Console.WriteLine($"Frequency from Note {noteFromFrequency}: {frequency} Hz");
+
+            */
+
+            /* example codes for operators
+             
+                        //// Explicit conversion from frequency to Note
+            //Note noteFromFrequency = (Note)554.37;
+            //Console.WriteLine($"Note from 554.37 Hz: {noteFromFrequency}");
+
+            //// Implicit conversion from Note to frequency
+            //double frequency = noteFromFrequency;
+            //Console.WriteLine($"Frequency from Note {noteFromFrequency}: {frequency} Hz");
+
+            //// Using overloaded operators
+            //Note noteA = new Note(0);  // A4 (440 Hz)
+            //Note noteB = noteA + 12;   // One octave above A4 (A5)
+
+            //bool isHigher = noteB > noteA.Value;
+            //Console.WriteLine($"Is {noteB} higher than {noteA}? {isHigher}");
+
+            //// Loop until note value exceeds a specific frequency threshold
+            //int loopInitializingCount = 0;
+            //while ((double)noteA < 800.0)  // Compare note to frequency
+            //{
+            //    noteA += 1;
+            //    loopInitializingCount++;
+            //}
+
+            //Console.WriteLine($"Loop initializing count: {loopInitializingCount}, new note: {noteA}, frequency: {(double)noteA} Hz");
+
+            */
+
+            /* Unsafe Code and Pointers
+            
+            n C#, using pointers allows direct memory manipulation, but it must be done within an unsafe code block. 
+            This is often needed for interacting with unmanaged code (like C APIs) or for optimizing performance. 
+            However, it requires the /unsafe compiler option because it's not type-safe.
+
+            ---For every value type or reference type V, there is a corresponding pointer type V*. 
+            A pointer instance holds the address of a variable. 
+            
+            *In C#, the following pointer types are available:
+
+            1. Value Type Pointers: Pointers to primitive types like int*, float*, double*, etc.
+               Example: int* p;
+
+            2. Reference Type Pointers: Pointers to reference types like classes or arrays 
+               (though it's unsafe and rarely used).
+               Example: MyClass* ptr;
+
+            3. Void Pointers: void* can point to any type, but can't be dereferenced directly. 
+               Useful for general-purpose memory manipulation.
+               Example: 
+                        void* pVoid = pNum; 
+                        Console.WriteLine("Void pointer holding address: " + (IntPtr)pVoid);
+
+            4. Pointer to Pointers: You can have pointers that point to other pointers, such as int**.
+
+            int x = 10;      // x is stored at address 0x7ffeefbff5b8
+            int* p = &x;     // p holds the address 0x7ffeefbff5b8
+            int** pointerToPointer = &p;
+            int*** pointerToPointerToPointer = &pointerToPointer;
+
+            int dereferencedValue = **pointerToPointer;
+            int dereferencedTriple = ***pointerToPointerToPointer;
+
+            ---In C#, pointer types allow you to work directly with memory addresses using the following operators:
+
+            1. & (address-of): Gets the memory address of a variable, returning a pointer to it. 
+
+            unsafe
+            {
+                int x = 10;
+                int* pointer = &x;
+            }
+
+            Stack:
+            
+            x = 10 is stored in the stack since x is a local variable of type int, which is a value type. 
+            The stack holds both the value (10) and the variable (x).
+
+            p is also placed in the stack. It's a pointer, so it stores the memory address of the variable x (not the value of x). 
+            The pointer p holds the address of where x is located in memory.
+
+            For example, let's say the variable x is stored at memory location 0x7ffeefbff5b8. 
+            When you assign p = &x;, the pointer p holds this memory address.
+
+            int x = 10;      // x is stored at address 0x7ffeefbff5b8
+            int* p = &x;     // p holds the address 0x7ffeefbff5b8
+
+            x stores the value 10.
+            p stores the memory address (e.g., 0x7ffeefbff5b8), which points to where x is located in memory.
+
+            When you use the dereference operator (*p), you access the value 10 by referring to that memory address.
+
+            2. * (dereference): Accesses the value stored at the address a pointer holds.
+
+            int y = *p;
+            Console.WriteLine($"y now holds the value stored at p (which is x's value): {y}");
+
+            3. -> (pointer-to-member): Shortcut for accessing a member via a pointer. x->y is equivalent to (*x).y.
+
+            struct Geometry { public int x, y; }
+
+            Geometry geom = new Geometry { x = 10, y = 20 };
+            Geometry* gPt = &geom;
+
+            Console.WriteLine($"x val: {gPt->x}, y val: {gPt->y}");
+            Console.WriteLine($"[same logic] x val: {(*gPt).x}, y val: {(*gPt).y}");
+
+            By marking a type, type member, or statement block with the unsafe keyword,
+            you’re permitted to use pointer types and perform C++ style pointer operations on memory within that scope.
+            Unsafe code can run faster than a corresponding safe implementation. 
+
+            */
+
+            /* The fixed statement
+             
+            The fixed statement in C# is essential when working with pointers and managed memory. 
+            Since the garbage collector (GC) can move objects in memory during its operation, 
+            using pointers to managed objects can lead to invalid memory references if those objects are relocated. 
+            The fixed statement "pins" an object in memory, 
+            ensuring that its address remains stable while you work with it.
+
+            ---Key Points about fixed Statement
+
+            1. Purpose: 
+            To prevent the garbage collector from moving an object while you're accessing it through pointers.
+
+            2. Usage: 
+            Typically used with value types, arrays, or strings that you want to manipulate directly in memory.
+
+            3. Performance Impact: 
+            Pinning an object can impact the performance of the garbage collector, 
+            so it should be used sparingly and only for short periods.
+
+            int[] numbers = { 1, 2, 3, 4, 5 };
+            int length = numbers.Length;
+
+            fixed (int* p = numbers) // p points to the first element of the array
+            {
+                int* currentPointer = p;
+                int i = 0;
+
+                while (i < length)
+                {
+                    Console.WriteLine($"Address of element {i}: {(IntPtr)currentPointer:X}");
+                    Console.WriteLine($"Value of element {i}: {*currentPointer}");
+
+                    currentPointer += 1;
+                    i++;
+                }
+            }
+
+            #region About Garbage Collector
+            ---What does it mean to move objects, and why is it useful?
+
+            1. Where does the GC move objects?
+            Objects in C# are typically allocated on the heap, which is a large pool of memory.
+            Over time, as objects are created and destroyed, the heap becomes fragmented.
+            This means that while there may be plenty of free memory overall, 
+            you might not have a large enough contiguous block for new large objects.
+
+            To avoid this problem, the GC moves live objects closer together in memory, 
+            creating large, contiguous free blocks. This process is called compacting the heap.
+            Compaction proceeds from the bottom of the heap (low addresses) to the top (high addresses).
+
+            2. What is memory fragmentation?
+            Fragmentation occurs when there are small, unused gaps in memory between live objects.
+            If you have many small gaps, it can be hard to find large enough blocks of memory for new allocations, 
+            even if the total free memory is sufficient.
+
+            3. Why does moving objects improve memory utilization?
+            By moving objects and packing them closer together, the GC consolidates free memory into larger blocks.
+            This allows for more efficient allocation of new objects and 
+            reduces the need to request additional memory from the operating system.
+
+            ---Visual Example of Memory Fragmentation:
+            Imagine the heap as a long row of boxes representing memory, and 
+            each box can either be occupied or free:
+
+            Before GC moves objects (fragmented memory):
+            | Object A | Free | Object B | Free | Object C | Free | Object D |
+
+            After GC moves objects (compact memory):
+            | Object A | Object B | Object C | Object D | Free | Free | Free |
+
+            By moving the objects closer together, the GC consolidates the free memory into a large, continuous block, 
+            making it easier to allocate memory for new objects.
+            #endregion
+
+            */
+
+            /* The stackalloc Keyword
+             
+            The stackalloc keyword in C# allows you to allocate a block of memory directly on the stack instead of the heap.
+            This memory is temporary and is automatically freed when the method in which it is declared returns, just like any other local variable. 
+            This is useful when you need fast, temporary memory without the overhead of garbage collection.
+
+            Key Points
+
+            1. Stack Allocation
+
+            1.1) The memory allocated using stackalloc is on the stack, 
+            which is much faster to allocate and deallocate than heap memory.
+            1.2) The memory is limited to the method's scope and is freed as soon as the method returns.
+
+            2. Limitations:
+
+            2. 1) The size of the stack is much smaller than the heap, so you should only allocate small blocks of memory using stackalloc. 
+            If you allocate too much memory, you may encounter a stack overflow.
+
+            */
+
+            #region Unsafe Code Examples
+            //int* nums = stackalloc int[10];
+            //// int* numbers = stackalloc int[10]; allocates an array of 10 integers on the stack.
+
+            //for (int i = 0; i < 10; ++i)
+            //    nums[i] = i;
+
+            //for (int i = 0; i < 10; ++i)
+            //    Console.WriteLine($"numbers[{i}] = {nums[i]}");
+
+            //int[] numbers = { 1, 2, 3, 4, 5 };
+            //int length = numbers.Length;
+
+            //fixed (int* p = numbers) // p points to the first element of the array
+            //{
+            //    int* currentPointer = p;
+            //    int i = 0;
+
+            //    while (i < length)
+            //    {
+            //        Console.WriteLine($"Address of element {i}: {(IntPtr)currentPointer:X}");
+            //        Console.WriteLine($"Value of element {i}: {*currentPointer}");
+
+            //        currentPointer += 1;
+            //        i++;
+            //    }
+            //}
+
+            //int x = 10;      // x is stored at address 0x7ffeefbff5b8
+            //int* y = &x;     // p holds the address 0x7ffeefbff5b8
+            //int** pointerToPointer = &y;
+            //int*** pointerToPointerToPointer = &pointerToPointer;
+
+            //int dereferencedValue = **pointerToPointer;
+            //int dereferencedTriple = ***pointerToPointerToPointer;
+
+            //Geometry geom = new Geometry { x = 10, y = 20 };
+            //Geometry* gPt = &geom;
+
+            //Console.WriteLine($"x val: {gPt->x}, y val: {gPt->y}");
+            //Console.WriteLine($"[same logic] x val: {(*gPt).x}, y val: {(*gPt).y}");
+            #endregion
+        }
+
+        static void CallerInfo(
+            [CallerMemberName] string? memberName = null,
+            [CallerFilePath] string? filePath = null,
+            [CallerLineNumber] int lineNumber = 0)
+        {
+            Console.WriteLine($"member name: {memberName}\nfile path: {filePath}\nline number: {lineNumber}");
         }
 
         static IEnumerable<string> Foo(bool breakEarly)
@@ -807,7 +1193,7 @@ namespace Chapter4
             yield return "Two";
             yield return "Three";
         }
-        IEnumerable<int> Fibs(int fibCount)
+        static IEnumerable<int> Fibs(int fibCount)
         {
             for (int i = 0, prevFib = 1, curFib = 1; i < fibCount; i++)
             {
