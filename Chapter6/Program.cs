@@ -451,6 +451,17 @@ namespace Chapter6
             /* UseShellExecute
              
             The UseShellExecute flag changes how the CLR starts the process. With UseShell Execute true, you can do the following:
+
+            1. Specify a path to a file or document rather than an executable 
+            (resulting in the operating system opening the file or document with its associated application)
+             
+            The drawback is that you cannot redirect the input or output streams.
+            Should you need to do so—while launching a file or document—a workaround is to set UseShellExecute to false
+
+            */
+
+            /* AppContext
+             
              
             */
 
