@@ -514,7 +514,7 @@ namespace Chapter7
 
             */
 
-            /* HashSet<T> and Sorted<T>
+            /* HashSet<T> and SortedSet<T>
             
             HashSet<T> and SortedSet<T> have the following distinguishing features:
             • Their Contains methods execute quickly using a hash-based lookup.
@@ -523,12 +523,13 @@ namespace Chapter7
 
             SortedSet<T> keeps elements in order, whereas HashSet<T> does not.
 
-            Both collections implement ICollection<T> and offer methods that you would expect, such as Contains, Add, and Remove. 
+            Both collections implement ICollection<T> and offer methods that you would expect, 
+            such as Contains, Add, and Remove. 
             In addition, there’s a predicate-based removal method called RemoveWhere.
 
             1. Contains Methods Execute Quickly Using Hash-Based Lookup
 
-            HashSet<T> uses a hash table under the hood, which provides fast lookups. 
+            HashSet<T> uses a hash table under the hood, which provides fast lookups.
             When you call Contains(item) on a HashSet<T>, 
             it calculates the hash code of the item and uses it to quickly locate the item in the collection.
 
@@ -651,7 +652,8 @@ namespace Chapter7
             The primary feature of OrderedDictionary is that it maintains the order of elements as they are added. 
             This means that if you add elements in a specific sequence, you can retrieve them in the same order.
 
-            The term "primary feature" is used to highlight that the main distinction of OrderedDictionary from other dictionary types, 
+            The term "primary feature" is used to highlight that 
+            the main distinction of OrderedDictionary from other dictionary types, 
             like a standard Dictionary<TKey, TValue>, is its ability to maintain the insertion order of elements.
 
             Clarification on Dictionary Behavior:
