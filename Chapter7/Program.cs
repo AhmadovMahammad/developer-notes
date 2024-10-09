@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace Chapter7
 {
@@ -565,10 +566,14 @@ namespace Chapter7
             hashSet1.UnionWith(hashSet2);
             Console.WriteLine("Union: " + string.Join(", ", hashSet1)); // Output: 1, 2, 3, 4, 5, 6
 
+            UnionWith adds all the elements in the second set to the original set (excluding duplicates).
+
             // Intersection: Finds common elements between the two sets.
             var intersection = hashSet1.Intersect(hashSet2);
             Console.WriteLine("Intersection: " + string.Join(", ", intersection)); // Output: 3, 4, 5, 6
             Console.WriteLine("HashSet_1: " + string.Join(", ", hashSet1)); // Output: 1,2, 3, 4, 5, 6
+
+            IntersectWith removes the elements that are not in both sets.
 
             // Difference: Finds elements in one set that are not in the other.
             var difference = new HashSet<int>(hashSet1);
@@ -579,30 +584,125 @@ namespace Chapter7
             var symmetricDifference = new HashSet<int>(hashSet1);
             symmetricDifference.SymmetricExceptWith(hashSet2);
             Console.WriteLine("Symmetric Difference: " + string.Join(", ", symmetricDifference)); // Output: 1, 2, 5, 6
+
+            ---
+            SortedSet<T> offers all the members of HashSet<T>, plus the following:
+            
+            public virtual SortedSet<T> GetViewBetween (T lowerValue, T upperValue)
+            public IEnumerable<T> Reverse()
+            public T Min { get; }
+            public T Max { get; }
 
             */
 
-            var hashSet1 = new HashSet<int> { 1, 2, 3, 4 };
-            var hashSet2 = new HashSet<int> { 3, 4, 5, 6 };
+            /* Understanding Hash Codes, Buckets, and Collisions in a Dictionary
+             
+            1. Hash Code
 
-            // Union: Combines elements from both sets, keeping only unique elements.
-            hashSet1.UnionWith(hashSet2);
-            Console.WriteLine("Union: " + string.Join(", ", hashSet1)); // Output: 1, 2, 3, 4, 5, 6
+            When you add a key to a dictionary, it is transformed into a hash code, 
+            which is a numerical value (usually an integer) representing that key. 
+            This hash code is essential for locating the corresponding value in the dictionary.
 
-            // Intersection: Finds common elements between the two sets.
-            var intersection = hashSet1.Intersect(hashSet2);
-            Console.WriteLine("Intersection: " + string.Join(", ", intersection)); // Output: 3, 4, 5, 6
-            Console.WriteLine("HashSet_1: " + string.Join(", ", hashSet1)); // Output: 1,2, 3, 4, 5, 6
+            Adding the key "apple" might generate a hash code of 123456.
+            Adding the key "banana" might generate a hash code of 789012.
 
-            // Difference: Finds elements in one set that are not in the other.
-            var difference = new HashSet<int>(hashSet1);
-            difference.ExceptWith(hashSet2);
-            Console.WriteLine("Difference: " + string.Join(", ", difference)); // Output: 1, 2
+            2. Buckets
 
-            // Symmetric Difference: Finds elements that are in either of the sets but not in both.
-            var symmetricDifference = new HashSet<int>(hashSet1);
-            symmetricDifference.SymmetricExceptWith(hashSet2);
-            Console.WriteLine("Symmetric Difference: " + string.Join(", ", symmetricDifference)); // Output: 1, 2, 5, 6
+            The dictionary organizes its entries into buckets. Each bucket can hold one or more key-value pairs. 
+            The hash code helps determine which bucket an entry belongs to.
+
+            Bucket 0: | (Key: "apple", Value: 1)
+            Bucket 1: | (Key: "banana", Value: 2)
+            Bucket 2: | 
+            Bucket 3: | 
+            Bucket 4: | 
+
+            If we add another entry with a hash code that points to the same bucket as "apple", it would look like this:
+
+            Bucket 0: | (Key: "apple", Value: 1)
+                      | (Key: "grape", Value: 3) // Collision occurs here
+            Bucket 1: | (Key: "banana", Value: 2)
+            Bucket 2: | 
+            Bucket 3: | 
+            Bucket 4: | 
+
+            3. Handling Collisions
+
+            Sometimes, two different keys can produce the same hash code, which is called a collision. 
+            Here’s how the dictionary deals with it:
+
+            Distribution: A good hash function aims to spread hash codes evenly across the available buckets, minimizing collisions.
+            Linear Search: If a collision occurs (like with "apple" and "grape" in Bucket 0), 
+            the dictionary will search through the entries in that bucket to find the correct key-value pair.
+
+            The average time complexity for operations like adding, removing, and accessing items in a dictionary is O(1) (constant time), meaning it’s fast. 
+            However, in cases of collisions where many items share the same bucket, 
+            the time can increase to O(n) (linear time) because the dictionary may need to check each item in the bucket.
+
+            */
+
+            /* Ordered Dictionary
+             
+            An OrderedDictionary is a collection type in .NET that combines features of both a Hashtable and an ArrayList. 
+            Here’s a breakdown of its key characteristics:
+
+            1. Order Preservation: 
+
+            The primary feature of OrderedDictionary is that it maintains the order of elements as they are added. 
+            This means that if you add elements in a specific sequence, you can retrieve them in the same order.
+
+            The term "primary feature" is used to highlight that the main distinction of OrderedDictionary from other dictionary types, 
+            like a standard Dictionary<TKey, TValue>, is its ability to maintain the insertion order of elements.
+
+            Clarification on Dictionary Behavior:
+
+            1.1. Standard Dictionary:
+
+            In a standard Dictionary<TKey, TValue>, elements are not guaranteed to maintain the order of insertion.
+            The underlying structure of a standard dictionary uses a hash table, which organizes elements based on their hash codes. 
+            As a result, the retrieval order may differ from the order in which elements were added.
+
+            1.2. OrderedDictionary:
+
+            In contrast, an OrderedDictionary explicitly maintains the order of elements as they are added.
+            When you iterate over the elements of an OrderedDictionary, 
+            you will retrieve them in the exact sequence you added them.
+
+            Dictionary<string, int> dict = new Dictionary<string, int>();
+            dict.Add("One", 1);
+            dict.Add("Two", 2);
+            dict.Add("Three", 3);
+
+            Console.WriteLine("Dictionary output:");
+            foreach (var kv in dict)
+            {
+                Console.WriteLine($"{kv.Key}: {kv.Value}");
+            }
+
+            Output could vary: The order of elements may not match the order of insertion 
+            (the output order could be Three, One, Two, etc.).
+
+            Summary:
+            OrderedDictionary: Guarantees retrieval in the order of insertion.
+            Dictionary<TKey, TValue>: Does not guarantee order, as it organizes items based on hash codes.
+
+
+            2. Key and Index Access: 
+
+            Unlike a standard Hashtable, which allows access only by key, 
+            an OrderedDictionary lets you access elements both 1. by their key (like in a dictionary) and 2. by their index (like in an array). 
+            This dual access method makes it more flexible in certain scenarios.
+
+            3. Functionality: 
+            It has the methods and properties of both 
+            
+            1. a Hashtable (like Add, Remove, and Contains) and 
+            2. an ArrayList (like RemoveAt and an integer indexer). 
+
+            It also provides properties like Keys and Values, which return the keys and values in the order they were added.
+
+            */
+
         }
     }
 }

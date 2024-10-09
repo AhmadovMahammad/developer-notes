@@ -460,11 +460,6 @@ namespace Chapter6
 
             */
 
-            /* AppContext
-             
-             
-            */
-
             var response = RunCommand("powershell.exe", "Get-Process");
 
             switch (string.IsNullOrEmpty(response.errors))
