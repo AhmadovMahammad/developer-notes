@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections;
+using System.Collections.ObjectModel;
 
 namespace Chapter7
 {
@@ -406,8 +407,202 @@ namespace Chapter7
 
             /* IList<T> and IList
              
+            IList<T> is the standard interface for collections indexable by position. 
+            In addition to the functionality inherited from ICollection<T> and IEnumerable<T>, 
+            it provides 
+            
+            1. the ability to read or write an element by position (via an indexer) and 
+            2. insert / remove by position:
+
+            public interface IList<T> : ICollection<T>, IEnumerable<T>, IEnumerable
+            {
+                T this[int index] { get; set; }
+                void Insert(int index, T item);
+                void RemoveAt(int index);
+                int IndexOf(T item);
+            }
+
+            Note: 
+            The IndexOf methods perform a linear search on the list, returning −1 if the specified item is not found.
+
+            The Add method on the nongeneric IList interface returns an integer—this is the index of the newly added item. 
+            In contrast, the Add method on ICollection<T> has a void return type.
+
             */
 
+            /* The Array Class
+             
+            The Array class is the implicit base class for all single and multidimensional arrays, 
+            and it is one of the most fundamental types implementing the standard collection interfaces. 
+            The Array class provides type unification, so a common set of methods is available to all arrays, 
+            regardless of their declaration or underlying element type.
+
+            The CLR also treats array types specially upon construction, assigning them a contiguous space in memory. 
+            This makes indexing into arrays highly efficient, but prevents them from being resized later on.
+             
+            An array can contain value-type or reference-type elements. 
+            
+            Value-type elements are stored in place in the array, so an array of three long integers (each 8 bytes) 
+            will occupy 24 bytes of contiguous memory. 
+            
+            A reference type element, however, occupies only as much space in the array as a reference 
+            (4 bytes in a 32-bit environment or 8 bytes in a 64-bit environment).
+
+            StringBuilder[] builders = new StringBuilder [5];
+            builders [0] = new StringBuilder ("builder1");
+            builders [1] = new StringBuilder ("builder2");
+            builders [2] = new StringBuilder ("builder3");
+            
+            long[] numbers = new long [3];
+            numbers [0] = 12345;
+            numbers [1] = 54321;
+
+            1. Why is long 64 bits?
+            The long data type in C# is a value type that holds a 64-bit integer (also known as Int64). 
+            This means that whenever you declare a long array, 
+            the actual values are stored in-place within the array itself.
+
+            2. Why does StringBuilder use 32 or 64 bits?
+
+            StringBuilder is a reference type.
+            In C#, reference types are stored on the heap, 
+            but the reference (or pointer) to that object is stored in the array.
+
+            In this case, the StringBuilder[] array stores references to StringBuilder objects. 
+            The size of each reference (whether 32 or 64 bits) depends on whether you're running on a 32-bit or 64-bit environment.
+
+
+            1. For Value-Type Array (long[] numbers)
+            
+            Stack:
+            +------------------+
+            | numbers (array)  | --> +---------+---------+---------+
+            |                  |     | 12345   | 54321   |    0    |
+            +------------------+     +---------+---------+---------+
+                                        (contiguous memory)
+            
+            Heap:
+            (nothing, because values are directly stored on the stack)
+
+            2. 
+            Stack:
+            +------------------+
+            | builders (array) | --> +---------+---------+---------+---------+---------+
+            |                  |     | Ref1    | Ref2    | Ref3    |  null   |  null   |
+            +------------------+     +---------+---------+---------+---------+---------+
+            
+            Heap:
+            +---------------------------+
+            | StringBuilder object (Ref1)| --> "builder1"
+            +---------------------------+
+            +---------------------------+
+            | StringBuilder object (Ref2)| --> "builder2"
+            +---------------------------+
+            +---------------------------+
+            | StringBuilder object (Ref3)| --> "builder3"
+            +---------------------------+
+
+            Arrays can be duplicated by calling the Clone method: arrayB = arrayA.Clone().
+            However, this results in a shallow clone, meaning that only the memory represented by the array itself is copied. 
+            
+            1. If the array contains value-type objects, the values themselves are copied; 
+            2. if the array contains reference type objects, just the references are copied
+
+            To create a deep copy—for which reference type subobjects are duplicated, 
+            you must loop through the array and clone each element manually. 
+
+            */
+
+            /* HashSet<T> and Sorted<T>
+            
+            HashSet<T> and SortedSet<T> have the following distinguishing features:
+            • Their Contains methods execute quickly using a hash-based lookup.
+            • They do not store duplicate elements and silently ignore requests to add duplicates.
+            • You cannot access an element by position.
+
+            SortedSet<T> keeps elements in order, whereas HashSet<T> does not.
+
+            Both collections implement ICollection<T> and offer methods that you would expect, such as Contains, Add, and Remove. 
+            In addition, there’s a predicate-based removal method called RemoveWhere.
+
+            1. Contains Methods Execute Quickly Using Hash-Based Lookup
+
+            HashSet<T> uses a hash table under the hood, which provides fast lookups. 
+            When you call Contains(item) on a HashSet<T>, 
+            it calculates the hash code of the item and uses it to quickly locate the item in the collection.
+
+            Why is it fast? 
+            Hash tables allow for near-constant time complexity, typically O(1), 
+            meaning the time it takes to find an element does not grow significantly as the set gets larger.
+
+            SortedSet<T> uses a red/black tree (a self-balancing binary search tree), which allows for efficient searching, 
+            It is slightly slower than hash-based lookups, with a time complexity of O(log n) for the Contains method.
+
+            2. No Duplicates Allowed
+
+            Both HashSet<T> and SortedSet<T> do not allow duplicates. 
+            If you try to add an element that is already in the set, 
+            it will be ignored without throwing an exception.
+
+            HashSet<T> checks for duplicates using the hash code of the element. 
+            If two elements have the same hash code (calculated via GetHashCode()), it considers them as duplicates.
+
+            SortedSet<T> checks for duplicates by comparing elements with a sorting rule (based on IComparable<T> or a custom comparator) 
+            because it maintains elements in a sorted order.
+
+            3. Commonality in Interface: ISet<T> and IReadOnlySet<T>
+
+            Both HashSet<T> and SortedSet<T> implement the ISet<T> interface. 
+            This interface defines the common set operations, such as Add, Remove, Contains, 
+            and set-specific operations like union and intersection.
+
+            CODE EXAMPLES
+
+            var hashSet1 = new HashSet<int> { 1, 2, 3, 4 };
+            var hashSet2 = new HashSet<int> { 3, 4, 5, 6 };
+
+            // Union: Combines elements from both sets, keeping only unique elements.
+            hashSet1.UnionWith(hashSet2);
+            Console.WriteLine("Union: " + string.Join(", ", hashSet1)); // Output: 1, 2, 3, 4, 5, 6
+
+            // Intersection: Finds common elements between the two sets.
+            var intersection = hashSet1.Intersect(hashSet2);
+            Console.WriteLine("Intersection: " + string.Join(", ", intersection)); // Output: 3, 4, 5, 6
+            Console.WriteLine("HashSet_1: " + string.Join(", ", hashSet1)); // Output: 1,2, 3, 4, 5, 6
+
+            // Difference: Finds elements in one set that are not in the other.
+            var difference = new HashSet<int>(hashSet1);
+            difference.ExceptWith(hashSet2);
+            Console.WriteLine("Difference: " + string.Join(", ", difference)); // Output: 1, 2
+
+            // Symmetric Difference: Finds elements that are in either of the sets but not in both.
+            var symmetricDifference = new HashSet<int>(hashSet1);
+            symmetricDifference.SymmetricExceptWith(hashSet2);
+            Console.WriteLine("Symmetric Difference: " + string.Join(", ", symmetricDifference)); // Output: 1, 2, 5, 6
+
+            */
+
+            var hashSet1 = new HashSet<int> { 1, 2, 3, 4 };
+            var hashSet2 = new HashSet<int> { 3, 4, 5, 6 };
+
+            // Union: Combines elements from both sets, keeping only unique elements.
+            hashSet1.UnionWith(hashSet2);
+            Console.WriteLine("Union: " + string.Join(", ", hashSet1)); // Output: 1, 2, 3, 4, 5, 6
+
+            // Intersection: Finds common elements between the two sets.
+            var intersection = hashSet1.Intersect(hashSet2);
+            Console.WriteLine("Intersection: " + string.Join(", ", intersection)); // Output: 3, 4, 5, 6
+            Console.WriteLine("HashSet_1: " + string.Join(", ", hashSet1)); // Output: 1,2, 3, 4, 5, 6
+
+            // Difference: Finds elements in one set that are not in the other.
+            var difference = new HashSet<int>(hashSet1);
+            difference.ExceptWith(hashSet2);
+            Console.WriteLine("Difference: " + string.Join(", ", difference)); // Output: 1, 2
+
+            // Symmetric Difference: Finds elements that are in either of the sets but not in both.
+            var symmetricDifference = new HashSet<int>(hashSet1);
+            symmetricDifference.SymmetricExceptWith(hashSet2);
+            Console.WriteLine("Symmetric Difference: " + string.Join(", ", symmetricDifference)); // Output: 1, 2, 5, 6
         }
     }
 }
