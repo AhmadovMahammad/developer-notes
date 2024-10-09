@@ -1,20 +1,7 @@
-﻿using System.Collections;
+﻿using System.Collections.ObjectModel;
 
 namespace Chapter7
 {
-    public class BlackMagic : IEnumerable
-    {
-        private readonly int[] _data = { 1, 2, 3 };
-
-        public IEnumerator GetEnumerator()
-        {
-            foreach (int i in _data)
-            {
-                yield return i;
-            }
-        }
-    }
-
     public class Program
     {
         private static void Main(string[] args)
@@ -297,7 +284,130 @@ namespace Chapter7
             then refactors GetEnumerator to instantiate and return that class.
 
             */
+
+            /* ICollection<T> and ICollection
+            
+            ICollection<T> is the standard interface for countable collections of objects. 
+            It provides the ability to determine 
+            
+            1. the size of a collection (Count), 
+            2. determine whether an item exists in the collection (Contains), 
+            3. copy the collection into an array (ToArray),
+            4. and determine whether the collection is read-only (IsReadOnly).
+
+            For writable collections, you can also Add, Remove, and Clear items from the collection. 
+            And because it extends IEnumerable<T>, it can also be traversed via the foreach statement:
+
+            public interface ICollection<T> : IEnumerable<T>, IEnumerable
+            {
+                int Count { get; }
+
+
+                bool Contains(T item);
+                void CopyTo(T[] array, int arrayIndex);
+                bool IsReadOnly { get; }
+
+                void Add(T item);
+                bool Remove(T item);
+                void Clear();
+            }
+            
+            The nongeneric ICollection is similar in providing a countable collection, 
+            but it doesn’t provide functionality for altering the list or checking for element membership:
+
+            public interface ICollection<T> : IEnumerable<T>, IEnumerable
+            {
+                int Count { get; }
+                bool IsSynchronized { get; }
+                object SyncRoot { get; }
+                void CopyTo(T[] array, int arrayIndex);
+            }
+
+            Both interfaces are fairly straightforward to implement. 
+            If implementing a read-only ICollection<T>, 
+            the Add, Remove, and Clear methods should throw a NotSupportedException.
+
+            The properties IsSynchronized and SyncRoot are part of the non-generic ICollection interface and 
+            were used to provide a thread-safety mechanism for collections in earlier versions of .NET.
+
+            ---Why use IsSynchronized and SyncRoot?
+
+            IsSynchronized: This indicates whether access to the collection is thread-safe. 
+            If it returns true, it means the collection is synchronized and can be safely accessed by multiple threads.
+
+            SyncRoot: This property provides an object that can be used to lock the collection during multi-threaded access. 
+            You can use SyncRoot with a lock statement to ensure only one thread accesses the collection at a time.
+
+            However, these properties were more important before modern concurrency practices
+            (like the use of concurrent collections or locks). 
+            In generic collections (e.g., ICollection<T>), these properties were dropped, 
+            as thread-safety was seen as something that should be managed separately 
+            (using synchronization techniques like locks, ConcurrentDictionary, or BlockingCollection).
+
+            public class MySynchronizedCollection : ICollection
+            {
+                private readonly ArrayList _items = new ArrayList();
+                private readonly object _syncRoot = new object();
+
+                public int Count
+                {
+                    get
+                    {
+                        lock (_syncRoot)
+                        {
+                            return _items.Count;
+                        }
+                    }
+                }
+
+                public bool IsSynchronized => true;
+                public object SyncRoot => _syncRoot;
+
+                public void Add(object item)
+                {
+                    lock (_syncRoot)
+                    {
+                        _items.Add(item);
+                    }
+                }
+
+                public void Remove(object item)
+                {
+                    lock (_syncRoot)
+                    {
+                        _items.Remove(item);
+                    }
+                }
+
+                public void CopyTo(Array array, int index)
+                {
+                    lock (_syncRoot)
+                    {
+                        _items.CopyTo(array, index);
+                    }
+                }
+
+                public IEnumerator GetEnumerator()
+                {
+                    return _items.GetEnumerator();
+                }
+            }
+
+            MySynchronizedCollection collection = new MySynchronizedCollection { 1, 2, 3 };
+            lock (collection.SyncRoot)
+            {
+                foreach (var item in collection)
+                {
+                    Console.WriteLine(item); // Output: 1 2 3
+                }
+            }
+
+            */
+
+            /* IList<T> and IList
+             
+            */
+
         }
-        // 345
     }
 }
