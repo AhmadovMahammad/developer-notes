@@ -1,4 +1,6 @@
-﻿using System.Net.NetworkInformation;
+﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Net.NetworkInformation;
 
 namespace Chapter8
 {
@@ -107,9 +109,165 @@ namespace Chapter8
 
             /* Using DbContext
             
+            After you’ve defined Entity classes and subclassed DbContext, 
+            you can instantiate your DbContext and query the database, as follows:
 
+            using var dbContext = new NutshellContext();
+            Console.WriteLine(dbContext.Customers.Count());
+            // Executes "SELECT COUNT(*) FROM [Customer] AS [c]"
+
+            You can also use your DbContext instance to write to the database. 
+            The following code inserts a row into the Customer table:
+            
+            using var dbContext = new NutshellContext();
+            Customer cust = new Customer()
+            {
+                Name = "Sara Wells"
+            };
+            
+            dbContext.Customers.Add (cust);
+            dbContext.SaveChanges(); // Writes changes back to database
             */
 
+            /* Object Tracking
+            
+            Object tracking in Entity Framework Core (EF Core) refers to the ability of the DbContext 
+            to keep track of the state of entity objects retrieved from the database.
+
+            1. Header: Entity State Management
+
+            When you retrieve entities from the database, EF Core tracks the entity's state 
+            (Added, Unchanged, Modified, Deleted, or Detached). 
+            
+            This state management allows EF Core to know if an entity needs to be 
+            1. inserted, 2. updated, or 3. deleted when SaveChanges is called.
+
+            using var dbContext = new NutshellContext();
+
+            // fake db seed
+            //var customer = new Customer
+            //{
+            //    CustomerID = Guid.NewGuid(),
+            //    FirstName = "Mahammad",
+            //    LastName = "Ahmadov"
+            //};
+
+            //dbContext.Customers.Add(customer);
+            //dbContext.SaveChanges();
+
+            //---------- First version with tracking
+
+            //// 1. EF Core tracks the customer after retrieving it from the database
+            //var customerFromDb = dbContext.Customers.First();
+            //Console.WriteLine($"First fetch: {customerFromDb.FirstName} {customerFromDb.LastName}");
+
+            //// 2. Change the customer's name (EF Core will mark it as Modified)
+            //customerFromDb.LastName = "Ahmadli";
+
+            //// Check the entity state before calling SaveChanges
+            //var entry = dbContext.Entry(customerFromDb);
+            //Console.WriteLine($"Customer State: {entry.State}"); // Output: Modified
+
+            //// Save the changes, so the modification is saved in the database
+            //dbContext.SaveChanges();
+
+            //// 3. Fetch the customer again, object tracking ensures we get the updated data
+            //var updatedCustomer = dbContext.Customers.First();
+            //Console.WriteLine($"Updated fetch: {updatedCustomer.FirstName} {updatedCustomer.LastName}");
+
+            //---------- Second version with no tracking
+
+            // 4. No-tracking query: fetch without tracking
+            
+            //var customerNoTracking = dbContext.Customers.AsNoTracking().First();
+            //Console.WriteLine($"No-tracking fetch: {customerNoTracking.FirstName} {customerNoTracking.LastName}");
+
+            //// Modify the entity (though it's not being tracked)
+            //customerNoTracking.LastName = "Updated LastName";
+
+            //// Attempt to check the entity state
+            //var entry = dbContext.Entry(customerNoTracking);
+
+            //// Checking the entity state will raise an exception or report "Detached" since it's not tracked.
+            //Console.WriteLine($"Customer State: {entry.State}"); // Output: Detached
+
+            2. Header: Identity Map Pattern
+
+            EF Core follows the Identity Map pattern to ensure that each entity is unique within the scope of a DbContext
+
+            using var dbContext = new NutshellContext();
+
+            Customer a = dbContext.Customers.OrderBy(c => c.FirstName).First();
+            Customer b = dbContext.Customers.OrderBy(c => c.CustomerID).First();
+            Console.WriteLine(Object.ReferenceEquals(a, b)); // True
+
+            The query may retrieve the same customer from the database twice, 
+            but EF Core ensures that it gives you the same instance of the Customer object. 
+            This helps in preventing inconsistent data states across your application.
+
+            3. Header: AsNoTracking Queries
+
+            If you are fetching data for read-only purposes and you don't need to track changes to entities, 
+            using the AsNoTracking method improves performance by not keeping track of the entities returned by the query.
+
+            No Changes Are Tracked: Any modifications you make to this entity will not be tracked by EF Core. 
+            Therefore, if you try to call SaveChanges(), 
+            EF Core won't know that anything has changed because the entity is not in the Modified state.
+
+            Read-Only Purpose: AsNoTracking() is primarily intended for read-only purposes where 
+            you don't intend to make changes to the data or persist those changes back to the database. 
+            It improves performance by avoiding the overhead of tracking entities.
+
+            using var dbContext = new NutshellContext();
+
+            var customerNoTracking = dbContext.Customers.AsNoTracking().First();
+            Console.WriteLine($"No-tracking fetch: {customerNoTracking.FirstName} {customerNoTracking.LastName}");
+
+            // Modify the entity (though it's not being tracked)
+            customerNoTracking.LastName = "Updated LastName";
+
+            // Attempt to check the entity state
+            var entry = dbContext.Entry(customerNoTracking);
+            Console.WriteLine($"Customer State: {entry.State}"); // Output: Detached
+
+            // No changes will be saved because customer is not tracked.
+            dbContext.SaveChanges();
+
+            If you want to persist changes to a non-tracked entity, you should change its state manually
+
+            entry.State = EntityState.Modified;
+            dbContext.SaveChanges(); // Now data is changed
+            */
+
+            /* Change Tracking
+             
+            */
+
+            //using var dbContext = new NutshellContext();
+
+            //var customerNoTracking = dbContext.Customers.AsNoTracking().First();
+            //Console.WriteLine($"No-tracking fetch: {customerNoTracking.FirstName} {customerNoTracking.LastName}");
+
+
+            /* Navigation Properties
+             
+            */
+
+            /* Loading navigation properties
+             
+            */
+
+            /* Lazy loading
+             
+            */
+
+            /* Deferred Execution
+             
+            */
+
+            /* Expression Trees (437)
+             
+            */
         }
     }
 }

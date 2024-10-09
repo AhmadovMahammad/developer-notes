@@ -1,22 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Security.Cryptography.X509Certificates;
 
 namespace Chapter8
 {
-    public record Customer
-    {
-        public Guid CustomerID { get; init; }
-        public string FirstName { get; init; } = string.Empty;
-        public string LastName { get; init; } = string.Empty;
-        public string Address { get; init; } = string.Empty;
-    }
-
     public class NutshellContext : DbContext
     {
-        public NutshellContext(DbContextOptions<NutshellContext> options) : base(options)
-        {
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
