@@ -3,23 +3,38 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34701.34
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Introduction", "Introduction_ch1\Introduction.csproj", "{4C0231D1-76D5-4B19-822D-D26C3B8CBE56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Introduction", "CoreProgramming\Introduction_ch1\Introduction.csproj", "{4C0231D1-76D5-4B19-822D-D26C3B8CBE56}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageBasics", "LanguageBasics_ch2\LanguageBasics.csproj", "{1B6C58EF-7CC0-4F79-BCE9-D69F2275D966}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageBasics", "CoreProgramming\LanguageBasics_ch2\LanguageBasics.csproj", "{1B6C58EF-7CC0-4F79-BCE9-D69F2275D966}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Widget1", "Widget1\Widget1.csproj", "{BF91CE02-EC5D-45A5-B003-4285EA03D177}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Widget1", "CoreProgramming\Widget1\Widget1.csproj", "{BF91CE02-EC5D-45A5-B003-4285EA03D177}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Widget2", "Widget2\Widget2.csproj", "{A34170D5-B8BA-4595-A880-A07EE605EE82}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Widget2", "CoreProgramming\Widget2\Widget2.csproj", "{A34170D5-B8BA-4595-A880-A07EE605EE82}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreatingTypes", "CreatingTypes_ch3\CreatingTypes.csproj", "{ED74B566-F144-4699-B549-69B1896B9F6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreatingTypes", "CoreProgramming\CreatingTypes_ch3\CreatingTypes.csproj", "{ED74B566-F144-4699-B549-69B1896B9F6C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advanced", "Advanced_ch4\Advanced.csproj", "{86CABAE4-26AC-4FC2-94CA-9A3ACFF8600E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advanced", "CoreProgramming\Advanced_ch4\Advanced.csproj", "{86CABAE4-26AC-4FC2-94CA-9A3ACFF8600E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fundamentals", "Fundamentals_ch6\Fundamentals.csproj", "{578A2B19-43BD-46BE-9A79-50482393D073}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fundamentals", "CoreProgramming\Fundamentals_ch6\Fundamentals.csproj", "{578A2B19-43BD-46BE-9A79-50482393D073}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Collections", "Collections_ch7\Collections.csproj", "{2FF6F86C-FD3A-4281-A1A7-91A0CEF2876C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Collections", "CoreProgramming\Collections_ch7\Collections.csproj", "{2FF6F86C-FD3A-4281-A1A7-91A0CEF2876C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinqQueries", "LinqQueries_ch8\LinqQueries.csproj", "{F8FA6057-C02B-4331-8F74-950DB6D7AA00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqQueries", "CoreProgramming\LinqQueries_ch8\LinqQueries.csproj", "{F8FA6057-C02B-4331-8F74-950DB6D7AA00}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToXML", "CoreProgramming\LinqToXML_ch10\LinqToXML.csproj", "{ED633413-AA13-4EF0-992D-C6B8A4463745}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CoreProgramming", "CoreProgramming", "{8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiDevelopment", "ApiDevelopment", "{DF955B9D-BFF5-4EC9-9DB4-C8CE583CE462}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataAndSqlManagement", "DataAndSqlManagement", "{43BCC41E-6362-435A-9F37-8A96289D0C96}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AdvancedTopics", "AdvancedTopics", "{C0FA8EE9-5FAC-4270-AACA-85E32DF00A3C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{29B16667-FBB9-4F60-B361-970468E6A702}"
+	ProjectSection(SolutionItems) = preProject
+		roadmap.txt = roadmap.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,9 +78,25 @@ Global
 		{F8FA6057-C02B-4331-8F74-950DB6D7AA00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8FA6057-C02B-4331-8F74-950DB6D7AA00}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8FA6057-C02B-4331-8F74-950DB6D7AA00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED633413-AA13-4EF0-992D-C6B8A4463745}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED633413-AA13-4EF0-992D-C6B8A4463745}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED633413-AA13-4EF0-992D-C6B8A4463745}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED633413-AA13-4EF0-992D-C6B8A4463745}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4C0231D1-76D5-4B19-822D-D26C3B8CBE56} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{1B6C58EF-7CC0-4F79-BCE9-D69F2275D966} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{BF91CE02-EC5D-45A5-B003-4285EA03D177} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{A34170D5-B8BA-4595-A880-A07EE605EE82} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{ED74B566-F144-4699-B549-69B1896B9F6C} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{86CABAE4-26AC-4FC2-94CA-9A3ACFF8600E} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{578A2B19-43BD-46BE-9A79-50482393D073} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{2FF6F86C-FD3A-4281-A1A7-91A0CEF2876C} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{F8FA6057-C02B-4331-8F74-950DB6D7AA00} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{ED633413-AA13-4EF0-992D-C6B8A4463745} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {95F99A9C-DD20-4D0D-94B9-C783BD9B162B}

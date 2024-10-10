@@ -1,0 +1,46 @@
+1. Core Programming (C# Fundamentals)
+
+2. API Development
+
+    1. RESTful Services with ASP.NET Core
+    2. Web API Design Principles (versioning, security, etc.)
+    3. Authentication and Authorization (JWT, OAuth)
+    4. gRPC and WebSockets
+
+3. Testing and Debugging
+
+    1. Unit Testing with xUnit/NUnit/MSTest
+    2. Test-Driven Development (TDD)
+    3. Mocking and Dependency Injection for Testing
+    4. Integration and Functional Testing
+    5. Performance and Load Testing
+    6. Debugging Techniques and Tools
+
+4. Data and SQL Management (Based on mainly interview questions)
+
+    1. ACID Principles 
+    2. BASE Principles
+    3. SQL and NoSQL
+    4. SQL Committed and Uncommitted Messages
+    5. Materialized View
+    6. SQL Indexing Types and BTree
+    7. SQL Pessimistic and Optimistic Locking
+    8. Isolation Layers
+    9. Clustered and Non-clustered Index
+    10. Normalization and Denormalization
+    11. Database Migration Best Practices
+    12. Database Sharding vs Database Partitioning
+    13. Database Replication
+
+5. Advanced Topics and Tools
+
+    1. Containers & Docker (Junior Level)
+    2. CI/CD Pipeline (Junior to Mid-Level)
+    3. Monitoring / Alerting / Logging (Junior to Mid-Level)
+    4. Microservices (Mid-Level)
+    5. Proxy / Reverse Proxy / Load Balancers (Mid-Level)
+    6. Distributed Systems / Designing High-Load Intensive Applications (Senior Level)
+    7. Kestrel (Optional, Relevant for .NET Developers)
+    8. Kubernetes (Optional, Advanced)
+    9. Cloud Platforms (AWS, Azure)
+    10. Message Brokers (RabbitMQ, Kafka)
