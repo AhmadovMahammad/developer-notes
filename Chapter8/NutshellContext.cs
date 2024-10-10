@@ -16,9 +16,14 @@ namespace Chapter8
         {
             modelBuilder.Entity<Customer>()
                 .ToTable("Customer", "DefaultSchema");
+
+            modelBuilder.Entity<Purchase>()
+                .ToTable("Purchase", "DefaultSchema");
         }
 
         public DbSet<Customer> Customers { get; set; } = null!;
+        public DbSet<Purchase> Purchases { get; set; } = null!;
+
         // properties for other tables
     }
 }

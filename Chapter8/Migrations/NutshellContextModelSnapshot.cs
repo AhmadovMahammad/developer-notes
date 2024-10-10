@@ -44,6 +44,48 @@ namespace Chapter8.Migrations
 
                     b.ToTable("Customer", "DefaultSchema");
                 });
+
+            modelBuilder.Entity("Chapter8.Purchase", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CustomerID")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("CustomerID");
+
+                    b.ToTable("Purchase", "DefaultSchema");
+                });
+
+            modelBuilder.Entity("Chapter8.Purchase", b =>
+                {
+                    b.HasOne("Chapter8.Customer", "Customer")
+                        .WithMany("Purchases")
+                        .HasForeignKey("CustomerID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+                });
+
+            modelBuilder.Entity("Chapter8.Customer", b =>
+                {
+                    b.Navigation("Purchases");
+                });
 #pragma warning restore 612, 618
         }
     }

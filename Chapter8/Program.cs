@@ -146,15 +146,26 @@ namespace Chapter8
             using var dbContext = new NutshellContext();
 
             // fake db seed
-            //var customer = new Customer
-            //{
-            //    CustomerID = Guid.NewGuid(),
-            //    FirstName = "Mahammad",
-            //    LastName = "Ahmadov"
-            //};
+            var customer = new Customer
+            {
+                CustomerID = Guid.NewGuid(),
+                FirstName = "Mahammad",
+                LastName = "Ahmadov",
+                Address = "Azerbaijan"
+            };
 
-            //dbContext.Customers.Add(customer);
-            //dbContext.SaveChanges();
+            var purchase = new Purchase
+            {
+                ID = Guid.NewGuid(),
+                Description = "Sample description",
+                Price = 99.99M,
+                Date = DateTime.Now,
+                CustomerID = customer.CustomerID,
+            };
+
+            dbContext.Customers.Add(customer);
+            dbContext.Purchases.Add(purchase);
+            dbContext.SaveChanges();
 
             //---------- First version with tracking
 
@@ -287,34 +298,128 @@ namespace Chapter8
 
             */
 
-            /* Navigation Properties
+            /* Navigation Properties in EF Core
              
+            Navigation properties in Entity Framework Core allow you to work with related entities (tables) 
+            in a more intuitive way, without having to write complex SQL joins or manually handle foreign keys.
 
-            */
+            1. Example: One-to-Many Relationship
+
+            Customer: A customer can have many purchases (one-to-many relationship).
+            Purchase: A purchase is associated with one customer.
+
+            public class Purchase
+            {
+                public Guid ID { get; set; }
+                public DateTime Date { get; set; }
+                public string Description { get; set; } = string.Empty;
+                public decimal Price { get; set; }
+
+                // Foreign key to Customer
+                public Guid CustomerID { get; set; } // Follows a common naming convention
+                public Customer Customer { get; set; } = null!; // Parent navigation property
+            }
+
+            public record Customer
+            {
+                public Guid CustomerID { get; init; }
+                public string FirstName { get; set; } = string.Empty;
+                public string LastName { get; set; } = string.Empty;
+                public string Address { get; init; } = string.Empty;
+
+                // Navigation property: A customer can have many purchases
+                public virtual IEnumerable<Purchase> Purchases { get; } = new List<Purchase>();
+            }
+
+            When you generate a database schema from this model, 
+            EF Core will automatically create a foreign key relationship between Purchase. 
+            CustomerID and Customer.ID.
+
+            --Writing Queries with Navigation Properties
 
             using var dbContext = new NutshellContext();
+            var customersWithPurchases = dbContext.Customers
+                .Where(c => c.Purchases.Any())
+                .ToList();
 
-            //var customerFromDb = dbContext.Customers.First();
-            //Console.WriteLine($"First fetch: {customerFromDb.FirstName} {customerFromDb.LastName}");
+            NOTE: 
+            When EF Core populates an entity, it does not (by default) populate its navigation properties:
+            
+            var cust = dbContext.Customers.First();
+            Console.WriteLine(cust.Purchases.Count()); // Always 0
 
-            //var customerNoTracking = dbContext.Customers.AsNoTracking().First();
-            //Console.WriteLine($"No-tracking fetch: {customerNoTracking.FirstName} {customerNoTracking.LastName}");
+            Solution #1:
+            is to use the Include extension method, 
+            which instructs EF Core to eagerly load navigation properties:
 
-            /* Loading navigation properties
+            var cust = dbContext.Customers
+                .Include(c => c.Purchases);
+
+            It loads all the properties of included entity.
+
+            Solution #2:
+            is to use a projection. This technique is particularly useful 
+            when you need to work with only some of the entity properties, because it reduces data transfer:
+
+            var customer = dbContext.Customers
+                .Where(c => c.CustomerID != Guid.Empty)
+                .Select(c => new
+                {
+                    FullName = $"{c.FirstName} {c.LastName}",
+                    Purchases = c.Purchases.Select(p => new
+                    {
+                        Description = p.Description,
+                    })
+                }).First();
+
+            */
+
+            /* What is virtual?
+
+            1. In C#, virtual is used to allow a method or property to be overridden in derived classes. 
+            However, in the context of EF Core, 
+            it serves a different purpose for navigation properties.
+
+            2. By marking a navigation property as virtual, you allow EF Core to use lazy loading on that property.
+            Lazy loading means that the related data (such as purchases for a customer) 
+            is loaded from the database only when it is accessed, not when the entity is first queried.
+
+            --Lazy Loading on Customer.Purchases
+            
+            The virtual keyword is applied to the Purchases collection in Customer 
+            because you want lazy loading for the list of purchases. 
+            This means EF Core will load the Purchases collection only when it is accessed, 
+            not when the Customer is first retrieved from the database.
+
+            var customer = dbContext.Customers.First(); // Purchases not loaded yet
+            var purchases = customer.Purchases; // Purchases are now loaded
+
+            The reason the Customer property inside Purchase isn't marked as virtual is because typically:
+            It’s a reference to a single entity, 
+            and loading a single related entity (like a parent) doesn’t incur much overhead.
              
             */
 
-            /* Lazy loading
-             
-            */
+            // Code Examples
+            using var dbContext = new NutshellContext();
 
-            /* Deferred Execution
-             
-            */
+            var customer = dbContext.Customers
+                .Where(c => c.CustomerID != Guid.Empty)
+                .Select(c => new
+                {
+                    FullName = $"{c.FirstName} {c.LastName}",
+                    Purchases = c.Purchases.Select(p => new
+                    {
+                        Description = p.Description,
+                    })
+                }).First();
 
-            /* Expression Trees (437)
-             
-            */
+
+            var customerFromDb = dbContext.Customers.First();
+            Console.WriteLine($"First fetch: {customerFromDb.FirstName} {customerFromDb.LastName}");
+
+            var customerNoTracking = dbContext.Customers.AsNoTracking().First();
+            Console.WriteLine($"No-tracking fetch: {customerNoTracking.FirstName} {customerNoTracking.LastName}");
         }
     }
 }
