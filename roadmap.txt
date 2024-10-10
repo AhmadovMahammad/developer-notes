@@ -1,5 +1,31 @@
 1. Core Programming (C# Fundamentals)
 
+    1. Introducing C# and .NET +
+    2. C# Language Basics +
+    3. Creating Types in C# +
+    4. Advanced C# +
+    5. .NET Overview 
+    6. .NET Fundamentals +
+    7. Collections +
+    8. LINQ Queries +
+    9. LINQ Operators
+    10. LINQ to XML +
+    11. Other XML and JSON Technologies
+    12. Disposal and Garbage Collection
+    13. Diagnostics
+    14. Concurrency and Asynchrony
+    15. Streams and I/O
+    16. Networking
+    17. Assemblies
+    18. Reflection and Metadata
+    19. Dynamic Programming
+    20. Cryptograhpy
+    21. Advanced Threading
+    22. Parallel Programming
+    23. Span<T> and Memory<T>
+    24. Native and COM Interoperability
+    25. Regular Expressions
+
 2. API Development
 
     1. RESTful Services with ASP.NET Core
