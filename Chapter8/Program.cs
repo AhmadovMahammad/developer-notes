@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Net.NetworkInformation;
 
@@ -240,18 +241,64 @@ namespace Chapter8
             */
 
             /* Change Tracking
-             
+            
+            Change tracking in EF Core is a mechanism that monitors changes to the data in your entities (objects) 
+            once they're retrieved from the database. Here's a simplified explanation of the key points:
+
+            1. Snapshot and comparison.
+
+            When you load an entity from the database, EF Core takes a snapshot of its initial state.
+            If you modify the entity, EF Core compares the current values with the original snapshot 
+            when you call SaveChanges.
+
+            2. Tracked changes:
+
+            EF Core tracks all the changes made to the entity's properties. 
+            If any changes are detected, it generates the appropriate SQL statements 
+            (e.g., INSERT, UPDATE, DELETE) to reflect those changes in the database.
+            
+            3. SaveChanges: 
+            
+            When you call SaveChanges, EF Core takes the information it gathered from change tracking 
+            and constructs the necessary SQL commands to update the database.
+
+            You can enumerate the tracked changes in a DbContext as follows:
+
+            ---CODE EXAMPLE: 
+
+            using var dbContext = new NutshellContext();
+
+            // EF Core tracks the customer after retrieving it from the database
+            var customerFromDb = dbContext.Customers.First();
+            Console.WriteLine($"First fetch: {customerFromDb.FirstName} {customerFromDb.LastName}");
+
+            customerFromDb.FirstName = "Updated Name";
+
+            foreach (EntityEntry entityEntry in dbContext.ChangeTracker.Entries())
+            {
+                Console.WriteLine($"{entityEntry.Entity.GetType().Name} is {entityEntry.State}");
+                // Customer is Unchanged
+
+                foreach (MemberEntry m in entityEntry.Members)
+                {
+                    Console.WriteLine($" {m.Metadata.Name}: '{m.CurrentValue}' modified: {m.IsModified}");
+                }
+            }
+
             */
-
-            //using var dbContext = new NutshellContext();
-
-            //var customerNoTracking = dbContext.Customers.AsNoTracking().First();
-            //Console.WriteLine($"No-tracking fetch: {customerNoTracking.FirstName} {customerNoTracking.LastName}");
-
 
             /* Navigation Properties
              
+
             */
+
+            using var dbContext = new NutshellContext();
+
+            //var customerFromDb = dbContext.Customers.First();
+            //Console.WriteLine($"First fetch: {customerFromDb.FirstName} {customerFromDb.LastName}");
+
+            //var customerNoTracking = dbContext.Customers.AsNoTracking().First();
+            //Console.WriteLine($"No-tracking fetch: {customerNoTracking.FirstName} {customerNoTracking.LastName}");
 
             /* Loading navigation properties
              
