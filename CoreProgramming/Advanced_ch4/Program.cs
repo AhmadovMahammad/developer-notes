@@ -632,8 +632,8 @@ namespace Chapter4
             /* Records (C# 9)
 
             A record is a special kind of class that’s designed to work well with immutable (readonly) data. 
-            Its most useful feature is nondestructive mutation; 
-            however, records are also useful in creating types that just combine or hold data. 
+            Its most useful feature is nondestructive mutation;
+            however, records are also useful in creating types that just combine or hold data.
 
             A record is purely a C# compile-time construct. At runtime, the CLR sees them just as classes
 
@@ -654,7 +654,7 @@ namespace Chapter4
 
             Nondestructive Mutation
 
-            "Nondestructive mutation" means that instead of modifying an object, 
+            "Nondestructive mutation" means that instead of modifying an object,
             you create a new object with the desired changes, leaving the original unchanged. 
             This concept is at the heart of records and functional programming.
 
