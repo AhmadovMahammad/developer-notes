@@ -76,7 +76,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 5. Advanced Topics and Tools
 
-	5.1. Containers & Docker (Junior Level)  
+	5.1. Containers & Docker (Junior Level)
 	5.2. CI/CD Pipeline (Junior to Mid-Level)  
 	5.3. Monitoring / Alerting / Logging (Junior to Mid-Level)  
 	5.4. Microservices (Mid-Level)  

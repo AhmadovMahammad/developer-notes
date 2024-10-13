@@ -4,6 +4,9 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using System.Diagnostics.Metrics;
 using System.Net;
+using static System.Net.Mime.MediaTypeNames;
+using System.Xml;
+using System.IO;
 
 namespace LinqToXML
 {
@@ -293,44 +296,154 @@ namespace LinqToXML
             Summary:
             NextNode looks for sibling nodes on the same level.
             Siblings are nodes that share the same parent, like <job> and <address> within <person>.
-            */
 
-            XElement xElement = XElement.Parse(@"
-            <person name=""Mahammad"" age=""21"">
-              <job location=""Baku"" workHours=""8"">Software Developer</job>
-              <address>
-                <city>Sumgait</city>
-                <country>Azerbaijan</country>
-              </address>
-            </person>");
+            Difference between Descendants and DescendantNodes methods
 
-            XElement? child = xElement.Element("job");
+            //This method returns all the XElement nodes that are descendants of the current element.
+            //It does not include attributes, comments, text, or other node types.
 
-            while (child != null)
+            foreach (XElement descendant in xElement.Descendants())
             {
-                Console.WriteLine(child.Name);
-                child = (XElement?)child.NextNode;
+                Console.WriteLine(descendant.Name);
+                //job
+                //address
+                //city
+                //country
             }
 
+            //This method returns all XNode descendants,
+            //which can include XElement, XComment, XText, and other types of nodes like processing instructions or document types.
+
+            foreach (var descendantNode in xElement.DescendantNodes())
+            {
+                Console.WriteLine(descendantNode);
+                //Comment
+                //Element
+                //Text
+                //Element
+                //Text
+                //Element
+                //Text
+                //Element
+                //Text
+            }
+            */
+
+            /* Writing a declaration to a String.
+            
+            Suppose that we want to serialize an XDocument to a string, including the XML declaration. 
+            Because ToString doesn’t write a declaration, we’d need to use an XmlWriter, instead:
+
+             var doc = new XDocument(
+                new XDeclaration("1.0", "utf-8", "yes"),
+                new XElement("customer",
+                    new XAttribute("id", 23),
+                    new XAttribute("status", "archived"),
+                new XElement("firstname",
+                    new XAttribute("language", "en"),
+                    "mahammad"),
+                new XElement("lastname", "ahmadov")));
+
+            MemoryStream stream = new MemoryStream();
+            XmlWriterSettings settings = new XmlWriterSettings { Indent = true, OmitXmlDeclaration = false };
+
+            using (XmlWriter xmlWriter = XmlWriter.Create(stream, settings))
+            {
+                doc.Save(xmlWriter);
+            }
+
+            stream.Position = 0;
+
+            using StreamReader streamReader = new StreamReader(stream);
+            Console.WriteLine(streamReader.ReadToEnd());
+
+            */
+
+            /* Indent and OmitXmlDeclaration
+             
+            1. Indent
+            When Indent = true, it tells the XmlWriter to format the XML output with line breaks 
+            and indentation, making it more human-readable.
+
+            If Indent = false (the default), the XML is written in a compact, 
+            minified form without extra spaces or newlines between elements, 
+            making it less readable but more efficient for machine processing.
+
+            2. OmitXmlDeclaration
+
+            When OmitXmlDeclaration = true, it omits the XML declaration 
+            (<?xml version="1.0" encoding="utf-8" standalone="yes"?>) from the output. 
+
+            The declaration is a metadata section that provides information about the version, 
+            encoding, and standalone status of the document.
+
+            */
+
+            var doc = new XDocument(
+                new XDeclaration("1.0", "utf-8", "yes"),
+                new XElement("customer",
+                    new XAttribute("id", 23),
+                    new XAttribute("status", "archived"),
+                new XElement("firstname",
+                    new XAttribute("language", "en"),
+                    "mahammad"),
+                new XElement("lastname", "ahmadov")));
+
+            MemoryStream stream = new MemoryStream();
+            XmlWriterSettings settings = new XmlWriterSettings { Indent = true, OmitXmlDeclaration = false };
+
+            using (XmlWriter xmlWriter = XmlWriter.Create(stream, settings))
+            {
+                doc.Save(xmlWriter);
+            }
+
+            stream.Position = 0;
+
+            using StreamReader streamReader = new StreamReader(stream);
+            Console.WriteLine(streamReader.ReadToEnd());
+
+            //XElement xElement = XElement.Parse(@"
+            //<!-- This is a comment -->
+            //<person name=""Mahammad"" age=""21"">
+            //  <job location=""Baku"" workHours=""8"">Software Developer</job>
+            //  <address>
+            //    <city>Sumgait</city>
+            //    <country>Azerbaijan</country>
+            //  </address>
+            //</person>"
+            //);
+
+            // 1. traverse 
+            //XElement? child = xElement.Element("job");
+
+            //while (child != null)
+            //{
+            //    Console.WriteLine(child.Name);
+            //    child = (XElement?)child.NextNode;
+            //}
+
+            // 2. accessing the first node
             //XNode? firstNode = xElement.FirstNode;
             //Console.WriteLine(firstNode);
             ////<job location=""Baku"" workHours=""8"">Software Developer</job>
 
+            // 3. next node
             //XNode? nextNode = firstNode?.NextNode;
             //Console.WriteLine(nextNode);
-
 
             //< address >
             //  < city > Sumgait </ city >
             //  < country > Azerbaijan </ country >
             //</ address >
 
+            // 4. Elements()
             //var immediateChildren = xElement.Elements();
             //foreach (var element in immediateChildren)
             //{
             //    Console.WriteLine(element.Name);  // Outputs: job, address
             //}
 
+            // 5. Descendants()
             //var allDescendants = xElement.Descendants();
             //foreach (var descendant in allDescendants)
             //{
