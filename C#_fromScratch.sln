@@ -3,25 +3,25 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34701.34
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Introduction", "CoreProgramming\Introduction_ch1\Introduction_ch1.csproj", "{4C0231D1-76D5-4B19-822D-D26C3B8CBE56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Introduction_ch1", "CoreProgramming\Introduction_ch1\Introduction_ch1.csproj", "{4C0231D1-76D5-4B19-822D-D26C3B8CBE56}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageBasics", "CoreProgramming\LanguageBasics_ch2\LanguageBasics_ch2.csproj", "{1B6C58EF-7CC0-4F79-BCE9-D69F2275D966}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageBasics_ch2", "CoreProgramming\LanguageBasics_ch2\LanguageBasics_ch2.csproj", "{1B6C58EF-7CC0-4F79-BCE9-D69F2275D966}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Widget1", "CoreProgramming\Widget1\Widget1.csproj", "{BF91CE02-EC5D-45A5-B003-4285EA03D177}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Widget2", "CoreProgramming\Widget2\Widget2.csproj", "{A34170D5-B8BA-4595-A880-A07EE605EE82}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreatingTypes", "CoreProgramming\CreatingTypes_ch3\CreatingTypes_ch3.csproj", "{ED74B566-F144-4699-B549-69B1896B9F6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreatingTypes_ch3", "CoreProgramming\CreatingTypes_ch3\CreatingTypes_ch3.csproj", "{ED74B566-F144-4699-B549-69B1896B9F6C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advanced", "CoreProgramming\Advanced_ch4\Advanced_ch4.csproj", "{86CABAE4-26AC-4FC2-94CA-9A3ACFF8600E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Advanced_ch4", "CoreProgramming\Advanced_ch4\Advanced_ch4.csproj", "{86CABAE4-26AC-4FC2-94CA-9A3ACFF8600E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fundamentals", "CoreProgramming\Fundamentals_ch6\Fundamentals_ch6.csproj", "{578A2B19-43BD-46BE-9A79-50482393D073}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Fundamentals_ch6", "CoreProgramming\Fundamentals_ch6\Fundamentals_ch6.csproj", "{578A2B19-43BD-46BE-9A79-50482393D073}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Collections", "CoreProgramming\Collections_ch7\Collections_ch7.csproj", "{2FF6F86C-FD3A-4281-A1A7-91A0CEF2876C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Collections_ch7", "CoreProgramming\Collections_ch7\Collections_ch7.csproj", "{2FF6F86C-FD3A-4281-A1A7-91A0CEF2876C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqQueries", "CoreProgramming\LinqQueries_ch8\LinqQueries_ch8.csproj", "{F8FA6057-C02B-4331-8F74-950DB6D7AA00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqQueries_ch8", "CoreProgramming\LinqQueries_ch8\LinqQueries_ch8.csproj", "{F8FA6057-C02B-4331-8F74-950DB6D7AA00}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToXML", "CoreProgramming\LinqToXML_ch10\LinqToXML_ch10.csproj", "{ED633413-AA13-4EF0-992D-C6B8A4463745}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LinqToXML_ch10", "CoreProgramming\LinqToXML_ch10\LinqToXML_ch10.csproj", "{ED633413-AA13-4EF0-992D-C6B8A4463745}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CoreProgramming", "CoreProgramming", "{8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}"
 EndProject
@@ -35,6 +35,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		roadmap.txt = roadmap.txt
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OtherXmlJsonTechnologies_ch11", "CoreProgramming\OtherXmlJsonTechnologies_ch11\OtherXmlJsonTechnologies_ch11.csproj", "{9DA6A850-4828-4BE1-BD1C-BE4EE8483967}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -82,6 +84,10 @@ Global
 		{ED633413-AA13-4EF0-992D-C6B8A4463745}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ED633413-AA13-4EF0-992D-C6B8A4463745}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ED633413-AA13-4EF0-992D-C6B8A4463745}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DA6A850-4828-4BE1-BD1C-BE4EE8483967}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DA6A850-4828-4BE1-BD1C-BE4EE8483967}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DA6A850-4828-4BE1-BD1C-BE4EE8483967}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DA6A850-4828-4BE1-BD1C-BE4EE8483967}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -97,6 +103,7 @@ Global
 		{2FF6F86C-FD3A-4281-A1A7-91A0CEF2876C} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
 		{F8FA6057-C02B-4331-8F74-950DB6D7AA00} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
 		{ED633413-AA13-4EF0-992D-C6B8A4463745} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{9DA6A850-4828-4BE1-BD1C-BE4EE8483967} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {95F99A9C-DD20-4D0D-94B9-C783BD9B162B}
