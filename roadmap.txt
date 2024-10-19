@@ -27,7 +27,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.9. LINQ Operators
 	1.10. LINQ to XML +
 	1.11. Other XML and JSON Technologies +
-	1.12. Disposal and Garbage Collection 
+	1.12. Disposal and Garbage Collection +
 	1.13. Diagnostics  
 	1.14. Concurrency and Asynchrony  
 	1.15. Streams and I/O  
@@ -51,7 +51,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 3. Testing and Debugging
 
-	3.1. Unit Testing with xUnit/NUnit/MSTest  
+	3.1. Unit Testing with xUnit/NUnit/MSTest 
 	3.2. Test-Driven Development (TDD)  
 	3.3. Mocking and Dependency Injection for Testing  
 	3.4. Integration and Functional Testing  
@@ -86,3 +86,56 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	5.8. Kubernetes (Optional, Advanced)  
 	5.9. Cloud Platforms (AWS, Azure)  
 	5.10. Message Brokers (RabbitMQ, Kafka)
+
+6. Algorithms and Data Structures
+
+	6.1. Arrays
+				-> Reversal of Array
+				-> Two-Pointer Technique
+				-> Subarray Sum Problems
+				-> Sliding Window Algorithms
+				-> Prefix Sum Arrays
+	6.2. Linked Lists (Singly, Doubly, Circular, Linked List Manipulation)
+				-> Reversal of Linked List
+				-> Detecting Cycles in Linked List (Floyd’s Cycle)
+				-> Merge Two Sorted Linked Lists
+				-> Remove N-th Node from End
+	6.3. Stacks and Queues
+				-> Balanced Parentheses Validation
+				-> Min/Max in Stack (Monotonic Stack)
+				-> Sliding Window Maximum (using Deque)
+				-> Implement Stack/Queue using Two Queues/Stacks
+	6.4. Recursion and Backtracking
+				-> Subsets and Permutations
+				-> N-Queens Problem
+				-> Sudoku Solver
+				-> Word Search (2D Matrix)
+	6.5. Trees (Binary Trees, Binary Search Trees, Balanced Trees, Trie)
+				-> Tree Traversals (Inorder, Preorder, Postorder)
+				-> Lowest Common Ancestor (LCA)
+				-> Binary Tree to Doubly Linked List Conversion
+				-> Trie Insert and Search Operations
+	6.6. Heaps and Priority Queues
+				-> Min/Max Heaps
+				-> Heap Sort
+				-> Kth Largest Element
+				-> Median in Data Stream
+	6.7. Graphs (Representation, Traversals, Shortest Path, Spanning Trees)
+				-> Detecting Cycles in Graphs
+				-> Shortest Path Algorithms (Dijkstra, Bellman-Ford)
+				-> Connected Components in Graph
+				-> Minimum Spanning Tree (Kruskal's, Prim's Algorithms)
+	6.8. Dynamic Programming (DP)
+				-> Longest Increasing Subsequence (LIS)
+				-> Knapsack Problem (0/1 and Unbounded)
+				-> Edit Distance Problem
+				-> Coin Change Problem
+	6.9. Sorting and Searching
+				-> Merge Sort
+				-> Quick Sort
+				-> Binary Search on Rotated Array
+				-> Searching in a 2D Matrix
+	6.10. Greedy Algorithms
+				-> Activity Selection Problem
+				-> Huffman Encoding
+				-> Minimum Platforms Problem
