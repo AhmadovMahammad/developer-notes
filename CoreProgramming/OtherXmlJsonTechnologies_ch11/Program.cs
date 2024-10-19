@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using System.Reflection.Emit;
 using System.Text;
 using System.Xml;
+using System.Xml.Serialization;
 
 internal class Program
 {
@@ -292,59 +294,52 @@ internal class Program
 
         */
 
-        /* Namespaces and Prefixes
-         
-
-
-        */
-
-        //============================================================
 
         #region code example 6 (reading attributes differentyl)
 
-        string xmlPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "customer.xml");
+        //string xmlPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "customer.xml");
 
-        XmlReaderSettings settings = new XmlReaderSettings()
-        {
-            IgnoreWhitespace = true,
-            IgnoreComments = true,
-            IgnoreProcessingInstructions = true,
-        };
-        using XmlReader reader = XmlReader.Create(xmlPath, settings);
+        //XmlReaderSettings settings = new XmlReaderSettings()
+        //{
+        //    IgnoreWhitespace = true,
+        //    IgnoreComments = true,
+        //    IgnoreProcessingInstructions = true,
+        //};
+        //using XmlReader reader = XmlReader.Create(xmlPath, settings);
 
-        while (reader.Read())
-        {
-            if (reader.NodeType == XmlNodeType.EndElement)
-            {
-                continue;
-            }
+        //while (reader.Read())
+        //{
+        //    if (reader.NodeType == XmlNodeType.EndElement)
+        //    {
+        //        continue;
+        //    }
 
-            // all the details about xml elements
-            Console.WriteLine($"node type: {reader.NodeType} | name: {reader.Name} | value: {reader.Value}");
+        //    // all the details about xml elements
+        //    Console.WriteLine($"node type: {reader.NodeType} | name: {reader.Name} | value: {reader.Value}");
 
-            if (reader.NodeType == XmlNodeType.Element && reader.HasAttributes)
-            {
-                // Loop through all attributes
+        //    if (reader.NodeType == XmlNodeType.Element && reader.HasAttributes)
+        //    {
+        //        // Loop through all attributes
 
-                // example 2. to read attributes
-                if (reader.MoveToFirstAttribute())
-                {
-                    do
-                    {
-                        Console.WriteLine($"{reader.Name}: {reader.Value}");
-                    } while (reader.MoveToNextAttribute());
-                }
+        //        // example 2. to read attributes
+        //        if (reader.MoveToFirstAttribute())
+        //        {
+        //            do
+        //            {
+        //                Console.WriteLine($"{reader.Name}: {reader.Value}");
+        //            } while (reader.MoveToNextAttribute());
+        //        }
 
-                // example 1. to read attributes
-                //while (reader.MoveToNextAttribute())
-                //{
-                //    Console.WriteLine($"attribute: {reader.Name}: {reader.Value}");
-                //}
+        //        // example 1. to read attributes
+        //        //while (reader.MoveToNextAttribute())
+        //        //{
+        //        //    Console.WriteLine($"attribute: {reader.Name}: {reader.Value}");
+        //        //}
 
-                // Move the reader back to the element after reading all the attributes.
-                reader.MoveToElement();
-            }
-        }
+        //        // Move the reader back to the element after reading all the attributes.
+        //        reader.MoveToElement();
+        //    }
+        //}
 
         #endregion
 
@@ -467,6 +462,245 @@ internal class Program
         //        reader.MoveToElement();
         //    }
         //}
+        #endregion
+
+        //============================================================
+
+        /* XmlWriter
+
+        The XmlWriter class is a forward-only, 
+        write-once approach to constructing an XML document. 
+        It has a symmetrical design to XmlReader—meaning that while XmlReader helps you 
+        consume an XML stream, XmlWriter helps you produce one in a structured way.
+
+        */
+
+        /* Creating an XmlWriter
+        
+        You create an XmlWriter object using XmlWriter.Create(), 
+        optionally passing in a Stream, 1. TextWriter, or a 2. file path, 
+        along with an XmlWriterSettings object to control the output.
+         
+        XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
+        {
+            Indent = true,
+            OmitXmlDeclaration = true,
+        };
+
+        StringWriter stringWriter = new StringWriter();
+        using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, xmlWriterSettings))
+        {
+            xmlWriter.WriteStartElement("customer");
+            xmlWriter.WriteElementString("firstname", "mahammad");
+            xmlWriter.WriteElementString("lastname", "ahmadov");
+            xmlWriter.WriteEndElement();
+        }
+
+        // This creates the following XML:
+        <?xml version="1.0" encoding="utf-16"?>
+        <customer>
+          <firstname>mahammad</firstname>
+          <lastname>ahmadov</lastname>
+        </customer>
+
+        NOTE: 
+        
+        By default, XmlWriter automatically writes the XML declaration.
+        And setting OmitXmlDeclaration = true skips this part.
+
+        -------You can read Xml like this:
+
+        XmlReaderSettings settings = new XmlReaderSettings()
+        {
+            IgnoreWhitespace = true,
+            IgnoreComments = true,
+            IgnoreProcessingInstructions = true,
+        };
+        using XmlReader reader = XmlReader.Create(new StringReader(stringWriter.ToString()), settings);
+
+        while (reader.Read())
+        {
+            if (reader.NodeType == XmlNodeType.EndElement)
+            {
+                continue;
+            }
+
+            // all the details about xml elements
+            Console.WriteLine($"node type: {reader.NodeType} | name: {reader.Name} | value: {reader.Value}");
+
+            if (reader.NodeType == XmlNodeType.Element && reader.HasAttributes)
+            {
+                // example 2. to read attributes
+                if (reader.MoveToFirstAttribute())
+                {
+                    do
+                    {
+                        Console.WriteLine($"{reader.Name}: {reader.Value}");
+                    } while (reader.MoveToNextAttribute());
+                }
+
+                // Move the reader back to the element after reading all the attributes.
+                reader.MoveToElement();
+            }
+        }
+
+        */
+
+        /* Writing Values
+
+        To write text or non-text data, you can use WriteValue: 
+        It Writes a single text node. 
+        You can pass non-string types like DateTime, bool, and numeric types. 
+        WriteValue will automatically convert these to XML-compliant strings using XmlConvert.
+
+        XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
+        {
+            Indent = true,
+            OmitXmlDeclaration = true,
+            ConformanceLevel = ConformanceLevel.Fragment,
+        };
+
+        StringWriter stringWriter = new StringWriter();
+        using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, xmlWriterSettings))
+        {
+            //xmlWriter.WriteElementString("birthdate", DateTime.UtcNow.ToString());
+
+            //xmlWriter.WriteStartElement("birthdate");
+            //xmlWriter.WriteValue(DateTime.Now);
+            //xmlWriter.WriteEndElement();
+        }
+
+        Output: <birthdate>10/19/2024 12:38:08 PM</birthdate>
+        */
+
+        /* Writing Attributes
+         
+        You can write attributes immediately after writing a start element:
+
+        XmlWriterSettings settings = new XmlWriterSettings()
+        {
+            Indent = true,
+            OmitXmlDeclaration = true,
+        };
+
+        StringWriter writer = new StringWriter();
+        using (XmlWriter xmlWriter = XmlWriter.Create(writer, settings))
+        {
+            xmlWriter.WriteStartElement("customer");
+            xmlWriter.WriteAttributeString("work", "r.i.s.k.");
+            xmlWriter.WriteElementString("firstname", "mahammad");
+            xmlWriter.WriteElementString("lastname", "ahmadov");
+            xmlWriter.WriteEndElement();
+        }
+
+        Console.WriteLine(writer.ToString());
+
+        <customer work="r.i.s.k.">
+          <firstname>mahammad</firstname>
+          <lastname>ahmadov</lastname>
+        </customer>
+        */
+
+
+        #region code example 3
+
+        //XmlWriterSettings settings = new XmlWriterSettings()
+        //{
+        //    Indent = true,
+        //    OmitXmlDeclaration = true,
+        //};
+
+        //StringWriter writer = new StringWriter();
+        //using (XmlWriter xmlWriter = XmlWriter.Create(writer, settings))
+        //{
+        //    xmlWriter.WriteStartElement("customer");
+        //    xmlWriter.WriteAttributeString("work", "r.i.s.k.");
+        //    xmlWriter.WriteElementString("firstname", "mahammad");
+        //    xmlWriter.WriteElementString("lastname", "ahmadov");
+        //    xmlWriter.WriteEndElement();
+        //}
+
+        //Console.WriteLine(writer.ToString());
+
+        #endregion
+
+        #region code example 2
+
+        //XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
+        //{
+        //    Indent = true,
+        //    OmitXmlDeclaration = true,
+        //    ConformanceLevel = ConformanceLevel.Fragment,
+        //};
+
+        //StringWriter stringWriter = new StringWriter();
+        //using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, xmlWriterSettings))
+        //{
+        //    xmlWriter.WriteElementString("birthdate", DateTime.UtcNow.ToString());
+
+        //    //xmlWriter.WriteStartElement("birthdate");
+        //    //xmlWriter.WriteValue(DateTime.Now);
+        //    //xmlWriter.WriteEndElement();
+        //}
+
+        //Console.WriteLine(stringWriter.ToString());
+
+        #endregion
+
+        #region code example 1
+
+        //XmlWriterSettings xmlWriterSettings = new XmlWriterSettings()
+        //{
+        //    Indent = true,
+        //    OmitXmlDeclaration = true,
+        //};
+
+        //StringWriter stringWriter = new StringWriter();
+        //using (XmlWriter xmlWriter = XmlWriter.Create(stringWriter, xmlWriterSettings))
+        //{
+        //    xmlWriter.WriteStartElement("customer");
+        //    xmlWriter.WriteElementString("firstname", "mahammad");
+        //    xmlWriter.WriteElementString("lastname", "ahmadov");
+        //    xmlWriter.WriteEndElement();
+        //}
+
+        //Console.WriteLine(stringWriter.ToString());
+
+        //XmlReaderSettings settings = new XmlReaderSettings()
+        //{
+        //    IgnoreWhitespace = true,
+        //    IgnoreComments = true,
+        //    IgnoreProcessingInstructions = true,
+        //};
+        //using XmlReader reader = XmlReader.Create(new StringReader(stringWriter.ToString()), settings);
+
+        //while (reader.Read())
+        //{
+        //    if (reader.NodeType == XmlNodeType.EndElement)
+        //    {
+        //        continue;
+        //    }
+
+        //    // all the details about xml elements
+        //    Console.WriteLine($"node type: {reader.NodeType} | name: {reader.Name} | value: {reader.Value}");
+
+        //    if (reader.NodeType == XmlNodeType.Element && reader.HasAttributes)
+        //    {
+        //        // example 2. to read attributes
+        //        if (reader.MoveToFirstAttribute())
+        //        {
+        //            do
+        //            {
+        //                Console.WriteLine($"{reader.Name}: {reader.Value}");
+        //            } while (reader.MoveToNextAttribute());
+        //        }
+
+        //        // Move the reader back to the element after reading all the attributes.
+        //        reader.MoveToElement();
+        //    }
+        //}
+
+
         #endregion
     }
 }
