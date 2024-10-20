@@ -238,6 +238,74 @@ namespace Disposal_GarbageCollection_ch12
 
             /* What is Resurrection?
              
+            Resurrection refers to a scenario in .NET garbage collection where an object that was considered 
+            "dead" or eligible for garbage collection is brought back to life because some reference to it is restored. 
+            
+            ---How Resurrection Happens
+            1. The .NET Garbage Collector (GC) identifies an object as no longer reachable and 
+            prepares it for garbage collection.
+
+            2. The GC checks if the object has a finalizer (destructor). 
+            If so, the object is not immediately collected but instead queued for finalization.
+
+            3. The finalizer runs, allowing you to execute some code before the object is collected.
+
+            4. During finalization, if some other live object starts referencing the object marked for finalization, 
+            the object evades garbage collection. This phenomenon is known as resurrection.
+
+            Example:
+            Let’s consider a class that manages a temporary file. 
+            You might want to ensure that when the class is finalized, the temporary file is deleted.
+
+            However, there are cases where deleting the file may fail 
+            (e.g., due to a lack of permissions or the file being locked by another process). 
+            In this case, you might want to log the failure without crashing the application.
+
+            public class TempFileManager
+            {
+                private static readonly ConcurrentQueue<TempFileManager> FailedDeletions = new ConcurrentQueue<TempFileManager>();
+                public readonly string FilePath = string.Empty;
+                public Exception? DeletionError { get; private set; }
+
+                public TempFileManager(string filePath)
+                {
+                    FilePath = filePath;
+                    Console.WriteLine($"Temporary file created: {FilePath}");
+                }
+
+                ~TempFileManager()
+                {
+                    try
+                    {
+                        File.Delete(FilePath);
+                        Console.WriteLine($"Temporary file deleted: {FilePath}");
+                    }
+                    catch (Exception exception)
+                    {
+                        DeletionError = exception;
+                        FailedDeletions.Enqueue(this);
+                        Console.WriteLine($"Failed to delete file: {FilePath}. Error: {exception.Message}");
+                    }
+                }
+            }
+
+            TempFileManager? tempFileManager = new TempFileManager("temporary.txt");
+            tempFileManager = null; // Make the object eligible for garbage collection
+
+            // Force a garbage collection (for demonstration purposes)
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            while (TempFileManager.FailedDeletions.TryDequeue(out TempFileManager? failedTempFile))
+            {
+                Console.WriteLine($"Handling failed deletion for: {failedTempFile.FilePath}");
+                // Perform any additional actions, like retrying deletion or logging
+            }
+
+            */
+
+            /* How the GC Works
+             
             */
         }
     }
