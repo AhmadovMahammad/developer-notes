@@ -1,6 +1,9 @@
-﻿using System.IO;
+﻿using System.Buffers;
+using System.IO;
 using System.IO.Pipes;
 using System.Net;
+using System.Runtime;
+using System.Text;
 
 namespace Disposal_GarbageCollection_ch12
 {
@@ -304,8 +307,209 @@ namespace Disposal_GarbageCollection_ch12
 
             */
 
-            /* How the GC Works
+            /* Phases of the GC (Elaborated explanation)
              
+            When you create new objects in your program using the new keyword, they are allocated memory on the heap. 
+            Over time, as more objects are created, the heap fills up, or the system detects that memory usage has reached a certain threshold. 
+            At this point, the garbage collector wakes up and initiates its process.
+
+            -----Root References and Object Graph
+
+            When the garbage collector (GC) starts its work, 
+            it needs to figure out which objects in memory are still being used by the application and which ones are no longer needed. 
+            To do this, it begins by identifying what are called root references.
+
+            These are references that point to objects, 
+            and they serve as starting points for the GC’s marking process. Common root references include:
+
+            1. Static fields/variables in your code.
+            2. Local variables that are currently in use on the call stack.
+            3. Active threads in the application that are executing code.
+
+            NOTE: 
+            
+            Once the GC identifies these root references, it starts tracing the object graph. 
+            Think of an object graph as a network of objects in memory, 
+            where each object can reference other objects. 
+            
+            For example, a list object might contain references to several string objects, 
+            which in turn might reference other objects.
+
+            -----Marking Process
+
+            1. Starting from the roots:
+            
+            The GC looks at each root reference. 
+            For each root, it follows the reference to the object that the root is pointing to in the heap. 
+            These objects are immediately marked as reachable.
+
+            Once an object is marked as reachable, the GC continues to explore it to see if it has references to other objects 
+            (for instance, fields or properties that reference other objects). 
+            If it does, those referenced objects are also marked as reachable.
+
+            2. Marking objects as reachable:
+
+            When we say the GC marks an object, we mean it flags that object internally in memory. 
+            It essentially says, "This object is still in use; don't collect it."
+            The marking step doesn't involve physically moving or altering objects in memory but 
+            simply sets a flag on each object to indicate it’s still being used.
+
+            This process continues recursively: the GC starts from the root, 
+            marks an object, checks for any references that object holds to other objects, 
+            and marks those as well, until it can’t find any more references.
+
+            -----What Happens to Unmarked Objects?
+
+            Once the marking phase is complete, all the objects that are not marked as reachable are considered garbage. 
+            These unmarked objects are no longer accessible by the application 
+            (because there are no references to them from the root or any reachable objects). 
+            Since the application can no longer access these objects, 
+            they are considered safe to clean up and free their memory.
+
+            -----Marking and Compacting
+
+            Once all reachable objects are identified, the GC performs a compaction step.
+            The purpose of this is to deal with memory fragmentation, 
+            which can occur as objects are created and destroyed, leaving small gaps in memory.
+
+            The compaction phase shifts all live objects to the start of the heap, 
+            thus freeing up a continuous block of memory for future allocations
+
+            This also simplifies the allocation process for new objects, 
+            as the GC can now simply allocate memory at the end of the heap, 
+            instead of trying to find small fragmented spaces to fit new objects. 
+            This keeps the memory allocation process fast.
+
+            -----Generations in the GC
+
+            The .NET GC uses generations to optimize its performance. Objects are grouped into three generations:
+
+            Generation 0: 
+            This is for short-lived objects (like temporary variables). When a garbage collection is triggered, 
+            Generation 0 objects are the first to be checked and collected if they're no longer needed.
+
+            Generation 1: 
+            This is for medium-lived objects, usually those that survived a previous GC cycle in Generation 0.
+
+            Generation 2: 
+            This holds long-lived objects, like static data or objects that persist for the entire duration of the application. 
+            Collecting objects from Generation 2 happens less frequently because it is more expensive in terms of performance.
+
+            Gen0 and Gen1 are known as ephemeral (short-lived) generations.
+            The CLR keeps the Gen0 section relatively small (with a typical size of a few hundred KB to a few MB).
+
+            */
+
+            /* Memory Allocation and OutOfMemoryException
+             
+            When the GC finishes compacting and clearing memory, it frees up space for future objects.
+            However, if there is insufficient space on the heap after a garbage collection cycle,
+            the .NET runtime will attempt to request more memory from the operating system.
+
+            The operating system grants memory in blocks called pages, which are usually 4 KB in size on most systems. 
+            When the heap needs more memory, the runtime will ask the OS for additional memory pages. 
+            The OS checks whether it has available memory in the system's virtual memory space to allocate more pages to the process. 
+            If the OS has enough free memory, it will allocate these additional pages, and the heap grows accordingly.
+
+            However, if the system is low on memory or if there’s a limit on how much memory the process can use (due to system constraints), 
+            the OS may deny the request for more memory. 
+            In this case, the runtime throws an OutOfMemoryException because it cannot fulfill the memory allocation request. 
+
+            */
+
+            /* Garbage Collection and Application Freezing
+             
+            One consequence of garbage collection is that, during the collection process, 
+            all threads in the application can be temporarily frozen.
+
+            This happens because the GC needs to ensure that no references change while it's tracing the object graph. 
+            This pause is often referred to as a STOP-THE-WORLD EVENT, and
+
+            while modern garbage collectors try to minimize the duration of this pause, 
+            it can still cause noticeable slowdowns in certain applications, 
+            especially in real-time systems or applications with strict performance requirements.
+
+            */
+
+            /* The Large Object Heap (LOH)
+             
+            The (LOH) is designed to handle objects that are larger than a certain threshold (currently around 85,000 bytes), 
+            which includes large arrays, buffers, or large object graphs. 
+            
+            Since managing large objects efficiently is challenging, 
+            the LOH has some unique characteristics compared to the Small Object Heap (SOH) used for smaller objects.
+
+            -----Key Characteristics of the LOH:
+
+            1. Non-generational: 
+            Unlike the SOH, the LOH doesn't follow the generational model of garbage collection (Gen0, Gen1, Gen2). 
+            All objects in the LOH are treated as Gen2 objects, meaning they aren't collected as frequently as younger objects in the SOH.
+
+            2. No Default Compaction: 
+            By default, the LOH does not compact memory. 
+            This is because moving large blocks of memory around during garbage collection would be expensive in terms of time and performance.
+
+            -----Fragmentation in the LOH:
+
+            Because the LOH doesn’t compact memory, fragmentation can occur. 
+            When large objects are allocated and later collected, the memory space they occupied isn’t immediately compacted. 
+            This can leave gaps or holes in memory. 
+            These gaps may be too small to be used by future allocations, 
+            leading to a fragmented heap where free space is available but unusable because it's too small for any new large object.
+
+            For example:
+            If a large object of 100,000 bytes is allocated and later freed, there’s now a 100,000-byte hole in the LOH.
+            If the next large object needs 150,000 bytes, this gap can't be used, so the GC must find or allocate new space elsewhere, leaving the hole unused.
+
+            */
+
+            /* Forcing Garbage Collection
+             
+            You can manually force a garbage collection at any time by calling GC.Collect. 
+            Calling GC.Collect without an argument instigates a full collection. 
+            If you pass in an integer value, only generations to that value are collected, 
+            so GC.Collect(0) performs only a fast Gen0 collection.
+
+            NOTE: In general, you get the best performance by allowing the GC to decide when to collect.
+            
+            */
+
+            /* Array Pooling
+             
+            Array Pooling is an optimization technique designed to reduce the overhead of frequent array allocations 
+            by reusing arrays from a pool, introduced in .NET Core 3. 
+            
+            The idea is to "rent" an array when needed and "return" it when done, 
+            which minimizes the work done by the garbage collector (GC) and helps prevent memory fragmentation.
+
+            Here's how array pooling works:
+
+            1. Renting an Array:
+            Instead of allocating a new array every time, you can "rent" an array from a shared pool using the ArrayPool<T> class.
+
+            int[] pooledArray = ArrayPool<int>.Shared.Rent(100);  // Rent an array of at least 100 elements.
+
+            The pool manager might give you an array that's larger than what you requested, 
+            typically rounding up to powers of two for efficiency. 
+            This allows faster allocation and makes it easier to manage arrays of different sizes.
+
+            2. Returning an Array:
+            Once you're done with the array, instead of leaving it to the GC to clean up, 
+            you explicitly "return" it to the pool:
+
+            ArrayPool<int>.Shared.Return(pooledArray);
+
+            3. Clearing Arrays:
+            By default, the data in the array is not cleared when you return it, which saves performance. 
+            However, if you need to clear the array's contents (for security or correctness), you can pass a true flag:
+
+            ArrayPool<int>.Shared.Return(pooledArray, clearArray: true);
+
+            Array pooling is especially beneficial in applications like ASP.NET Core or game development, 
+            where arrays (such as buffers) are frequently allocated and discarded. 
+            For example, in network or I/O operations, large arrays are often needed for reading or writing data. 
+            By using array pooling, the application can reuse the same memory buffers.
+
             */
         }
     }
