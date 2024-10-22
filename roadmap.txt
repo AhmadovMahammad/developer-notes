@@ -48,7 +48,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	2.1. RESTful Services with ASP.NET Core  
 	2.2. Web API Design Principles (versioning, security, etc.)  
 	2.3. Authentication and Authorization (JWT, OAuth)  
-	2.4. gRPC and WebSockets  
+	2.4. gRPC and WebSockets 
 
 3. Testing and Debugging
 
