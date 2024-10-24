@@ -781,12 +781,5 @@ namespace ConcurrencyAndAsynchrony_ch14
             */
 
         }
-
-        private static void DoWork(string method)
-        {
-            Console.WriteLine($"Work started using {method} on thread {Thread.CurrentThread.ManagedThreadId}");
-            Thread.Sleep(1000);
-            Console.WriteLine($"Work completed using {method}");
-        }
     }
 }
