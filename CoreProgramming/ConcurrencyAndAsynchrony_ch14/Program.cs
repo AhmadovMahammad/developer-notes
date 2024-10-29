@@ -1,14 +1,12 @@
-﻿using System.Buffers;
+﻿using System.Diagnostics;
 using System.Text;
-using System.Threading;
-using System.Threading.Channels;
 
 namespace ConcurrencyAndAsynchrony_ch14
 {
     internal class Program
     {
         static ManualResetEvent signal = new ManualResetEvent(false);
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             /* Threads and Processes
              
@@ -43,7 +41,8 @@ namespace ConcurrencyAndAsynchrony_ch14
             the final result can depend on the timing of each thread. This makes program behavior unpredictable.
 
             2. Deadlocks:
-            If two or more threads get stuck waiting for each other to release resources they need, none of them can proceed.
+            If two or more threads get stuck waiting for each other to release resources they need, 
+            none of them can proceed.
 
             */
 
@@ -769,8 +768,8 @@ namespace ConcurrencyAndAsynchrony_ch14
             -----Key Characteristics and Limitations
 
             1. However, thread pools come with some trade-offs and limitations. For instance, 
-            threads from the pool cannot have custom names assigned to them, 
-            which can make debugging more challenging. 
+            threads from the pool cannot have custom names assigned to them,
+            which can make debugging more challenging.
 
             2. Additionally, thread pool threads are always background threads. 
             A background thread, as discussed earlier, does not keep the process alive 
@@ -782,10 +781,269 @@ namespace ConcurrencyAndAsynchrony_ch14
 
             //========================================================================================
 
-            /* Tasks
+            /* Tasks - Introduction
              
-             
+            Threads are fundamental for running code concurrently but come with complexity, 
+            particularly in handling data and exceptions. 
+            A Task, by contrast, abstracts these details, giving us a simple way to manage concurrent work 
+            without dealing directly with threads.
+
+            Threads have limitations:
+
+            1. Although it’s easy to pass data into a thread that you start, 
+            there’s no easy way to get a “return value” back from a thread that you Join.
+
+            Direct threads can be challenging when trying to return values. 
+            For example, if a thread performs a calculation, you need shared fields to access the result, 
+            which then requires careful synchronization to avoid race conditions..
+
+            2. With a thread, if an exception occurs, handling it is more complex and 
+            may require catching it at the thread's end or in a shared field. 
+            
+            ---What can i do with Tasks?
+
+            1. Task Composition and Fine-Grained Concurrency
+
+            Tasks are ideal for building asynchronous workflows by composing small operations into larger, complex tasks. 
+            This ability to chain or continue tasks after one finishes is invaluable in parallel programming, 
+            especially when each stage of a process depends on the outcome of the previous one.
+
+            _simple example to this chain:
+
+             Task<int> task1 = Task.Run(() => PerformCalculation(5, 10));
+
+            Task<int> task2 = task1.ContinueWith(previousTask =>
+            {
+                int resultFromTask1 = previousTask.Result;
+                Console.WriteLine($"Result from Task 1: {resultFromTask1}");
+                return resultFromTask1 * 2;
+            });
+
+            int finalResult = await task2;
+            Console.WriteLine($"Final Result from Task 2: {finalResult}");
+
+            async Task<int> PerformCalculation(int a, int b)
+            {
+                await Task.Delay(3 * 1000);
+                return a + b;
+            }
+
             */
+
+            /* Starting a Task
+             
+            Task.Run is a method that allows you to run a piece of code asynchronously using a task, 
+            which is a higher-level abstraction over threads. 
+
+            When you call Task.Run, you pass an Action delegate, which is a method that does not return a value. 
+            Task.Run(() => Console.WriteLine("hello from separate thread"));
+
+            Tasks use pooled threads by default, which are background threads. 
+            This means that when the main thread ends, so do any tasks that you create.
+
+            Calling Task.Run in this manner is similar to starting a thread as follows 
+            (except for the thread pooling):
+
+            new Thread(() => Console.WriteLine("hello from separate thread)).Start();
+
+            When you call Task.Run, it returns a Task object, which you can use to monitor the task's status and progress. 
+            For instance, you can check properties like Status to see if the task is running, completed, or faulted.
+
+            ---Cold versus Hot Tasks
+
+            Calling Task.Run starts the task immediately, meaning it's a "hot" task. 
+            You don't need to call Start explicitly as you would with a Thread object.
+            
+            There are "cold" tasks, where you create a task but do not start it immediately. 
+            This is less common and usually not needed in practical applications.
+
+            */
+
+            /* Waiting a Task
+             
+            1. Blocking Behavior:
+
+            Calling Wait on a task causes the current thread to block until the task has completed its execution. 
+            This is similar to calling Join on a thread, which also waits for the thread to finish its work 
+            before allowing the program to continue executing subsequent code.
+
+            ===
+            Task task = Task.Run(() =>
+            {
+                Thread.Sleep(2 * 1000);
+                Console.WriteLine("Foo");
+            });
+            Console.WriteLine(task.IsCompleted);
+            task.Wait();
+
+            Console.WriteLine("all tasks are completed.");
+            ===
+
+            In this case, the main thread starts a task that sleeps for 2 seconds before printing "Foo". 
+            The Console.WriteLine(task.IsCompleted) will output False because the task is still running at that moment. 
+            After calling task.Wait(), the main thread will block until the task finishes, which happens after 2 seconds.
+
+            2. Timeout and Cancellation:
+            The Wait method can also accept optional parameters for a timeout and a cancellation token.
+
+            a. Timeout: 
+            You can specify a time limit for how long to wait for the task to complete. 
+            If the task doesn’t finish within this timeframe, Wait will return without blocking indefinitely.
+
+            Task task = Task.Run(() =>
+            {
+                Thread.Sleep(2 * 1000);
+                Console.WriteLine("Foo");
+            });
+
+            bool completed = task.Wait(1 * 1000);
+            if (!completed)
+            {
+                Console.WriteLine("Task did not complete in the allocated time. [1 seconds]");
+            }
+
+            b. Cancellation
+
+            Using a cancellation token, you can signal that you want to stop waiting for the task to finish. 
+            This is especially useful in scenarios where you might want to cancel long-running tasks or 
+            gracefully handle user interruptions.
+
+            simple cancellation example:
+
+            CancellationTokenSource tokenSource = new CancellationTokenSource();
+            CancellationToken token = tokenSource.Token;
+
+            Task task = Task.Run(() =>
+            {
+                Console.WriteLine("Task started. Press 'c' to cancel...");
+
+                for (int i = 0; i < 10; i++)
+                {
+                    if (token.IsCancellationRequested)
+                    {
+                        Console.WriteLine("Task was cancelled!");
+                        return;
+                    }
+
+                    Console.WriteLine("Working...{0}", i);
+                    Thread.Sleep(500);
+                }
+
+            }, token);
+
+            if (Console.ReadKey().KeyChar == 'c')
+            {
+                tokenSource.Cancel();
+                Console.WriteLine();
+            }
+
+            task.Wait();
+            Console.WriteLine("Main program ending.");
+
+            */
+
+            /* Long-running Tasks
+             
+            By default, the CLR runs tasks on pooled threads, which is ideal for short-running compute-bound work. 
+            For longer-running and blocking operations, you can prevent use of a pooled thread as follows.
+
+            Task task = Task.Factory.StartNew(() => { }, TaskCreationOptions.LongRunning);
+
+            -----Why This Matters for Performance:
+
+            The thread pool is optimized for short tasks, designed to quickly pick up new tasks after each one finishes. 
+            When a long-running task monopolizes a pooled thread, 
+            it limits the pool's capacity to handle new tasks efficiently. 
+            
+            If many tasks are long-running and occupy pooled threads, 
+            it can lead to thread starvation—where other tasks have to wait unnecessarily.
+
+            Creating a dedicated thread with LongRunning avoids this, 
+            as it doesn’t rely on the limited pool of threads shared with other tasks.
+
+            Task task = Task.Factory.StartNew(() =>
+            {
+                Console.WriteLine("Starting long-running task...");
+                Thread.Sleep(5 * 1000);
+                Console.WriteLine("Long-running task completed.");
+            }, TaskCreationOptions.LongRunning);
+
+            task.Wait();
+            Console.WriteLine("Main program ends.");
+            
+            */
+
+            /* Returning Values
+            
+            The Task<TResult> class in .NET allows a task to produce a result value when it completes. 
+            This makes it possible to run code concurrently, 
+            then retrieve a calculated result without relying on shared variables. 
+            Here’s how it works:
+
+            -----Creating a Task with a Return Value
+
+            To create a task that returns a result, use Task.Run with 
+            1. a Func<TResult> delegate 
+            2. (or lambda expression) that returns a value instead of an Action. 
+
+            Task<int> task = Task.Run(() => 
+            {
+                Console.WriteLine("Calculating...");
+                return 3;  // The task's result
+            });
+
+            -----Accessing the Task Result
+
+            To access the result of a Task<TResult>, use the Result property. 
+            If the task has completed, Result will immediately provide the value; 
+            if the task is still running, Result blocks the current thread until the task finishes.
+
+            int result = task.Result; // Blocks if the task is not yet complete
+            Console.WriteLine(result); // Outputs 3 once available
+
+            -----Why Use await Instead of .Result
+
+            1. Non-Blocking Execution: 
+            When you use await, it allows the main thread to continue running other code while 
+            waiting for the task to complete. 
+            
+            This keeps the UI responsive in a WPF or WinForms application and 
+            prevents blocking in a web application.
+
+            2. Avoiding Deadlocks:
+            In some cases, accessing .Result on a Task that runs on the same context (like in UI threads) 
+            can cause a deadlock, where both the task and the thread wait indefinitely on each other. 
+            
+            Using await prevents this by asynchronously freeing up the context for other operations.
+
+            3. Better Error Handling:
+            If a task throws an exception, using .Result will wrap it in an AggregateException, 
+            which may need extra handling to access the original error. 
+            
+            Using await provides a more straightforward exception handling, 
+            as exceptions bubble up naturally without wrapping.
+
+            Task<int> backgroundTask = Task.Run(async () =>
+            {
+                Console.WriteLine("Background Task: Starting process...");
+                await Task.Delay(5 * 1000);
+                Console.WriteLine("Background Task: Process completed.");
+                return 42;
+            });
+
+            Console.WriteLine("Main Thread: Task started, doing other work...");
+
+            // Using .Result (Blocking the main thread)
+            int resultBlocking = backgroundTask.Result;  // This blocks until the task finishes
+            Console.WriteLine($"Main Thread: Blocking result is {resultBlocking}");
+
+            // Example of non-blocking with await
+            Console.WriteLine("Main Thread: Starting async process...");
+            int resultAsync = await backgroundTask;  // Non-blocking; allows the main thread to continue
+            Console.WriteLine($"Main Thread: Async result is {resultAsync}");
+
+            */
+
         }
     }
 }

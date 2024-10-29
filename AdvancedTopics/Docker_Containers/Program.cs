@@ -80,16 +80,17 @@
             -----Key Roles of a Hypervisor
 
             1. Hardware Virtualization:
-
-
+            The hypervisor abstracts and virtualizes the underlying hardware, 
+            allowing each virtual machine (VM) to think it has its own dedicated resources (CPU, memory, storage, network interfaces).
+            It controls how the physical hardware is allocated to each VM
 
             2. Isolation:
-            
-
+            Hypervisors isolate VMs from each other, 
+            ensuring that processes in one VM don’t interfere with those in another VM.
 
             3. Resource Management:
-
-
+            Hypervisors dynamically allocate resources like CPU time, memory, and disk space to different VMs 
+            based on their needs and workloads.
 
             -----Types os Hypervisors?
 
@@ -117,6 +118,22 @@
             Normal OS	            Application → OS Kernel → Hardware: Application requests go directly to the OS kernel, which manages hardware.
             Type 1 Hypervisor	    VM Application → VM Kernel → Type 1 Hypervisor → Hardware: Hypervisor manages hardware requests for all VMs directly.
             Type 2 Hypervisor	    VM Application → VM Kernel → Type 2 Hypervisor → Host OS Kernel → Hardware: Hypervisor relies on host OS for hardware access, adding an extra layer.
+
+            -----How Hypervisors Work:
+            
+            When a hypervisor creates a VM, it assigns 
+            a virtual CPU, virtual memory, virtual storage, and virtual network interfaces to the VM.
+            
+            The VM’s OS and applications run on these virtualized components, thinking they are real hardware.
+
+            ---Handling System Calls:
+            When a VM’s operating system makes system calls to access hardware (e.g., writing to a disk), 
+            the hypervisor intercepts these calls and translates them to real hardware instructions.
+            The hypervisor ensures that each VM only accesses the resources assigned to it.
+
+            */
+
+            /* Docker and Containers
 
 
             */
