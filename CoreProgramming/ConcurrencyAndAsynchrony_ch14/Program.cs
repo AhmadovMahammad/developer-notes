@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace ConcurrencyAndAsynchrony_ch14
@@ -6,7 +7,7 @@ namespace ConcurrencyAndAsynchrony_ch14
     internal class Program
     {
         static ManualResetEvent signal = new ManualResetEvent(false);
-        private static async Task Main(string[] args)
+        private static void Main(string[] args)
         {
             /* Threads and Processes
              
@@ -1007,7 +1008,7 @@ namespace ConcurrencyAndAsynchrony_ch14
             When you use await, it allows the main thread to continue running other code while 
             waiting for the task to complete. 
             
-            This keeps the UI responsive in a WPF or WinForms application and 
+            This keeps the UI responsive in a WPF or WinForms application and
             prevents blocking in a web application.
 
             2. Avoiding Deadlocks:
@@ -1044,6 +1045,267 @@ namespace ConcurrencyAndAsynchrony_ch14
 
             */
 
+            /* Exceptions
+             
+            Unlike with threads, tasks conveniently propagate exceptions.
+            If a task throws an exception, that exception does not terminate the application. 
+            Instead, it is stored and can be accessed later. 
+            
+            When you attempt to access the task's result or wait for its completion using methods like 
+            Wait() or accessing the Result property, the exception is rethrown.
+
+            When a task faults, the exception is wrapped in an AggregateException. 
+            This allows for the possibility of multiple exceptions being thrown 
+            when dealing with parallel tasks.
+
+            Task task = Task.Run(() =>
+            {
+                throw new DivideByZeroException("you cannot divide a number to zero!!!");
+            });
+
+            try
+            {
+                task.Wait();
+            }
+            catch (AggregateException aex)
+            {
+                foreach (var innerEx in aex.InnerExceptions)
+                {
+                    if (innerEx is DivideByZeroException divideByZeroException)
+                    {
+                        Console.WriteLine($"divide exception: {divideByZeroException.Message}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Caught an exception: " + innerEx.Message);
+                    }
+                }
+            }
+
+            Tasks provide properties such as IsFaulted and IsCanceled to check 
+            the state of the task without having to throw exceptions.
+
+            Console.WriteLine($"task is faulted: {task.IsFaulted}");
+
+            */
+
+            /* Continuations
+             
+            Continuations in .NET allow you to schedule an additional action or task to execute automatically 
+            once an existing task completes. 
+            This feature is useful for handling complex workflows 
+            where multiple asynchronous operations must occur sequentially or in response to each other.
+
+            When a task completes (whether successfully, with an exception, or due to cancellation), 
+            you can specify code to execute right afterward. 
+            There are two main ways to attach a continuation:
+
+            1. Using GetAwaiter().OnCompleted()
+            2. Using ContinueWith
+
+            -----1) Attaching Continuations with GetAwaiter().OnCompleted()
+
+            When you call GetAwaiter() on a task, you retrieve an awaiter object. 
+            An awaiter represents an object that can "wait" for the task to complete and 
+            can provide functionality to execute a continuation once the task finishes.
+
+            Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
+            {
+                return Enumerable.Range(2, 3_000_000).Count(m =>
+                {
+                    return Enumerable.Range(2, (int)Math.Sqrt(m) - 1).All(i => m % i > 0);
+                });
+            }, TaskCreationOptions.LongRunning);
+
+            Console.WriteLine("calculating all the prime numbers withing [1-3million]");
+
+            TaskAwaiter<int> awaiter = primeNumbersTask.GetAwaiter();
+            awaiter.OnCompleted(() =>
+            {
+                try
+                {
+                    int result = awaiter.GetResult();
+                    Console.WriteLine(result);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"An error occurred: {ex.Message}");
+                }
+            });
+
+            -----Threading and Synchronization Context with ConfigureAwait(false)
+
+            When you create and start a task, it runs on a separate thread from the UI, 
+            typically from the thread pool. 
+            
+            Once the task completes, any code written as a continuation will try to run 
+            on the original thread if a synchronization context is available.
+
+            In applications with a UI (like WPF or WinForms), 
+            there is a synchronization context associated with the UI thread. 
+            
+            This synchronization context ensures that updates to the UI only happen on the UI thread, 
+            which is necessary to keep the UI responsive and to avoid conflicts.
+
+            When you await a task in a UI application, by default, 
+            .NET captures synchronization context.
+
+            ---What ConfigureAwait(false) Does?
+
+            If you call ConfigureAwait(false) on a task, 
+            you are instructing it not to capture the synchronization context. 
+            
+            Instead, the continuation can execute on any thread available, 
+            typically on a thread pool thread, rather than the original context (like the UI thread).
+
+            await Task.Run(() => { long-running work }).ConfigureAwait(false);
+
+            By adding ConfigureAwait(false), you are essentially telling the program, 
+            "I don’t need this continuation to run on the original thread (UI thread). 
+            Run it wherever it’s convenient."
+            
+            ---Why This Matters
+             
+            1. With ConfigureAwait(true) (default): 
+            The continuation will try to return to the UI thread if possible, 
+            ensuring you’re able to interact with UI components directly in the continuation.
+
+            2. With ConfigureAwait(false): 
+            The continuation may run on a different thread (a background or thread pool thread). 
+            This improves performance because the runtime doesn’t have to wait to access the UI thread, 
+            which could be busy. However, 
+            
+            if you need to access UI elements afterward, you’ll need to switch back to the UI thread.
+
+            -----2) Attaching Continuations with ContinueWith
+
+            a. ContinueWith Syntax
+            The ContinueWith method is another way to add a continuation to a task.
+            It offers a simpler syntax and is useful in parallel programming and 
+            scenarios where more control over task chaining is needed.
+
+            Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
+            {
+                return Enumerable.Range(2, 3_000_000).Count(m =>
+                {
+                    return Enumerable.Range(2, (int)Math.Sqrt(m) - 1).All(i => m % i > 0);
+                });
+            }, TaskCreationOptions.LongRunning);
+
+            Console.WriteLine("calculating all the prime numbers withing [1-3million]");
+
+            primeNumbersTask.ContinueWith(antecedent =>
+            {
+                if (antecedent.IsFaulted)
+                {
+                    Console.WriteLine("Task failed with an exception.");
+                }
+                else
+                {
+                    Console.WriteLine($"Number of Prime numbers: {antecedent.Result}");
+                }
+            });
+
+            b. Using TaskContinuationOptions for Thread Control
+
+            With ContinueWith, the task typically runs on the thread pool, 
+            but you can specify TaskContinuationOptions.ExecuteSynchronously to attempt 
+            synchronous execution on the same thread, reducing thread-switching overhead.
+
+            primeNumberTask.ContinueWith(antecedent =>
+            {
+                Console.WriteLine($"Result: {antecedent.Result}");
+            }, TaskContinuationOptions.ExecuteSynchronously);
+            
+            Alternatively, you can control the behavior further using options like 
+            1. TaskContinuationOptions.OnlyOnFaulted or 
+            2. TaskContinuationOptions.OnlyOnRanToCompletion to execute specific actions 
+            based on the task's outcome.
+
+            //NOTES
+            
+            GetResult() on awaiter object: This retrieves the result from the completed task. 
+            If the task completed with an exception, calling GetResult() rethrows it without 
+            wrapping it in an AggregateException.
+
+            For ContinueWith: If the antecedent task threw an exception, 
+            the continuation must handle an AggregateException. 
+            This can add complexity if multiple exceptions occur.
+
+            */
+
+            #region ContinueWith
+            Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
+            {
+                return Enumerable.Range(2, 3_000_000).Count(m =>
+                {
+                    return Enumerable.Range(2, (int)Math.Sqrt(m) - 1).All(i => m % i > 0);
+                });
+            }, TaskCreationOptions.LongRunning);
+
+            Console.WriteLine("Calculating all the prime numbers withing [1-3million]");
+
+            primeNumbersTask.ContinueWith(antecedent =>
+            {
+                if (antecedent.IsFaulted)
+                {
+                    Console.WriteLine("Task failed with an exception.");
+                }
+                else
+                {
+                    Console.WriteLine($"Number of Prime numbers: {antecedent.Result}");
+                }
+            }, TaskContinuationOptions.ExecuteSynchronously);
+
+            Console.ReadLine();
+            #endregion
+
+            #region GetAwaiter
+            //Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
+            //{
+            //    return Enumerable.Range(2, 3_000_000).Count(m =>
+            //    {
+            //        return Enumerable.Range(2, (int)Math.Sqrt(m) - 1).All(i => m % i > 0);
+            //    });
+            //}, TaskCreationOptions.LongRunning);
+
+            //Console.WriteLine("calculating all the prime numbers withing [1-3million]");
+
+            //TaskAwaiter<int> awaiter = primeNumbersTask.GetAwaiter();
+            //awaiter.OnCompleted(() =>
+            //{
+            //    try
+            //    {
+            //        int result = awaiter.GetResult();
+            //        Console.WriteLine(result);
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine($"An error occurred: {ex.Message}");
+            //    }
+            //});
+
+            //Console.ReadLine();
+            #endregion
+
+            // code example
+            //Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
+            //{
+            //    return Enumerable.Range(2, 3_000_000).Count(m =>
+            //    {
+            //        return Enumerable.Range(2, (int)Math.Sqrt(m) - 1).All(i => m % i > 0);
+            //    });
+            //}, TaskCreationOptions.LongRunning);
+
+            //bool isCompleted;
+            //do
+            //{
+            //    isCompleted = primeNumbersTask.Wait(TimeSpan.FromSeconds(1));
+            //}
+            //while (!isCompleted);
+
+            //int primeCounts = await primeNumbersTask;
+            //Console.WriteLine("number of primes from 1 to 3_000_000 : {0}", primeCounts);
         }
     }
 }
