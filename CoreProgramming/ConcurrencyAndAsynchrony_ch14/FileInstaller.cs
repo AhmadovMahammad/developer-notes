@@ -4,7 +4,7 @@
     {
         public async Task InstallFileAsync(string url, string destinationPath, IProgress<int> progress, CancellationToken cancellationToken)
         {
-            Console.WriteLine($"Installing file from [{url}] to [{destinationPath}]");
+            Console.WriteLine($"--- Installing file from [{url}] to [{destinationPath}]");
             int bytesDownloaded = 0;
             int totalBytes = 1000;
 
@@ -13,7 +13,7 @@
                 cancellationToken.ThrowIfCancellationRequested();
 
                 bytesDownloaded += 100;
-                await Task.Delay(500); // each 100 bytes take half second to install for example
+                await Task.Delay(500, cancellationToken); // each 100 bytes take half second to install for example
 
                 int percentComplete = (bytesDownloaded * 100) / totalBytes;
                 progress.Report(percentComplete);

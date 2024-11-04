@@ -1007,7 +1007,7 @@ namespace ConcurrencyAndAsynchrony_ch14
             -----Why Use await Instead of .Result
 
             1. Non-Blocking Execution: 
-            When you use await, it allows the main thread to continue running other code while 
+            When you use await, it allows the main thread to continue running other code while
             waiting for the task to complete. 
             
             This keeps the UI responsive in a WPF or WinForms application and
@@ -1252,7 +1252,7 @@ namespace ConcurrencyAndAsynchrony_ch14
 
             */
 
-            #region ContinueWith
+            #region ContinueWith code example
             //Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
             //{
             //    return Enumerable.Range(2, 3_000_000).Count(m =>
@@ -1277,7 +1277,7 @@ namespace ConcurrencyAndAsynchrony_ch14
             //Console.ReadLine();
             #endregion
 
-            #region GetAwaiter
+            #region GetAwaiter code example
             //Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
             //{
             //    return Enumerable.Range(2, 3_000_000).Count(m =>
@@ -1802,51 +1802,54 @@ namespace ConcurrencyAndAsynchrony_ch14
 
             */
 
-            using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSource.CancelAfter(20 * 1000); // cancel installing manually after 20 seconds
+            #region reporting code example
+            //using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            //cancellationTokenSource.CancelAfter(20 * 1000); // cancel installing manually after 20 seconds
 
-            CancellationToken cancellationToken = cancellationTokenSource.Token;
-            cancellationToken.Register(() => Console.WriteLine("Installation was cancelled by user."));
+            //CancellationToken cancellationToken = cancellationTokenSource.Token;
+            //cancellationToken.Register(() => Console.WriteLine("Installation was cancelled by user."));
 
-            try
-            {
-                string url = "http://example.com/file";
+            //try
+            //{
+            //    string url = "http://example.com/file";
 
-                FileInstaller fileInstaller = new FileInstaller();
-                IProgress<int> progress = new Progress<int>((int percentage) =>
-                {
-                    Console.WriteLine($"\nTotal installation percentage: {percentage}/100%");
-                });
+            //    FileInstaller fileInstaller = new FileInstaller();
+            //    IProgress<int> progress = new Progress<int>((int percentage) =>
+            //    {
+            //        Console.WriteLine($"*Total installation percentage: {percentage}/100%");
+            //    });
 
-                Console.WriteLine("Press 'c' to cancel installation within 10 seconds.");
-                _ = Task.Run(() =>
-                {
-                    if (Console.ReadKey().Key == ConsoleKey.C)
-                    {
-                        cancellationTokenSource.Cancel();
-                    }
-                });
+            //    Console.WriteLine("Press 'c' to cancel installation within 10 seconds.");
+            //    _ = Task.Run(() =>
+            //    {
+            //        if (Console.ReadKey().Key == ConsoleKey.C)
+            //        {
+            //            Console.WriteLine();
+            //            cancellationTokenSource.Cancel();
+            //        }
+            //    });
 
-                await fileInstaller.InstallFileAsync(url, "file.txt", progress, cancellationToken);
-                Console.WriteLine("\nInstall completed!");
-            }
-            catch (OperationCanceledException)
-            {
+            //    await fileInstaller.InstallFileAsync(url, "file.txt", progress, cancellationToken);
+            //    Console.WriteLine("\nInstall completed!");
+            //}
+            //catch (OperationCanceledException)
+            //{
 
-            }
+            //}
 
             //IProgress<int> progress = new Progress<int>((int progressPercentage) => Console.WriteLine($"{progressPercentage}%"));
             //await Foo(progress);
 
-            Console.ReadLine();
+            //Console.ReadLine();
 
             //Action<int> progress = (int i) =>
             //{
             //    Console.WriteLine($"Progress: {i}%");
             //};
             //await Foo(progress);
+            #endregion
 
-            #region file processor
+            #region file processor code example
             //IEnumerable<string> filePaths = Directory.EnumerateFiles(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
             //FileProcessor fileProcessor = new FileProcessor();
 
@@ -1885,8 +1888,158 @@ namespace ConcurrencyAndAsynchrony_ch14
 
             //Console.Read();
             #endregion
+
+            /* Task Combinators
+             
+            The CLR includes two task combinators: Task.WhenAny and Task.WhenAll. 
+            In describing them, we’ll assume the following methods are defined:
+            
+            async Task<int> Delay1() { await Task.Delay (1000); return 1; }
+            async Task<int> Delay2() { await Task.Delay (2000); return 2; }
+            async Task<int> Delay3() { await Task.Delay (3000); return 3; }
+
+            -----1. WhenAny
+
+            Task.WhenAny takes a collection of tasks and returns 
+            a task that completes as soon as any one of the input tasks completes. 
+            The result is a task representing the first completed task.
+            This is useful in scenarios where you want to:
+
+            1. Respond to whichever task finishes first.
+            2. Apply a timeout to an operation.
+            3. Execute multiple tasks and retrieve the result from the one that finishes quickest.
+
+            ---Example 1: Getting the First Result with Task.WhenAny
+
+            var winningTask = await Task.WhenAny(Delay1(), Delay2(), Delay3());
+            Console.WriteLine("Done");
+
+            int result = await winningTask;
+            Console.WriteLine($"First completed task result: {result}"); // Output: 1
+
+            Because Task.WhenAny itself returns a task, we await it, which returns the task that finished first. 
+            
+            Our example is entirely nonblocking—including the last line when we access the Result property 
+            (because winningTask will already have finished). 
+            Nonetheless, it’s usually better to await the winningTask.
+
+            Console.WriteLine(await winningTask);  //1
+            because any exceptions are then rethrown without an AggregateException wrapping.
+
+            In fact, we can perform both awaits in one step:
+            int answer = await await Task.WhenAny(Delay1(), Delay2(), Delay3());
+
+            ---Example 2: Adding a Timeout with Task.WhenAny
+
+            If we want to impose a timeout on a task, 
+            we can create a Task.Delay with the timeout duration and pass it to Task.WhenAny along with the original task.
+
+            Task timeoutTask = Task.Delay(2 * 1000); // set a 2-second timeout;
+            Task<int> task = Delay3();
+
+            var winner = await Task.WhenAny(task, timeoutTask);
+            if (winner == timeoutTask)
+            {
+                Console.WriteLine("The operation timed out.");
+            }
+            else
+            {
+                int result = await task;
+                Console.WriteLine($"Task completed with result: {result}");
+            }
+
+            If task doesn’t complete within 2 seconds, timeoutTask finishes first, and we detect this by checking which task completed.
+
+            -----What Happens to Non-Winning Tasks in Task.WhenAny?
+
+            When we use Task.WhenAny, we pass multiple tasks to it, and it waits only until one of them completes—this is the “winning” task. 
+            However, the non-winning tasks do not stop running. 
+            They continue their work in the background, potentially resulting in unobserved exceptions or 
+            side effects that we may need to handle. 
+
+            If a non-winning task throws an exception, that exception will not immediately disrupt the flow of the program because 
+            Task.WhenAny does not observe the exception directly.
+            However, unobserved exceptions can be problematic. 
+
+            To prevent this, you should ensure that all tasks passed to Task.WhenAny are observed at some point, 
+            especially if they could throw an exception.
+
+
+            -----2. WhenAll
+
+            When you use Task.WhenAll, you provide it with multiple tasks, and it waits for all of those tasks to complete. 
+            However, it doesn’t execute them “one-by-one” or in sequence
+            
+            1. Parallel Execution:
+            
+            a) When you call Task.WhenAll, it doesn't execute tasks sequentially 
+            (i.e., it doesn’t wait for the first task to complete before starting the second).
+
+            b) All tasks you pass to WhenAll are allowed to execute concurrently—either on separate threads, depending on their implementation, or 
+            by switching between tasks in a single thread (if using asynchronous I/O tasks).
+
+            2. Waiting for Completion:
+
+            a) Task.WhenAll will complete only after all tasks finish, either successfully, with an exception, or by cancellation.
+
+            b) If any of the tasks passed to Task.WhenAll throws an exception, 
+            WhenAll will re-throw an AggregateException containing the exceptions from any faulted tasks.
+
+            c) If all tasks succeed, Task.WhenAll will simply return their results as an array of results (if they are typed Task<T>).
+
+            3) Total Execution Time:
+
+            a) The total execution time of Task.WhenAll is determined by the longest-running task in the group, 
+            not by the sum of all task durations.
+
+            For example, if one task takes 5 seconds, another takes 3 seconds, and a third takes 1 second, 
+            Task.WhenAll will complete in roughly 5 seconds, assuming they all start around the same time.
+
+            Task<int> task1 = Task1Async();
+            Task<int> task2 = Task2Async();
+            Task<int> task3 = Task3Async();
+
+            // WhenAll starts all tasks simultaneously and waits for all to complete
+            int[] results = await Task.WhenAll(task1, task2, task3);
+
+            Console.WriteLine("All tasks completed.");
+            Console.WriteLine($"Results: {string.Join(", ", results)}"); // Output: 1, 2, 3
+
+            -Debug Console
+            Task 3 complete.
+            Task 1 complete.
+            Task 2 complete.
+            All tasks completed.
+            Results: 1, 2, 3
+
+            */
         }
 
+        static async Task<int> Task1Async()
+        {
+            await Task.Delay(3000);
+            Console.WriteLine("Task 1 complete.");
+            return 1;
+        }
+
+        static async Task<int> Task2Async()
+        {
+            await Task.Delay(5000);
+            Console.WriteLine("Task 2 complete.");
+            return 2;
+        }
+
+        static async Task<int> Task3Async()
+        {
+            await Task.Delay(2000);
+            Console.WriteLine("Task 3 complete.");
+            return 3;
+        }
+
+
+        static async Task<int> Delay1() { await Task.Delay(1000); return 1; }
+        static async Task<int> Delay2() { await Task.Delay(2000); return 2; }
+        static async Task<int> Delay3() { await Task.Delay(3000); return 3; }
         static Task Foo(IProgress<int> progress)
         {
             return Task.Run(() =>
@@ -1900,7 +2053,6 @@ namespace ConcurrencyAndAsynchrony_ch14
                 }
             });
         }
-
         static Task Foo(Action<int> onProgressPercentChanged)
         {
             return Task.Run(() =>
