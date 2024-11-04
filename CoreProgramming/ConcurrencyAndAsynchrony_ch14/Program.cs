@@ -1,13 +1,15 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 
 namespace ConcurrencyAndAsynchrony_ch14
 {
     internal class Program
     {
         static ManualResetEvent signal = new ManualResetEvent(false);
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             /* Threads and Processes
              
@@ -390,7 +392,7 @@ namespace ConcurrencyAndAsynchrony_ch14
                 new Thread(() => Console.WriteLine(i)).Start();
             }
 
-            You might expect the loop to print the numbers 0 through 4, 
+            You might expect the loop to print the numbers 0 through 4,
             but the actual output is unpredictable because each thread captures the reference to the same variable i. 
             
             By the time the thread runs, i has likely changed, 
@@ -1222,42 +1224,57 @@ namespace ConcurrencyAndAsynchrony_ch14
             2. TaskContinuationOptions.OnlyOnRanToCompletion to execute specific actions 
             based on the task's outcome.
 
-            //NOTES
-            
-            GetResult() on awaiter object: This retrieves the result from the completed task. 
-            If the task completed with an exception, calling GetResult() rethrows it without 
-            wrapping it in an AggregateException.
 
-            For ContinueWith: If the antecedent task threw an exception, 
-            the continuation must handle an AggregateException. 
-            This can add complexity if multiple exceptions occur.
+            By default, Task.Run uses the thread pool, which is a set of background threads managed by .NET 
+            to handle tasks without creating new threads unnecessarily.
+            
+            These threads are background threads by nature, 
+            meaning they don’t keep the application alive if the main thread exits.
+
+            In applications with a UI thread (like WinForms or WPF), 
+            there’s a synchronization context in place that manages updates and interactions on that thread.
+            Continuation tasks can automatically use this context, 
+            ensuring that code following a task executes back on the UI thread.
+
+            //Key Points for Each Approach
+            
+            1. GetAwaiter().OnCompleted():
+
+            a) Automatically captures and returns to the original context (like the UI thread), 
+            unless ConfigureAwait(false) is specified.
+            b) Directly rethrows exceptions via GetResult(), providing clean exception handling.
+
+            2. ContinueWith:
+
+            a) More control over task chaining and continuation scheduling (through TaskContinuationOptions).
+            b) Continuations return another Task, 
+            enabling more chaining but requiring manual exception handling (AggregateException).
 
             */
 
             #region ContinueWith
-            Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
-            {
-                return Enumerable.Range(2, 3_000_000).Count(m =>
-                {
-                    return Enumerable.Range(2, (int)Math.Sqrt(m) - 1).All(i => m % i > 0);
-                });
-            }, TaskCreationOptions.LongRunning);
+            //Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
+            //{
+            //    return Enumerable.Range(2, 3_000_000).Count(m =>
+            //    {
+            //        return Enumerable.Range(2, (int)Math.Sqrt(m) - 1).All(i => m % i > 0);
+            //    });
+            //}, TaskCreationOptions.LongRunning);
 
-            Console.WriteLine("Calculating all the prime numbers withing [1-3million]");
+            //Console.WriteLine("Calculating all the prime numbers withing [1-3million]");
 
-            primeNumbersTask.ContinueWith(antecedent =>
-            {
-                if (antecedent.IsFaulted)
-                {
-                    Console.WriteLine("Task failed with an exception.");
-                }
-                else
-                {
-                    Console.WriteLine($"Number of Prime numbers: {antecedent.Result}");
-                }
-            }, TaskContinuationOptions.ExecuteSynchronously);
-
-            Console.ReadLine();
+            //primeNumbersTask.ContinueWith(antecedent =>
+            //{
+            //    if (antecedent.IsFaulted)
+            //    {
+            //        Console.WriteLine("Task failed with an exception.");
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine($"Number of Prime numbers: {antecedent.Result}");
+            //    }
+            //}, TaskContinuationOptions.ExecuteSynchronously);
+            //Console.ReadLine();
             #endregion
 
             #region GetAwaiter
@@ -1288,7 +1305,184 @@ namespace ConcurrencyAndAsynchrony_ch14
             //Console.ReadLine();
             #endregion
 
-            // code example
+            /* Difference between Task.Factory.StartNew and Task.Run
+               especially when it comes to handling asynchronous code.
+             
+            1. Task.Run
+            Task.Run was introduced with async-await in mind. 
+            When you pass an async lambda (like async () => {...}) to Task.Run, 
+            it properly recognizes it as an asynchronous method and 
+            knows to wait for the whole asynchronous operation to complete.
+
+            await Task.Run(async () =>
+            {
+                Console.WriteLine("Task with Task.Run started...");
+                await Task.Delay(2000); // Simulate async work
+                Console.WriteLine("Task with Task.Run completed.");
+            });
+
+            Here, the await will wait for the full 2-second delay, meaning "Task with Task.Run completed." will display after the delay.
+
+            2. Task.Factory.StartNew
+            Task.Factory.StartNew is a lower-level method intended primarily for creating tasks with more customization options. 
+            It was originally created in .NET Framework 4.0, before Task.Run was introduced, and 
+            is ideal for scenarios requiring more control over task execution options (like task scheduling, creation options, etc.).
+
+            Task.Factory.StartNew does not handle async lambdas intuitively. 
+            When you pass an async lambda to Task.Factory.StartNew,  it doesn’t know to wait for the entire asynchronous operation. 
+            Instead, it sees the lambda as a regular delegate, which will complete as soon as 
+            it encounters the first await keyword within that lambda.
+
+            await Task.Factory.StartNew(async () =>
+            {
+                Console.WriteLine("Task with Task.Factory.StartNew started...");
+                await Task.Delay(2000); // Simulate async work
+                Console.WriteLine("Task with Task.Factory.StartNew completed.");
+            }, TaskCreationOptions.LongRunning);
+
+            In this code, Task.Factory.StartNew won’t wait for await Task.Delay(2000). 
+
+            */
+
+            /* TaskCompletionSource
+             
+            In .NET, TaskCompletionSource is a tool for creating and controlling Task objects manually.
+            
+            With Task.Run, you start a task that runs a piece of code, 
+            and it automatically completes when that code finishes. But sometimes, 
+            you want more control over how a task completes. 
+            
+            For example, you might want the task to represent something that doesn't happen immediately, 
+            like waiting for user input, a file to download, or data from a network. 
+            In these cases, TaskCompletionSource is very useful because it lets you:
+
+            1. Start the task.
+            2. Manually complete, cancel, or fail the task at the right time.
+
+            -----Key Idea of TaskCompletionSource
+
+            Think of TaskCompletionSource as a "promise" of a task. 
+            Instead of running code immediately, it creates a task that you can control. 
+            You decide when that task finishes and with what result. 
+
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+
+            _ = Task.Run(async () =>
+            {
+                Console.WriteLine("Task starting...");
+                await Task.Delay(5 * 1000); // simulate 5 seconds delay
+                tcs.SetResult(1);
+                Console.WriteLine("Task completed!");
+            });
+
+            Console.WriteLine("Waiting for task to complete");
+
+            var result = await tcs.Task;
+            Console.WriteLine($"Result from background thread: {result}");
+
+            Console.ReadLine();
+
+            -----What if Something Goes Wrong?
+
+            If the background work fails for some reason, 
+            we can signal that by calling SetException instead of SetResult.
+
+            TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+
+            _ = Task.Factory.StartNew(() =>
+            {
+                try
+                {
+                    Console.WriteLine("Background task: Starting work...");
+                    Thread.Sleep(2 * 1000);
+
+                    throw new InvalidOperationException("Something went wrong!");
+
+                    //tcs.SetResult(42);
+                    //Console.WriteLine("Background task: Work completed successfully.");
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                    Console.WriteLine("Background task: Exception occurred.");
+                }
+            });
+
+            Console.WriteLine("Main thread: Waiting for background task to complete...");
+
+            try
+            {
+                int result = await tcs.Task;
+                Console.WriteLine($"Main thread: Result from background task is {result}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Main thread: Caught exception - {ex.Message}");
+            }
+
+            -----
+            To use TaskCompletionSource, you simply instantiate the class. 
+            
+            It exposes a Task property that returns a task upon which you can wait and attach continuations 
+            just as with any other task. 
+            
+            The task, however, is controlled entirely by the TaskCompletionSource object via the following methods:
+            
+            public class TaskCompletionSource<TResult>
+            {
+                public void SetResult (TResult result);
+                public void SetException (Exception exception);
+                public void SetCanceled();
+                public bool TrySetResult (TResult result);
+                public bool TrySetException (Exception exception);
+                public bool TrySetCanceled();
+                public bool TrySetCanceled (CancellationToken cancellationToken);
+                ...
+            }
+
+            Calling any of these methods signals the task, putting it into a completed, faulted, or canceled state.
+
+            */
+
+            /* Codes
+            
+
+            //TaskCompletionSource<int> tcs = new TaskCompletionSource<int>();
+
+            //_ = Task.Factory.StartNew(() =>
+            //{
+            //    try
+            //    {
+            //        Console.WriteLine("Background task: Starting work...");
+            //        Thread.Sleep(2 * 1000);
+
+            //        throw new InvalidOperationException("Something went wrong!");
+
+            //        //tcs.SetResult(42);
+            //        //Console.WriteLine("Background task: Work completed successfully.");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        tcs.SetException(ex);
+            //        Console.WriteLine("Background task: Exception occurred.");
+            //    }
+            //});
+
+            //Console.WriteLine("Main thread: Waiting for background task to complete...");
+
+            //try
+            //{
+            //    int result = await tcs.Task;
+            //    Console.WriteLine($"Main thread: Result from background task is {result}");
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"Main thread: Caught exception - {ex.Message}");
+            //}
+
+            //Console.Read();
+
+            #region code example
             //Task<int> primeNumbersTask = Task.Factory.StartNew(() =>
             //{
             //    return Enumerable.Range(2, 3_000_000).Count(m =>
@@ -1306,6 +1500,419 @@ namespace ConcurrencyAndAsynchrony_ch14
 
             //int primeCounts = await primeNumbersTask;
             //Console.WriteLine("number of primes from 1 to 3_000_000 : {0}", primeCounts);
+            #endregion
+            */
+
+            // complete previous subjects, until page 645]
+
+            //========================================================================================
+            // Asynchronous Patterns
+
+            /* Cancellation
+             
+            When running tasks concurrently, it's common to want to stop a task in response to 
+            1. a user action, 2. timeout, or 3. other condition. 
+            
+            Instead of forcibly stopping a thread, .NET provides a pattern with CancellationToken and CancellationTokenSource 
+            to allow tasks to cooperatively stop when requested.
+
+            a) CancellationTokenSource: 
+            This class is used to signal a cancellation. It has methods to initiate cancellation, like Cancel and CancelAfter.
+
+            b) CancellationToken: 
+            This struct represents a token that’s passed to tasks or methods, 
+            allowing them to periodically check for cancellation requests and stop in a controlled way.
+
+            -To get a cancellation token, we first instantiate a CancellationTokenSource:
+            var cancelSource = new CancellationTokenSource();
+
+            This exposes a Token property, which returns a CancellationToken:
+            var token = cancelSource.Token;
+
+            c) OperationCanceledException: 
+            When cancellation is requested, tasks often throw this exception to indicate they’ve been cancelled. 
+            Awaiting code will see this exception and handle it.
+
+            
+            -----Real-World Example: File Processing with Cancellation Support
+
+            Let’s say we have a system where multiple files are being processed, 
+            and we want to allow cancellation at any point, such as if a user cancels the operation or 
+            if the processing exceeds a certain time limit.
+
+            public class FileProcessor
+            {
+                public async Task ProcessFilesAsync(IEnumerable<string> filePaths, CancellationToken cancellationToken)
+                {
+                    Console.WriteLine("Beginning file processing...");
+        
+                    foreach (var filePath in filePaths)
+                    {
+                        try
+                        {
+                            await ProcessFileAsync(filePath, cancellationToken);
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            Console.WriteLine($"\nProcessing cancelled for {filePath}.");
+                            break;
+                        }
+                    }
+        
+                    Console.WriteLine("File processing operation completed.");
+                }
+        
+                private async Task ProcessFileAsync(string filePath, CancellationToken cancellationToken)
+                {
+                    Console.WriteLine($"Starting processing of {filePath}");
+        
+                    for (int i = 0; i < 5; i++)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+        
+                        Console.WriteLine($"Processing stage {i} for {filePath}...");
+                        await Task.Delay(500, cancellationToken); // each stage takes half second
+                    }
+        
+                    Console.WriteLine($"Completed processing of {filePath}.");
+                }
+            }
+
+            IEnumerable<string> filePaths = Directory.EnumerateFiles(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+            FileProcessor fileProcessor = new FileProcessor();
+
+            using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(10 * 1000); // autmoatically cancel after 10 seconds.
+
+            CancellationToken cancellationToken = cancellationTokenSource.Token;
+
+            Task processingTask = fileProcessor.ProcessFilesAsync(filePaths, cancellationTokenSource.Token);
+
+            // Allow user to manually cancel
+            Console.WriteLine("Press 'c' to cancel within 10 seconds.");
+            _ = Task.Run(() =>
+            {
+                if (Console.ReadKey().Key == ConsoleKey.C)
+                {
+                    cancellationTokenSource.Cancel();
+                }
+            });
+
+            try
+            {
+                await processingTask;
+            }
+            catch (Exception exception)
+            {
+                if (exception is OperationCanceledException)
+                {
+                    Console.WriteLine("File processing was cancelled.");
+                }
+                else
+                {
+                    Console.WriteLine("Exception: {0}", exception.Message);
+                }
+            }
+
+            Console.Read();
+
+
+            //How does it work?
+
+            ProcessFileAsync is an async method that processes a file in 5 stages.
+            Each stage checks if cancellation has been requested via token.ThrowIfCancellationRequested().
+            If the cancellation token’s IsCancellationRequested property is true, 
+            ThrowIfCancellationRequested throws an OperationCanceledException, stopping the task.
+
+            We create a CancellationTokenSource in Main with CancelAfter(10_000), 
+            which will automatically request cancellation after 10 seconds if the operation isn’t complete.
+            
+            Simultaneously, we start a task listening for user input (c) to cancel manually.
+            If cancellation is requested, either by user input or timeout, 
+            the program stops processing further files and prints a cancellation message.
+
+            ---Advanced: Using CancellationToken.Register for Notifications
+
+            If you want to execute a specific action as soon as a cancellation request is made 
+            (e.g., logging or cleaning up resources), you can use the CancellationToken.Register method.
+
+            CancellationToken token = cancellationTokenSource.Token;
+
+            // Register a callback to execute when cancellation is requested
+            token.Register(() => Console.WriteLine("Cancellation has been requested."));
+
+            */
+
+            /* Progress Reporting
+             
+            When you’re running a long asynchronous task, you might want to report progress to the user, 
+            especially in UI applications. 
+            
+            Progress reporting allows the task to periodically notify the calling code of its current status 
+            without blocking or waiting for the task to complete. 
+            
+            The example shows two approaches to implementing progress reporting: 
+            1. one using an Action delegate and 
+            2. the other using IProgress<T>. 
+            
+            Here’s a detailed explanation with examples of each approach and why IProgress<T> is often better in UI scenarios.
+
+            Approach 1: Using an Action Delegate
+
+            Action<int> progress = (int i) =>
+            {
+                Console.WriteLine($"Progress: {i}%");
+            };
+            await Foo(progress);
+
+            static Task Foo(Action<int> onProgressPercentChanged)
+            {
+                return Task.Run(() =>
+                {
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        if (i % 10 == 0)
+                        {
+                            onProgressPercentChanged(i / 10);
+                        }
+                    }
+                });
+            }
+
+            ---Limitation in UI Applications:
+
+            1. Since Task.Run runs on a background thread, 
+            reporting progress directly through an Action might cause issues in a UI application.
+            
+            2. Directly updating the UI from a background thread can lead to threading issues because 
+            UI elements can only be safely accessed from the main UI thread.
+
+
+            Approach 2: Using IProgress<T> and Progress<T>
+
+            The CLR provides a pair of types to solve this problem: 
+            an interface called IProgress<T> and a class that implements this interface called Progress<T>.
+
+            Their purpose is to “wrap” a delegate so that 
+            UI applications can report progress safely through the synchronization context.
+
+            public interface IProgress<in T>
+            {
+                void Report (T value);
+            }
+
+            IProgress<int> progress = new Progress<int>((int progressPercentage) => Console.WriteLine($"{progressPercentage}%"));
+            await Foo(progress);
+
+            static Task Foo(IProgress<int> progress)
+            {
+                return Task.Run(() =>
+                {
+                    for (int i = 0; i < 1000; i++)
+                    {
+                        if (i % 10 == 0)
+                        {
+                            progress.Report(i / 10);
+                        }
+                    }
+                });
+            }
+
+            The issue you’re seeing, where progress percentages are printed out of order, 
+            is likely due to the fact that Console.WriteLine is not thread-safe and 
+            can produce output in a non-sequential order when multiple writes happen quickly. 
+            
+            Each call to progress.Report is queued for execution in the captured synchronization context 
+            (typically the main UI thread or a context managed by Progress<T>). 
+            This context then processes each Report call, 
+            but rapid reporting can lead to unpredictable output in the console.
+
+            In a UI application, this wouldn’t be a problem because Progress<T> ensures that 
+            each update is processed sequentially on the main UI thread
+
+
+            -----Why IProgress<T> is Better in UI Applications
+
+            In rich-client applications (like Windows Forms, WPF, or UWP), 
+            updates to UI elements need to happen on the main thread. 
+            
+            The Progress<T> class ensures that progress reporting is synchronized with the main UI thread, 
+            preventing potential crashes and issues.
+
+            -----Real-World Example: File Download with Progress Reporting
+
+            public class FileInstaller
+            {
+                public async Task InstallFileAsync(string url, string destinationPath, IProgress<int> progress, CancellationToken cancellationToken)
+                {
+                    Console.WriteLine($"Installing file from [{url}] to [{destinationPath}]");
+                    int bytesDownloaded = 0;
+                    int totalBytes = 1000;
+
+                    while (bytesDownloaded < totalBytes)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        bytesDownloaded += 100;
+                        await Task.Delay(500); // each 100 bytes take half second to install for example
+
+                        int percentComplete = (bytesDownloaded * 100) / totalBytes;
+                        progress.Report(percentComplete);
+                    }
+
+                    // simulate saving the file
+                    await Task.Delay(500);
+                }
+            }
+
+            ---
+
+            using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(20 * 1000); // cancel installing manually after 20 seconds
+
+            CancellationToken cancellationToken = cancellationTokenSource.Token;
+            cancellationToken.Register(() => Console.WriteLine("Installation was cancelled by user."));
+
+            try
+            {
+                string url = "http://example.com/file";
+
+                FileInstaller fileInstaller = new FileInstaller();
+                IProgress<int> progress = new Progress<int>((int percentage) =>
+                {
+                    Console.WriteLine($"\nTotal installation percentage: {percentage}/100%");
+                });
+
+                Console.WriteLine("Press 'c' to cancel installation within 10 seconds.");
+                _ = Task.Run(() =>
+                {
+                    if (Console.ReadKey().Key == ConsoleKey.C)
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
+                });
+
+                await fileInstaller.InstallFileAsync(url, "file.txt", progress, cancellationToken);
+                Console.WriteLine("\nInstall completed!");
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+
+            */
+
+            using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(20 * 1000); // cancel installing manually after 20 seconds
+
+            CancellationToken cancellationToken = cancellationTokenSource.Token;
+            cancellationToken.Register(() => Console.WriteLine("Installation was cancelled by user."));
+
+            try
+            {
+                string url = "http://example.com/file";
+
+                FileInstaller fileInstaller = new FileInstaller();
+                IProgress<int> progress = new Progress<int>((int percentage) =>
+                {
+                    Console.WriteLine($"\nTotal installation percentage: {percentage}/100%");
+                });
+
+                Console.WriteLine("Press 'c' to cancel installation within 10 seconds.");
+                _ = Task.Run(() =>
+                {
+                    if (Console.ReadKey().Key == ConsoleKey.C)
+                    {
+                        cancellationTokenSource.Cancel();
+                    }
+                });
+
+                await fileInstaller.InstallFileAsync(url, "file.txt", progress, cancellationToken);
+                Console.WriteLine("\nInstall completed!");
+            }
+            catch (OperationCanceledException)
+            {
+
+            }
+
+            //IProgress<int> progress = new Progress<int>((int progressPercentage) => Console.WriteLine($"{progressPercentage}%"));
+            //await Foo(progress);
+
+            Console.ReadLine();
+
+            //Action<int> progress = (int i) =>
+            //{
+            //    Console.WriteLine($"Progress: {i}%");
+            //};
+            //await Foo(progress);
+
+            #region file processor
+            //IEnumerable<string> filePaths = Directory.EnumerateFiles(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
+            //FileProcessor fileProcessor = new FileProcessor();
+
+            //using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            //cancellationTokenSource.CancelAfter(10 * 1000); // autmoatically cancel after 10 seconds.
+
+            //CancellationToken cancellationToken = cancellationTokenSource.Token;
+
+            //Task processingTask = fileProcessor.ProcessFilesAsync(filePaths, cancellationTokenSource.Token);
+
+            //// Allow user to manually cancel
+            //Console.WriteLine("Press 'c' to cancel within 10 seconds.");
+            //_ = Task.Run(() =>
+            //{
+            //    if (Console.ReadKey().Key == ConsoleKey.C)
+            //    {
+            //        cancellationTokenSource.Cancel();
+            //    }
+            //});
+
+            //try
+            //{
+            //    await processingTask;
+            //}
+            //catch (Exception exception)
+            //{
+            //    if (exception is OperationCanceledException)
+            //    {
+            //        Console.WriteLine("File processing was cancelled.");
+            //    }
+            //    else
+            //    {
+            //        Console.WriteLine("Exception: {0}", exception.Message);
+            //    }
+            //}
+
+            //Console.Read();
+            #endregion
+        }
+
+        static Task Foo(IProgress<int> progress)
+        {
+            return Task.Run(() =>
+            {
+                for (int i = 0; i < 1000; i++)
+                {
+                    if (i % 10 == 0)
+                    {
+                        progress.Report(i / 10);
+                    }
+                }
+            });
+        }
+
+        static Task Foo(Action<int> onProgressPercentChanged)
+        {
+            return Task.Run(() =>
+            {
+                for (int i = 0; i < 1000; i++)
+                {
+                    if (i % 10 == 0)
+                    {
+                        onProgressPercentChanged(i / 10);
+                    }
+                }
+            });
         }
     }
 }
