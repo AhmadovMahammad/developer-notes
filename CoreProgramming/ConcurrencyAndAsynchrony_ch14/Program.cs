@@ -1989,7 +1989,7 @@ namespace ConcurrencyAndAsynchrony_ch14
 
             3) Total Execution Time:
 
-            a) The total execution time of Task.WhenAll is determined by the longest-running task in the group, 
+            a) The total execution time of Task.WhenAll is determined by the longest-running task in the group,
             not by the sum of all task durations.
 
             For example, if one task takes 5 seconds, another takes 3 seconds, and a third takes 1 second, 
@@ -2013,6 +2013,145 @@ namespace ConcurrencyAndAsynchrony_ch14
             Results: 1, 2, 3
 
             */
+
+            /* Concurrency vs. Asynchrony
+             
+            Let’s start by distinguishing two key concepts: concurrency and asynchrony.
+
+            1. Concurrency refers to the ability of a program to run multiple tasks simultaneously. 
+            In simple terms, it’s about handling multiple tasks in overlapping time periods rather than one at a time. 
+
+            Concurrency can be achieved in several ways, such as by using multiple threads or 
+            by switching between tasks on a single thread.
+
+            2. Asynchrony is a programming model that allows a program to continue executing other work 
+            while waiting for a task to complete. 
+            With asynchronous code, you can pause a task until it’s ready to proceed.
+            
+            In C#, this is achieved with async and await keywords, 
+            where the await keyword lets a method yield control back to its caller without blocking.
+
+            ----- I/O-Bound vs.CPU-Bound Tasks.
+            Tasks can be either I/O-bound or CPU-bound, and the way we handle these tasks differs:
+
+            1. I/O-Bound Tasks
+            I/O-bound tasks are tasks where the bottleneck (the thing that makes them take time) is 
+            waiting for data from an external source. 
+            This could be reading/writing files, querying a database, or communicating over a network.
+
+            These tasks don’t need a lot of CPU processing power. 
+            Most of the time I/O-bound tasks are simply waiting for the I/O operation to complete.
+
+            2. CPU-Bound Tasks
+            CPU-bound tasks are those where the bottleneck is the CPU itself. 
+            These tasks involve a lot of computation, like performing mathematical calculations or processing large datasets.
+
+            These tasks need the CPU’s full power to complete the work. 
+            They actively use CPU cycles rather than waiting for I/O.
+
+            */
+
+            /* How async and await work "under the hood"?
+            
+            When you await an asynchronous task in C#, it does not actually block the main thread.
+            Instead, it allows the method to “pause” execution at that point and
+            to “return” control to the calling thread (often the main thread)
+            so that it can continue doing other work. Here’s how it works step-by-step:
+
+            1. Starting the Async Task
+            await SomeAsyncOperation();
+
+            the await keyword tells the compiler to create a “continuation” at this point. 
+            A continuation is essentially an instruction to come back to this spot once SomeAsyncOperation has completed.
+
+            2. Returning Control to the Calling Thread
+
+            await does not block the thread. Instead, it pauses the execution of the current method. 
+            This means that the method exits at that point, 
+            allowing the calling thread (like the main UI thread in a UI app) to continue running other code.
+
+            For example, if you have this code in a UI application:
+
+            public async Task ButtonClickHandler()
+            {
+                Console.WriteLine("Started async operation");
+                await SomeAsyncOperation();
+                Console.WriteLine("Async operation complete");
+            }
+
+            When await is encountered, ButtonClickHandler will temporarily exit and return control to the UI thread. 
+            The UI thread can now do other things, like handle user interactions, render animations, etc., 
+            while SomeAsyncOperation runs in the background.
+
+            3. Resuming Execution After Completion
+
+            Once SomeAsyncOperation completes, the await will “resume” the execution of ButtonClickHandler. 
+            It picks up exactly where it left off, after await SomeAsyncOperation();, 
+            and executes the remaining code (Console.WriteLine("Async operation complete");).
+
+            */
+
+            /* Why Does Deadlock Happen? (WPF simple example)
+             
+            WPF Code:
+            public partial class MainWindow : Window
+            {
+                private readonly StringBuilder stringBuilder = new StringBuilder();
+
+                public MainWindow()
+                {
+                    InitializeComponent();
+                }
+
+                // Using async-await, which avoids blocking the UI thread.
+                private async void Button_Click_Await(object sender, RoutedEventArgs args)
+                {
+                    int response = await Delay(5 * 1000);
+                    AddLog(response.ToString());
+                }
+
+                // Synchronous waiting with .Result, which causes a deadlock.
+                private void Button_Click_Result(object sender, RoutedEventArgs args)
+                {
+                    int response = Delay(5 * 1000).Result; 
+                    AddLog(response.ToString());
+                }
+
+                // Async method that simulates work by delaying for a period.
+                private async Task<int> Delay(int milliseconds)
+                {
+                    await Task.Delay(milliseconds); // Captures UI thread context.
+                    return 1; // Returns value after delay.
+                }
+
+                // Log result to the UI.
+                private void AddLog(string message)
+                {
+                    stringBuilder.AppendLine($"{stringBuilder.ToString()}\n{message}");
+                    textBlock.Text = stringBuilder.ToString();
+                }
+            }
+
+            1. Inside the Delay method, you call await Task.Delay(milliseconds). 
+            When you use await, it captures the current synchronization context by default.
+
+            2. Capturing the UI context means that after Task.Delay finishes (in 5 seconds), 
+            it will try to resume the rest of the Delay method on the original context (the UI thread). 
+            This is a default behavior for await in UI applications to make it easy 
+            to continue working with UI elements without needing manual context switching.
+
+            3. Now, when you call .Result on the Task returned by Delay in Button_Click_Result, 
+            Result blocks the UI thread and waits for Delay to finish. 
+            
+            The problem is that Delay is trying to get back onto the UI thread 
+            to finish up its remaining code (return 1 after the delay).
+
+            4. So, we end up in a deadlock:
+            
+            a) .Result is waiting on the UI thread for Delay to complete.
+            b) Delay is waiting to get back onto the UI thread to continue and complete.
+
+            */
         }
 
         static async Task<int> Task1Async()
@@ -2021,21 +2160,18 @@ namespace ConcurrencyAndAsynchrony_ch14
             Console.WriteLine("Task 1 complete.");
             return 1;
         }
-
         static async Task<int> Task2Async()
         {
             await Task.Delay(5000);
             Console.WriteLine("Task 2 complete.");
             return 2;
         }
-
         static async Task<int> Task3Async()
         {
             await Task.Delay(2000);
             Console.WriteLine("Task 3 complete.");
             return 3;
         }
-
 
         static async Task<int> Delay1() { await Task.Delay(1000); return 1; }
         static async Task<int> Delay2() { await Task.Delay(2000); return 2; }
