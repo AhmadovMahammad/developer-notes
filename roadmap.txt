@@ -90,56 +90,110 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 6. Algorithms and Data Structures
 
-	6.1. Arrays
-				-> Reversal of Array
-				-> Two-Pointer Technique
-				-> Subarray Sum Problems
-				-> Sliding Window Algorithms
-				-> Prefix Sum Arrays
-	6.2. Linked Lists (Singly, Doubly, Circular, Linked List Manipulation)
-				-> Reversal of Linked List
-				-> Detecting Cycles in Linked List (Floyd’s Cycle)
-				-> Merge Two Sorted Linked Lists
-				-> Remove N-th Node from End
-	6.3. Stacks and Queues
-				-> Balanced Parentheses Validation
-				-> Min/Max in Stack (Monotonic Stack)
-				-> Sliding Window Maximum (using Deque)
-				-> Implement Stack/Queue using Two Queues/Stacks
-	6.4. Recursion and Backtracking
-				-> Subsets and Permutations
-				-> N-Queens Problem
-				-> Sudoku Solver
-				-> Word Search (2D Matrix)
-	6.5. Trees (Binary Trees, Binary Search Trees, Balanced Trees, Trie)
-				-> Tree Traversals (Inorder, Preorder, Postorder)
-				-> Lowest Common Ancestor (LCA)
-				-> Binary Tree to Doubly Linked List Conversion
-				-> Trie Insert and Search Operations
-	6.6. Heaps and Priority Queues
-				-> Min/Max Heaps
-				-> Heap Sort
-				-> Kth Largest Element
-				-> Median in Data Stream
-	6.7. Graphs (Representation, Traversals, Shortest Path, Spanning Trees)
-				-> Detecting Cycles in Graphs
-				-> Shortest Path Algorithms (Dijkstra, Bellman-Ford)
-				-> Connected Components in Graph
-				-> Minimum Spanning Tree (Kruskal's, Prim's Algorithms)
-	6.8. Dynamic Programming (DP)
-				-> Longest Increasing Subsequence (LIS)
-				-> Knapsack Problem (0/1 and Unbounded)
-				-> Edit Distance Problem
-				-> Coin Change Problem
-	6.9. Sorting and Searching
-				-> Merge Sort
-				-> Quick Sort
-				-> Binary Search on Rotated Array
-				-> Searching in a 2D Matrix
-	6.10. Greedy Algorithms
-				-> Activity Selection Problem
-				-> Huffman Encoding
-				-> Minimum Platforms Problem
+	6.1 Arrays and Strings
+        6.1.1 Array Basics
+            Reversal of Array
+            Two-Pointer Technique
+            Subarray Sum Problems
+        6.1.2 Advanced Techniques
+            Sliding Window Algorithms
+            Prefix Sum Arrays
+        6.1.3 Strings
+            String Manipulation and Matching
+            Anagram and Palindrome Problems
+            Longest Common Substring / Subsequence
+
+6.2 Sorting and Searching
+
+    6.2.1 Sorting Algorithms
+        Bubble Sort, Selection Sort, Insertion Sort (Introduction)
+        Merge Sort, Quick Sort (Divide and Conquer)
+        Counting Sort, Radix Sort (Non-comparative Sorting)
+    6.2.2 Searching Algorithms
+        Binary Search (and Variations)
+        Binary Search on Rotated Array
+        Searching in a 2D Matrix
+
+6.3 Linked Lists
+
+    6.3.1 Types and Basics
+        Singly Linked List, Doubly Linked List, Circular Linked List
+    6.3.2 Common Operations and Manipulations
+        Reversal of Linked List
+        Detecting Cycles in Linked List (Floyd’s Cycle)
+        Merge Two Sorted Linked Lists
+        Remove N-th Node from End
+
+6.4 Stacks and Queues
+
+    6.4.1 Stack Operations
+        Balanced Parentheses Validation
+        Min/Max in Stack (Monotonic Stack)
+    6.4.2 Queue Operations
+        Implement Stack/Queue using Two Queues/Stacks
+    6.4.3 Advanced Applications
+        Sliding Window Maximum (using Deque)
+
+6.5 Recursion and Backtracking
+
+    6.5.1 Recursion Fundamentals
+        Factorial, Fibonacci
+        Understanding Stack Frames in Recursion
+    6.5.2 Backtracking Problems
+        Subsets and Permutations
+        N-Queens Problem
+        Sudoku Solver
+        Word Search in a 2D Matrix
+
+6.6 Trees
+
+    6.6.1 Tree Fundamentals
+        Types: Binary Trees, Binary Search Trees, Balanced Trees (AVL, Red-Black Trees)
+        Tree Traversals (Inorder, Preorder, Postorder)
+    6.6.2 Advanced Tree Operations
+        Lowest Common Ancestor (LCA)
+        Binary Tree to Doubly Linked List Conversion
+    6.6.3 Tries
+        Insert, Search, and Prefix Search Operations
+
+6.7 Heaps and Priority Queues
+
+    6.7.1 Heap Basics
+        Min/Max Heaps
+        Heap Sort
+    6.7.2 Heap Applications
+        Kth Largest Element
+        Median in a Data Stream
+
+6.8 Graphs
+
+    6.8.1 Graph Representations and Basics
+        Adjacency List, Adjacency Matrix
+    6.8.2 Graph Traversals
+        Depth-First Search (DFS) and Breadth-First Search (BFS)
+    6.8.3 Advanced Graph Algorithms
+        Cycle Detection
+        Shortest Path Algorithms (Dijkstra, Bellman-Ford)
+        Connected Components
+        Minimum Spanning Tree (Kruskal's, Prim's Algorithms)
+
+6.9 Dynamic Programming (DP)
+
+    6.9.1 DP Basics
+        Understanding Recursion with Memoization
+        Tabulation vs. Memoization
+    6.9.2 Classic DP Problems
+        Longest Increasing Subsequence (LIS)
+        Knapsack Problem (0/1 and Unbounded)
+        Edit Distance Problem
+        Coin Change Problem
+
+6.10 Greedy Algorithms
+
+    6.10.1 Greedy Problem Solving
+        Activity Selection Problem
+        Huffman Encoding
+        Minimum Platforms Problem
 
 ====================================================================================================
 READ IF YOU NEED A REMINDER OF WHY YOU'RE ON THIS JOURNEY.
