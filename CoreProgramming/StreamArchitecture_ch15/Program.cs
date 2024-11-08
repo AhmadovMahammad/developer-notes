@@ -1,4 +1,5 @@
 ﻿using System.IO.Compression;
+using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -255,8 +256,245 @@ internal class Program
 
         /* Closing and Flushing
          
+        Streams must be disposed after use to release underlying resources 
+        such as file and socket handles. 
+        A simple way to guarantee this is by instantiating streams within using blocks.
+
+        NOTE: 
+        When working with a chain of decorator streams (e.g., a CryptoStream layered over a FileStream), 
+        closing the outermost decorator automatically closes 
+        both it and the underlying backing store stream.
+
+        Example: 
+        If you have a CryptoStream that writes encrypted data into a FileStream, 
+        closing the CryptoStream also closes the FileStream.
+
+        This simplifies resource management, 
+        as you don’t need to close each stream in the chain individually.
+
+        ---Buffering
+
+        Many streams (especially file streams) internally use buffering. 
+        This means that data you write may not immediately be saved to the backing store (like a disk file), 
+        instead sitting in a buffer temporarily.
+
+        The Flush method forces any buffered data to be written to the backing store immediately. 
+        However, Flush is called automatically when you close the stream, 
+        so you don’t need to call Flush before Close.
 
         */
+
+        /* Timeouts
+        Timeouts are essential for network-related streams but are typically unnecessary for file or memory streams.
+        
+        Timeout Properties:
+
+        1. ReadTimeout: Sets the maximum wait time for reading from the stream before an exception is thrown.
+        2. WriteTimeout: Sets the maximum wait time for writing to the stream.
+
+        Generally, only network streams (like NetworkStream) support timeouts. 
+        File and memory streams process data quickly without these delays, so they don't have timeouts.
+
+        Asynchronous methods like ReadAsync and WriteAsync do not use timeouts directly. 
+        Instead, you can pass a cancellation token to control the duration of an async operation.
+
+        try
+        {
+            using TcpClient client = new TcpClient("127.0.0.1", 5672);
+            using NetworkStream stream = client.GetStream();
+
+            stream.WriteTimeout = 2 * 1000;
+            stream.ReadTimeout = 2 * 1000;
+
+            byte[] buffer = new byte[1024];
+            int bytesRead = stream.Read(buffer, 0, buffer.Length);
+            Console.WriteLine($"Bytes read: {bytesRead}");
+        }
+        catch (IOException ex)
+        {
+            Console.WriteLine($"An IO error occurred (likely a timeout): {ex.Message}");
+        }
+
+        */
+
+        //==================================================================================
+
+        /* FileStream
+         
+        The File class provides convenient static methods for quickly creating common FileStream instances, 
+        which simplifies the process of setting up a stream for basic read or write operations.
+
+        1. File.OpenRead():
+        _ Opens a file in read-only mode.
+        _ The file must exist; otherwise, an exception is thrown.
+        _ Suitable for situations where data needs to be read without modifying it.
+
+        FileStream fs = File.OpenRead("test.txt");
+        now fs is ready for reading data from file stream.
+
+        2. File.OpenWrite():
+        _ Opens a file in write-only mode.
+        _ If the file does not exist, it creates a new one.
+        _ If the file exists, it leaves the existing content intact but starts writing from the beginning.
+        _ If you write fewer bytes than were already present in the file, this leaves a mixture of old and new content.
+
+        Previous data in test.txt:
+        Hello World. This data has been written to test File.OpenWrite() Method.
+
+        FileStream fs = File.OpenWrite("test.txt");
+        fs.Write(new byte[] { 1, 2, 3, 4, 5 });
+        fs.Flush();
+
+        After:
+         World. This data has been written to test File.OpenWrite() Method.
+
+        3. File.Create():
+        _ Creates or overwrites a file, truncating any existing content.
+        _ Opens the file with read and write permissions.
+        _ This is ideal when you want to start with a clean slate and avoid any remnants of previous content.
+
+        Previous:
+         World. This data has been written to test File.OpenWrite() Method.
+
+        After: does not overwrite, instead open new page
+        Data: This is a clean beginning
+
+        FileStream fs = File.Create("test.txt");
+        fs.Write(Encoding.UTF8.GetBytes("This is a clean beginning"));
+        fs.Flush();
+
+        Summary between OpenWrite and Create:
+        
+        1. File.Create always overwrites an existing file, starting with a fresh empty file.
+        2. File.OpenWrite keeps any existing content but begins writing at the start of the file.
+           This behavior can lead to old content remaining after new content 
+           if you don’t overwrite all previous data.
+
+        ---------------------------
+
+        You can also directly instantiate a FileStream. Its constructors provide access to every feature, 
+        allowing you to specify a filename or low-level file handle, file creation and access modes, 
+        and options for sharing, buffering, and security.
+
+        1_ File Name: The name of the file to open.
+        2_ File Mode: Specifies the action to take on the file (e.g., create new, open, append).
+
+        public enum FileMode
+        {
+            CreateNew = 1, Create = 2,
+            Open = 3, OpenOrCreate = 4,
+            Truncate = 5, Append = 6
+        }
+
+        FileMode.Create: 
+        Creates a new file. If the file already exists, it is overwritten (truncated to zero length). 
+        This mode is often used when you need to start fresh with new data.
+        
+        FileMode.CreateNew: 
+        Creates a new file. If the file already exists, an IOException is thrown. 
+        This is useful when you want to avoid overwriting an existing file.
+        
+        FileMode.Open: 
+        Opens an existing file. If the file does not exist, an FileNotFoundException is thrown. 
+        This is used when you want to read or modify existing data.
+        
+        FileMode.OpenOrCreate: 
+        Opens the file if it exists; otherwise, it creates a new file.
+        This is useful when you want to work with a file that may or may not exist yet.
+        
+        FileMode.Append: 
+        Opens the file if it exists and positions the write cursor at the end. 
+        If the file does not exist, it creates a new file. 
+        This mode is specifically for appending data and disallows reading 
+        (attempting to read will throw a NotSupportedException).
+        
+        FileMode.Truncate: 
+        Opens an existing file and truncates its size to zero (erasing all content). 
+        If the file does not exist, a FileNotFoundException is thrown. 
+        This is used when you want to clear out an existing file but keep its name/path.
+
+        3_ File Access: Determines if the file is opened for reading, writing or both.
+        
+        4_ File Share:
+        FileShare defines how the file can be accessed concurrently by other processes or threads 
+        when one process is already using it. 
+        
+        This is crucial for managing scenarios where multiple parts of a system 
+        may try to read from or write to the same file. 
+        Here's how it works:
+
+        Sharing Modes: The FileShare enumeration offers various modes, 
+        which define what other processes can or cannot do with the file once it’s opened:
+
+        FileShare.None
+        FileShare.Read
+        FileShare.Write
+        FileShare.ReadWrite
+        FileShare.Delete
+
+        When a file is opened with a specific FileShare mode, 
+        the OS enforces these permissions at the file system level.
+        
+        If an operation violates the FileShare setting (e.g., attempting to open a file with FileShare.None by another process), 
+        the OS will throw an exception.
+
+        5_ Buffer size.
+
+        The buffer is an intermediate memory space that temporarily holds data while 
+        it’s being read from or written to a file. 
+        This allows FileStream to optimize performance by reducing the frequency of direct disk operations.
+
+        ---How It Works:
+
+        When reading data, it is loaded from disk into the buffer. 
+        If the program requests data that is already in the buffer, 
+        it’s served directly from memory, which is much faster than reading from disk again.
+
+        This buffering mechanism reduces the number of I/O operations, 
+        which can greatly enhance performance, especially for repetitive reads and writes.
+
+        If not specified, FileStream uses a default buffer size 
+        (typically 4KB to 8KB, depending on the platform).
+
+        */
+
+        /* MemoryStream
+
+        A MemoryStream is a type of Stream that uses an in-memory byte array as its backing store 
+        instead of a file or network connection. 
+        This means that all data is loaded into memory, making it fast but also potentially memory-intensive.
+
+        ---Why Use MemoryStream?
+        a) Since the data is in memory, you can perform random access operations (seek, read, write) efficiently.
+        b) Faster than disk-based streams as it avoids the latency of disk I/O
+
+        ---MemoryStream Key Methods and Properties
+        
+        1. Copying to MemoryStream
+        A MemoryStream can be populated by copying data from another stream (e.g., a file or network stream) 
+        when the data size is manageable:
+
+        using FileStream sourceStream = new FileStream("test.txt", FileMode.OpenOrCreate);
+        using MemoryStream memoryStream = new MemoryStream();
+
+        // copy data from source stream into memory stream.
+        sourceStream.CopyTo(memoryStream);
+
+        // seek back to the start of the memory stream for reading.
+        memoryStream.Position = 0;
+
+        Here, sourceStream.CopyTo(memoryStream); transfers data to MemoryStream, 
+        letting you process it entirely in memory.
+
+        2. Converting MemoryStream to a Byte Array
+        To retrieve all data from a MemoryStream, you can use the ToArray method, 
+        which creates a new byte array containing the data.
+
+        byte[] data = memoryStream.ToArray();
+
+        */
+
+        //[...PAGE 668]
 
         #region code example
 
@@ -316,6 +554,25 @@ internal class Program
         //    Console.WriteLine(fs.ReadByte()); // 67 (C)
         //}
 
+        //------------------------------------------------------
+
+        //try
+        //{
+        //    using TcpClient client = new TcpClient("127.0.0.1", 5672);
+        //    using NetworkStream stream = client.GetStream();
+
+        //    stream.WriteTimeout = 2 * 1000;
+        //    stream.ReadTimeout = 2 * 1000;
+
+        //    byte[] buffer = new byte[1024];
+        //    int bytesRead = stream.Read(buffer, 0, buffer.Length);
+        //    Console.WriteLine($"Bytes read: {bytesRead}");
+        //}
+        //catch (IOException ex)
+        //{
+        //    Console.WriteLine($"An IO error occurred (likely a timeout): {ex.Message}");
+        //}
+
         #endregion
     }
 
@@ -343,7 +600,6 @@ internal class Program
 
         byte[] data = new BinaryReader(s).ReadBytes((int)s.Length);
     }
-
     static async Task AsyncDemo()
     {
         using Stream s = new FileStream("test.txt", FileMode.OpenOrCreate);
