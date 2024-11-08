@@ -90,110 +90,161 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 6. Algorithms and Data Structures
 
-	6.1 Arrays and Strings
-        6.1.1 Array Basics
-            Reversal of Array
-            Two-Pointer Technique
-            Subarray Sum Problems
-        6.1.2 Advanced Techniques
-            Sliding Window Algorithms
-            Prefix Sum Arrays
-        6.1.3 Strings
-            String Manipulation and Matching
-            Anagram and Palindrome Problems
-            Longest Common Substring / Subsequence
-
-    6.2 Sorting and Searching
+    6.1 Arrays and Strings
+        6.1.1 Theoretical Concepts:
+        
+            Array Basics: Understand memory layout, definition, and benefits of index-based access.
+            Types of Arrays:
+                Static Arrays: Fixed size, pros/cons, common applications.
+                Dynamic Arrays: Array resizing and reallocation, ArrayList and memory efficiency.
+                Jagged and Multidimensional Arrays: Structure and use cases.
+                Comparisons: ArrayList vs. LinkedList in higher-level languages.
+            Array Operations: Accessing, inserting, deleting, and traversing elements.
+        
+        6.1.2 Algorithms:
+        
+            Basic Algorithms:
+                Two-Pointer Technique: Efficient for pair finding and reversal.
+                Array Reversal: Simple loop-based reversal.
+            Intermediate Algorithms:
+                Subarray Sum Problems: Including Kadane’s Algorithm for max subarray sum.
+            Advanced Techniques:
+                Sliding Window Algorithms: Fixed and variable-sized windows for efficient searching.
+                Prefix Sum Arrays: Useful for range-based calculations in arrays.
     
-        6.2.1 Sorting Algorithms
-            Bubble Sort, Selection Sort, Insertion Sort (Introduction)
-            Merge Sort, Quick Sort (Divide and Conquer)
-            Counting Sort, Radix Sort (Non-comparative Sorting)
-        6.2.2 Searching Algorithms
-            Binary Search (and Variations)
-            Binary Search on Rotated Array
-            Searching in a 2D Matrix
+    6.2 Sorting and Searching
+        6.2.1 Theoretical Concepts:
+        
+            Sorting Basics: Stability, time complexity, and in-place vs. out-of-place sorting.
+            Types of Sorting Algorithms:
+                Simple Sorting: Bubble Sort, Selection Sort, Insertion Sort.
+                Divide and Conquer Sorting: Merge Sort and Quick Sort.
+                Non-comparative Sorting: Counting Sort and Radix Sort, focusing on conditions for using these.
+        
+        6.2.2 Algorithms:
+        
+            Sorting Implementations: Practice and analyze each sorting type, focusing on efficiency.
+            Searching Basics: Implement Linear Search and Binary Search with various edge cases.
+            Advanced Searching:
+                Binary Search Variations: Binary Search on Rotated Arrays.
+                2D Matrix Search: Efficient searching based on row/column constraints.
     
     6.3 Linked Lists
-    
-        6.3.1 Types and Basics
-            Singly Linked List, Doubly Linked List, Circular Linked List
-        6.3.2 Common Operations and Manipulations
-            Reversal of Linked List
-            Detecting Cycles in Linked List (Floyd’s Cycle)
-            Merge Two Sorted Linked Lists
-            Remove N-th Node from End
+        6.3.1 Theoretical Concepts:
+        
+            Types of Linked Lists:
+                Singly Linked List: Node structure, creation, traversal.
+                Doubly Linked List: Bidirectional pointers and additional memory use.
+                Circular Linked List: Circular node connections and use cases.
+            Memory Allocation: Dynamic memory, pointers, and memory usage comparisons to arrays.
+        
+        6.3.2 Algorithms:
+        
+            Basic Operations: Creation, insertion, deletion, and traversal.
+            Advanced Algorithms:
+                Linked List Reversal.
+                Cycle Detection: Using Floyd’s Cycle-Finding Algorithm.
+                Merging Linked Lists: Merging sorted lists efficiently.
+                Node Removal: Removing the N-th node from the end with a two-pointer technique.
     
     6.4 Stacks and Queues
-    
-        6.4.1 Stack Operations
-            Balanced Parentheses Validation
-            Min/Max in Stack (Monotonic Stack)
-        6.4.2 Queue Operations
-            Implement Stack/Queue using Two Queues/Stacks
-        6.4.3 Advanced Applications
-            Sliding Window Maximum (using Deque)
+        6.4.1 Theoretical Concepts:
+        
+            Stack: LIFO principle, uses, and common operations (push, pop, peek).
+            Queue: FIFO principle, usage scenarios, and queue operations (enqueue, dequeue).
+            Types of Queues: Circular Queue, Priority Queue, Deque (Double-ended Queue).
+            Implementations: Array vs. Linked List implementations.
+        
+        6.4.2 Algorithms:
+        
+            Stack Algorithms:
+                Balanced Parentheses Validation.
+                Monotonic Stack: Tracking min/max for optimization.
+            Queue Algorithms:
+                Queue/Stack Implementations: Using two queues or stacks.
+                Sliding Window Maximum: Using deque for efficient window tracking.
     
     6.5 Recursion and Backtracking
-    
-        6.5.1 Recursion Fundamentals
-            Factorial, Fibonacci
-            Understanding Stack Frames in Recursion
-        6.5.2 Backtracking Problems
-            Subsets and Permutations
-            N-Queens Problem
-            Sudoku Solver
-            Word Search in a 2D Matrix
+        6.5.1 Theoretical Concepts:
+        
+            Recursion Fundamentals: Base and recursive cases, recursion depth.
+            Stack Frames: Understanding recursion stacks.
+            Backtracking: Incremental solution building, pruning, and solution space exploration.
+        
+        6.5.2 Algorithms:
+        
+            Recursion Problems: Factorial, Fibonacci, power functions.
+            Backtracking Algorithms:
+                Subsets and Permutations.
+                N-Queens Problem.
+                Sudoku Solver.
+                Word Search in 2D Matrices.
     
     6.6 Trees
-    
-        6.6.1 Tree Fundamentals
-            Types: Binary Trees, Binary Search Trees, Balanced Trees (AVL, Red-Black Trees)
-            Tree Traversals (Inorder, Preorder, Postorder)
-        6.6.2 Advanced Tree Operations
-            Lowest Common Ancestor (LCA)
-            Binary Tree to Doubly Linked List Conversion
-        6.6.3 Tries
-            Insert, Search, and Prefix Search Operations
+        6.6.1 Theoretical Concepts:
+        
+            Tree Basics: Nodes, roots, leaves, height, and binary tree properties.
+            Binary Search Trees (BST): Properties and advantages in searching.
+            Balanced Trees: AVL, Red-Black Trees, and maintaining balance.
+        
+        6.6.2 Algorithms:
+        
+            Tree Traversals: Inorder, Preorder, Postorder.
+            Lowest Common Ancestor (LCA).
+            Binary Tree to Linked List: Converting a binary tree to a doubly linked list.
+            Tries: Insert, search, and prefix search.
     
     6.7 Heaps and Priority Queues
-    
-        6.7.1 Heap Basics
-            Min/Max Heaps
-            Heap Sort
-        6.7.2 Heap Applications
-            Kth Largest Element
-            Median in a Data Stream
+        6.7.1 Theoretical Concepts:
+        
+            Heap Properties: Min-Heap and Max-Heap, array-based storage.
+            Priority Queues: Applications, implementation, and how they differ from queues.
+        
+        6.7.2 Algorithms:
+        
+            Heap Sort: Sorting using heaps.
+            K-th Largest Element.
+            Median in a Stream: Efficient tracking of median using heaps.
     
     6.8 Graphs
-    
-        6.8.1 Graph Representations and Basics
-            Adjacency List, Adjacency Matrix
-        6.8.2 Graph Traversals
-            Depth-First Search (DFS) and Breadth-First Search (BFS)
-        6.8.3 Advanced Graph Algorithms
-            Cycle Detection
-            Shortest Path Algorithms (Dijkstra, Bellman-Ford)
-            Connected Components
-            Minimum Spanning Tree (Kruskal's, Prim's Algorithms)
+        6.8.1 Theoretical Concepts:
+        
+            Graph Basics: Vertices, edges, types of graphs (directed, undirected, weighted).
+            Graph Representations: Adjacency lists, matrices, edge lists.
+            Types of Graphs: Weighted, unweighted, cyclic, acyclic.
+        
+        6.8.2 Algorithms:
+        
+            Graph Traversals: Depth-First Search (DFS), Breadth-First Search (BFS).
+            Cycle Detection: Detect cycles in both directed and undirected graphs.
+            Shortest Path: Dijkstra's and Bellman-Ford.
+            Minimum Spanning Tree: Kruskal’s and Prim’s algorithms.
     
     6.9 Dynamic Programming (DP)
-    
-        6.9.1 DP Basics
-            Understanding Recursion with Memoization
-            Tabulation vs. Memoization
-        6.9.2 Classic DP Problems
-            Longest Increasing Subsequence (LIS)
-            Knapsack Problem (0/1 and Unbounded)
-            Edit Distance Problem
-            Coin Change Problem
+        6.9.1 Theoretical Concepts:
+        
+            DP Basics: Identifying overlapping subproblems, optimal substructure.
+            Memoization vs. Tabulation: Differences and scenarios for each.
+        
+        6.9.2 Algorithms:
+        
+            DP Problems:
+                Longest Increasing Subsequence (LIS).
+                Knapsack Problem (0/1 and Unbounded).
+                Edit Distance Problem.
+                Coin Change Problem.
     
     6.10 Greedy Algorithms
-    
-        6.10.1 Greedy Problem Solving
-            Activity Selection Problem
-            Huffman Encoding
-            Minimum Platforms Problem
+        6.10.1 Theoretical Concepts:
+        
+            Greedy Choice Property: Making optimal choices at each stage.
+            Comparing Greedy and DP: When each method is effective.
+        
+        6.10.2 Algorithms:
+        
+            Activity Selection Problem.
+            Huffman Encoding: Compression and prefix-free code.
+            Minimum Platforms: Optimizing for limited resources.
 
 ====================================================================================================
 READ IF YOU NEED A REMINDER OF WHY YOU'RE ON THIS JOURNEY.
