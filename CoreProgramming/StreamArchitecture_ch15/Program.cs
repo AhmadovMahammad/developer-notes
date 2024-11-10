@@ -494,7 +494,67 @@ internal class Program
 
         */
 
-        //[...PAGE 668]
+        /* Text Adapters
+         
+        Text adapters in .NET, specifically the TextReader and TextWriter classes, 
+        are designed for reading and writing text (characters and strings) as opposed to raw bytes. 
+        
+        These abstract base classes allow for a higher-level, more convenient way of working with text data, 
+        providing various concrete implementations to handle different underlying data sources (like files, memory, etc.).
+
+        -----TextReader
+        TextReader is an abstract base class used to read characters from an input stream. 
+        The key features of TextReader are its methods for reading characters, lines, and blocks of text, and 
+        it offers functionality for handling different character encodings and character positions in the stream.
+
+        -Key Methods of TextReader
+
+        a) Reading One Character:
+
+        a.1) Peek(): Returns the next character in the stream without advancing the position. 
+        It returns -1 when the end of the stream is reached, and you cast the result to a char.
+
+        a.2) Read(): Reads the next character and advances the position. 
+        This method also returns -1 at the end of the stream, and you can cast the result to a char.
+
+        b) Reading Many Character:
+
+        b.1) Read(char[] buffer, int index, int count): 
+        Reads multiple characters into the specified char[] buffer, starting from the index and reading up to count characters.
+        
+        b.2) ReadBlock(char[] buffer, int index, int count): 
+        Similar to Read, but guarantees that it will fill the buffer or throw an exception if it cannot do so 
+        (useful for blocking operations).
+
+        c) Reading Lines and Entire Stream:
+
+        c.1) ReadLine(): Reads characters until a line break (\n or \r\n), 
+        returning the line as a string and discarding the newline characters. 
+        It returns null if at the end of the stream.
+
+        c.2) ReadToEnd(): Reads the entire remaining text from the current position to the end of the stream and returns it as a string.
+
+        d) Other Useful Members:
+
+        d.1) Null: 
+        
+        A static readonly instance of TextReader that performs no actions (useful for placeholders).
+        public static readonly TextReader Null;
+
+        4.2) Synchronized(): 
+
+        Returns a thread-safe version of a TextReader, which can be helpful for multi-threaded environments.
+        public static TextReader Synchronized (TextReader reader);
+
+        NOTE: The Peek() method and Read() returning -1 when the end of the stream is reached is one way to detect the end of data. 
+        The ReadLine() method also helps to handle end-of-stream conditions, 
+        as it returns null when no more lines are available.
+
+        -----TextWriter
+
+
+        */
+
 
         #region code example
 
