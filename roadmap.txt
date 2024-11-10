@@ -32,7 +32,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.13. Diagnostics  
 	1.14. Concurrency and Asynchrony +
 	1.15. Streams and I/O +
-	1.16. Networking  
+	1.16. Networking 
 	1.17. Assemblies  
 	1.18. Reflection and Metadata  
 	1.19. Dynamic Programming  
@@ -90,7 +90,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 6. Algorithms and Data Structures
 
-    6.1 Arrays and Strings
+    6.1 Arrays and Strings + (both are completed)
         6.1.1 Theoretical Concepts:
         
             Array Basics: Understand memory layout, definition, and benefits of index-based access.
@@ -98,8 +98,6 @@ Date: 09/12/2024 (MM/DD/YYYY)
                 Static Arrays: Fixed size, pros/cons, common applications.
                 Dynamic Arrays: Array resizing and reallocation, ArrayList and memory efficiency.
                 Jagged and Multidimensional Arrays: Structure and use cases.
-                Comparisons: ArrayList vs. LinkedList in higher-level languages.
-            Array Operations: Accessing, inserting, deleting, and traversing elements.
         
         6.1.2 Algorithms:
         
@@ -107,7 +105,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
                 Two-Pointer Technique: Efficient for pair finding and reversal.
                 Array Reversal: Simple loop-based reversal.
             Intermediate Algorithms:
-                Subarray Sum Problems: Including Kadane’s Algorithm for max subarray sum.
+                Subarray Sum Problems: Including Kadane’s Algorithm for min / max subarray sum.
             Advanced Techniques:
                 Sliding Window Algorithms: Fixed and variable-sized windows for efficient searching.
                 Prefix Sum Arrays: Useful for range-based calculations in arrays.
