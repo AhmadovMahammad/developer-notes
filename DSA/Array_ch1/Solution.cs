@@ -337,5 +337,59 @@
 
             return count;
         }
+        public int RemoveElement(int[] nums, int val)
+        {
+            int left = 0;
+
+            for (int i = 0; i < nums.Length; i++)
+            {
+                if (nums[i] != val)
+                {
+                    nums[left] = nums[i];
+                    left++;
+                }
+            }
+
+            return left;
+        }
+        public int[] PlusOne(int[] digits)
+        {
+            int n = digits.Length;
+
+            for (int i = n - 1; i >= 0; i--)
+            {
+                if (digits[i] < 9)
+                {
+                    digits[i]++;
+                    return digits;
+                }
+
+                digits[i] = 0;
+            }
+
+            int[] res = new int[n + 1];
+            res[0] = 1;
+
+            return res;
+        }
+        public int[] PlusOne2(int[] digits)
+        {
+            int n = digits.Length;
+            int carry = 1;
+
+            for (int i = n - 1; i >= 0; i--)
+            {
+                int sum = digits[i] + carry;
+                digits[i] = sum % 10;
+                carry = sum / 10;
+
+                if (carry == 0) return digits;
+            }
+
+            int[] res = new int[n + 1];
+            res[0] = 1;
+
+            return res;
+        }
     }
 }

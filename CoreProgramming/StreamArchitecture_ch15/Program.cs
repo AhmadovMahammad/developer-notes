@@ -1,7 +1,11 @@
-﻿using System.IO.Compression;
+﻿using StreamArchitecture_ch15;
+using System.IO.Compression;
+using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Unicode;
+using System.Xml;
 
 internal class Program
 {
@@ -552,9 +556,291 @@ internal class Program
 
         -----TextWriter
 
+        TextWriter is the counterpart to TextReader and is used for writing characters to an output stream. 
+        It is designed to write text-based data, with support for encoding and formatting.
+
+        1) Write(char value): Writes a single character to the stream.
+        2) Write(string value): Writes an entire string to the stream.
+        3) Write(char[] buffer, int index, int count): Writes a char[] buffer to the stream, 
+           starting from the given index and writing up to the specified count.
+        4) WriteLine(string value): Writes a string followed by the newline character(s) defined by Environment.NewLine. 
+           This is particularly useful for line-based data formats.
+        5) NewLine: This property holds the newline character(s) for the current environment, 
+           which defaults to \r\n on Windows and \n on Unix-based systems. 
+           You can change it for interoperability with different platforms.
+
+        6) FormatProvider: This property allows you to define how formatting is applied when writing data. 
+           It can be customized to control how various data types (like numbers or dates) are formatted.
 
         */
 
+        /* StreamReader and StreamWriter
+         
+        StreamReader and StreamWriter are classes in the System.IO namespace that 
+        are used to read and write character data (text) to streams. 
+        
+        The key difference between these classes and other I/O types like FileStream or BinaryReader is that 
+        these classes operate with text data, which may require encoding/decoding from raw bytes into characters.
+
+        The default encoding used in StreamReader and StreamWriter is UTF-8. 
+        However, you can specify a different encoding like UTF-16, ASCII, etc.
+
+        ------------------------------------------------------------------------------
+        In the following example, a StreamWriter writes two lines of text to a file, 
+        and then a StreamReader reads the file back:
+
+        using (FileStream fileStream = File.OpenWrite("test.txt"))
+        using (TextWriter writer = new StreamWriter(fileStream))
+        {
+            writer.WriteLine("Line1");
+            writer.WriteLine("Line2");
+        }
+
+        using (FileStream fileStream = File.OpenRead("test.txt"))
+        using (TextReader reader = new StreamReader(fileStream))
+        {
+            Console.WriteLine(reader.ReadLine());
+            Console.WriteLine(reader.ReadLine());
+        }
+
+        Because text adapters are so often coupled with files, 
+        the File class provides the static methods CreateText, AppendText, and OpenText to shortcut the process:
+
+        using (TextWriter writer = File.CreateText("test.txt"))
+        {
+            writer.WriteLine("Line1");
+            writer.WriteLine("Line2");
+        }
+
+        using (TextWriter writer = File.AppendText("test.txt"))
+        {
+            writer.WriteLine("Line3");
+        }
+
+        using TextReader reader = File.OpenText("test.txt");
+
+        string? readline = string.Empty;
+        while ((readline = reader.ReadLine()) != null)
+        {
+            Console.WriteLine(readline);
+        }
+
+        while (reader.Peek() > -1)
+        {
+            Console.WriteLine(reader.ReadLine());
+        }
+
+        */
+
+        /* Character Encodings
+         
+        Character encodings are essential for representing text as bytes when working with streams, 
+        especially since streams are inherently byte-oriented. 
+        In C#, StreamReader and StreamWriter allow us to read and write text by converting between characters and bytes. 
+        
+        How characters are stored and read as bytes is determined by the encoding used, which is managed by the Encoding class in C#.
+
+        ---Default Encoding (UTF-8)
+        
+        By default, UTF-8 encoding is used in StreamReader and StreamWriter. 
+        UTF-8 is efficient for characters in the ASCII range (0-127), using only one byte per character. 
+        
+        However, for characters outside the ASCII range—such as special symbols and characters from non-Western languages,
+        UTF-8 uses variable-length encoding, which may require two to four bytes per character.
+
+        using (FileStream fs = new FileStream("test.txt", FileMode.Create))
+        using (TextWriter writer = new StreamWriter(fs))
+        {
+            writer.WriteLine("test");
+        }
+
+        using (FileStream fileStream = File.OpenRead("test.txt"))
+        {
+            for (int b; (b = fileStream.ReadByte()) > -1;)
+            {
+                Console.Write((char)b + " ");
+            }
+        }
+
+        // Output: 116 101 115 116 45 226 128 148 13 10
+        The carriage return and line feed (13 and 10) indicate the end of the line.
+
+        --UTF-16 Encoding
+
+        UTF-16 encoding generally uses two bytes (16 bits) per character, 
+        making it efficient for characters that fall within the Unicode Basic Multilingual Plane (BMP). 
+        Characters outside the BMP may require four bytes. 
+        
+        This encoding is useful when working with text requiring broad Unicode support, 
+        as UTF-16 provides fixed-width encoding for most characters.
+
+        using (FileStream fs = new FileStream("test.txt", FileMode.Create))
+        using (TextWriter writer = new StreamWriter(fs, Encoding.Unicode))
+        {
+            writer.WriteLine("test-");
+        }
+
+        using (FileStream fileStream = File.OpenRead("test.txt"))
+        {
+            for (int b; (b = fileStream.ReadByte()) > -1;)
+            {
+                Console.Write((char)b + " ");
+            }
+        }
+
+        // Output: 255 254 116 0 101 0 115 0 116 0 45 0 13 0 10 0
+
+        255 254 is the BOM (Byte Order Mark), which identifies the file as UTF-16 little-endian.
+
+        */
+
+        /* Notes
+         
+        -- 1) Why all the letters include second ZERO in utf16 encoding?
+
+        In UTF-16 encoding, each character is represented by two bytes (16 bits), 
+        even if it only requires one byte in UTF-8. 
+        
+        The 0 in 116 0, 101 0, etc., represents the second byte of each character in UTF-16 encoding, 
+        where the second byte is 0 for ASCII characters because they fit within the first byte.
+
+        -- 2) Handling BOM in UTF-8 Encoding
+
+        UTF-8 encoding may include a Byte Order Mark (BOM) at the start of the file to signal the encoding format. 
+        By default, StreamWriter with UTF-8 encoding will add a BOM unless otherwise specified. 
+        However, this BOM is often unnecessary, and you can disable it using UTF8Encoding.
+
+        using (FileStream fs = new FileStream("test.txt", FileMode.Create))
+        using (TextWriter writer = new StreamWriter(fs, new UTF8Encoding(false)))
+        {
+            writer.WriteLine("test-");
+        }
+
+        // Output: 116 101 115 116 45 13 10
+
+
+        -- 3) What is 13 10 at the end?
+
+        The numbers 13 and 10 refer to carriage return (CR) and line feed (LF) characters, respectively. 
+        Together, they signify the end of a line in text files, especially on Windows systems. 
+        Here’s a breakdown:
+
+            Carriage Return (CR): 13 (in ASCII) or \r in C#.
+            Line Feed (LF): 10 (in ASCII) or \n in C#.
+        
+        When you see 13 10 in a text file, it's essentially \r\n, marking the end of a line. 
+        This line-ending convention is standard for Windows text files, 
+        while other systems, like Unix and Linux, use just 10 (LF or \n).
+
+        */
+
+        /* StringReader and StringWriter
+         
+        The StringReader and StringWriter adapters don’t wrap a stream at all; 
+        instead, they use a string or StringBuilder as the underlying data source. 
+        
+        This means no byte translation is required—in fact, the classes do nothing you couldn’t easily achieve
+        with a string or StringBuilder coupled with an index variable. 
+        
+        Their advantage, though, is that they share a base class with StreamReader/StreamWriter. 
+        For instance, suppose that we have a string containing XML and want to parse it with an XmlReader. 
+        
+        The XmlReader.Create method accepts one of the following:
+        • A URI
+        • A Stream
+        • A TextReader
+        
+        We can instantiate and pass in a StringReader as follows:
+        XmlReader r = XmlReader.Create (new StringReader (myString));
+
+        */
+
+        /* Binary Adapters
+         
+        Binary adapters in .NET, specifically BinaryReader and BinaryWriter, 
+        are used to read and write binary (non-textual) data directly in its native format, 
+        which allows you to work with primitive types like integers, floats, and doubles efficiently. 
+
+        --Key Points of BinaryReader and BinaryWriter:
+
+        BinaryReader and BinaryWriter work by storing data in the same format used in memory. 
+        For example, an integer (int) always uses exactly 4 bytes, and a double uses 8 bytes. 
+        There is no conversion to text or additional delimiters, making this a compact and fast method for data storage.
+
+        Since each data type has a known fixed byte size, binary adapters don’t need delimiters to separate values. 
+        This is different from text-based storage, 
+        where delimiters (like commas or newlines) are often needed to separate data.
+
+        Example with a Custom Class (Person):
+
+        public class Person
+        {
+            public string Name { get; set; } = string.Empty;
+            public int Age { get; set; }
+            public int Height { get; set; }
+
+            public void SaveData(Stream stream)
+            {
+                BinaryWriter writer = new BinaryWriter(stream);
+
+                writer.Write(Name);
+                writer.Write(Age);
+                writer.Write(Height);
+
+                writer.Flush();
+            }
+
+            public void LoadData(Stream stream)
+            {
+                BinaryReader reader = new BinaryReader(stream);
+
+                Name = reader.ReadString() + "test";
+                Age = reader.ReadInt32() + 100;
+                Height = reader.ReadInt32() + 200;
+            }
+        }
+
+        Person person = new Person() { Name = "Mahammad", Age = 21, Height = -10 };
+        MemoryStream stream = new MemoryStream();
+
+        Console.WriteLine("Before");
+        person.SaveData(stream);
+        Console.WriteLine($"Name: {person.Name}, Age: {person.Age}, Height: {person.Height}");
+        Console.WriteLine($"Length of Stream: {stream.Length}");
+
+        stream.Position = 0;
+
+        person.LoadData(stream);
+        Console.WriteLine("After");
+        Console.WriteLine($"Length of Stream: {stream.Length}");
+        Console.WriteLine($"Name: {person.Name}, Age: {person.Age}, Height: {person.Height}");
+
+        */
+
+        /* Closing and Disposing Stream Adapters
+        
+        In .NET, the way we close or dispose of stream adapters is essential for proper resource management and 
+        for controlling how underlying streams are handled.
+        
+        1) Closing the Adapter Only:
+        2) Closing Both the Adapter and Stream:
+
+        Options 1 and 2 are semantically identical because closing an adapter automatically closes the underlying stream. 
+        Whenever you nest using statements, you’re implicitly taking option 2:
+        
+        using (FileStream fs = File.Create("test.txt"))
+        using (TextWriter writer = new StreamWriter(fs))
+        {
+            writer.WriteLine("Line");
+        }
+
+        Because the nest disposes from the inside out, the adapter is closed first, and then the stream. 
+        Furthermore, if an exception is thrown within the adapter’s constructor, the stream still closes. 
+        It’s hard to go wrong with nested using statements!
+
+        */
+
+        // todo: pages [ 681 - 685 ] Compression related Subjects
 
         #region code example
 
@@ -631,6 +917,48 @@ internal class Program
         //catch (IOException ex)
         //{
         //    Console.WriteLine($"An IO error occurred (likely a timeout): {ex.Message}");
+        //}
+
+        //-------------------------------------------------------
+
+        //using (TextWriter writer = File.CreateText("test.txt"))
+        //{
+        //    writer.WriteLine("Line1");
+        //    writer.WriteLine("Line2");
+        //}
+
+        //using (TextWriter writer = File.AppendText("test.txt"))
+        //{
+        //    writer.WriteLine("Line3");
+        //}
+
+        //using TextReader reader = File.OpenText("test.txt");
+
+        //string? readline = string.Empty;
+        //while ((readline = reader.ReadLine()) != null)
+        //{
+        //    Console.WriteLine(readline);
+        //}
+
+        //while (reader.Peek() > -1)
+        //{
+        //    Console.WriteLine(reader.ReadLine());
+        //}
+
+        //-------------------------------------------
+
+        //using (FileStream fileStream = File.OpenWrite("test.txt"))
+        //using (TextWriter writer = new StreamWriter(fileStream))
+        //{
+        //    writer.WriteLine("Line1");
+        //    writer.WriteLine("Line2");
+        //}
+
+        //using (FileStream fileStream = File.OpenRead("test.txt"))
+        //using (TextReader reader = new StreamReader(fileStream))
+        //{
+        //    Console.WriteLine(reader.ReadLine());
+        //    Console.WriteLine(reader.ReadLine());
         //}
 
         #endregion

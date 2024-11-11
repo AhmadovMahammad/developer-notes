@@ -602,5 +602,10 @@ internal class Program
         // 12. SubArray Sum equals to K
         //Console.WriteLine(solution.SubarraySum(new int[] { 1, -1, 0 }, 0));
         #endregion
+
+        foreach (var item in solution.PlusOne2(new int[] { 1, 2, 3 }))
+        {
+            Console.WriteLine(item);
+        }
     }
 }
