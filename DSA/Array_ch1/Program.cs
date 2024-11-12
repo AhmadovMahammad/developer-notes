@@ -603,9 +603,7 @@ internal class Program
         //Console.WriteLine(solution.SubarraySum(new int[] { 1, -1, 0 }, 0));
         #endregion
 
-        foreach (var item in solution.PlusOne2(new int[] { 1, 2, 3 }))
-        {
-            Console.WriteLine(item);
-        }
+        Console.WriteLine(solution.AddBinary("11", "1"));
+        Console.WriteLine(solution.AddBinary("1010", "1011"));
     }
 }

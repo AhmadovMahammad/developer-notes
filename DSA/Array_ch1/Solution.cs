@@ -1,4 +1,6 @@
-﻿namespace Array_ch1
+﻿using System.Text;
+
+namespace Array_ch1
 {
     //These explanations and code examples should give you a comprehensive foundation in each array algorithm.
     public class Solution
@@ -390,6 +392,30 @@
             res[0] = 1;
 
             return res;
+        }
+        public string AddBinary(string a, string b)
+        {
+            int leftPadding = Math.Max(a.Length, b.Length);
+            a = a.PadLeft(leftPadding, '0');
+            b = b.PadLeft(leftPadding, '0');
+
+            int carry = 0;
+            StringBuilder sb = new StringBuilder();
+
+            // a = 11 b = 01
+            for (int i = a.Length - 1; i >= 0; i--)
+            {
+                int sum = a[i] + b[i] + carry - (2 * '0');
+                sb.Append(sum % 2);
+                carry = sum / 2;
+            }
+
+            if (carry != 0) sb.Append(carry);
+
+            char[] response = sb.ToString().ToCharArray();
+            Array.Reverse(response);
+
+            return new string(response);
         }
     }
 }

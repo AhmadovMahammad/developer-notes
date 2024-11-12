@@ -52,12 +52,12 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 3. Testing and Debugging
 
-	3.1. Unit Testing with xUnit/NUnit/MSTest 
-	3.2. Test-Driven Development (TDD) 
+	3.1. Unit Testing with xUnit/NUnit/MSTest
+	3.2. Test-Driven Development (TDD)
 	3.3. Mocking and Dependency Injection for Testing
-	3.4. Integration and Functional Testing  
-	3.5. Performance and Load Testing  
-	3.6. Debugging Techniques and Tools  
+	3.4. Integration and Functional Testing
+	3.5. Performance and Load Testing
+	3.6. Debugging Techniques and Tools
 
 4. Data and SQL Management (Based on mainly interview questions)
 
