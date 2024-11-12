@@ -262,5 +262,33 @@
         minimizing code repetition.
 
         */
+
+        /* What is Mocking
+         
+        Mocking is a technique used in unit testing to simulate the behavior of external systems or components
+        that your unit under test interacts with. 
+        
+        It allows you to isolate the code you are testing from external dependencies such as databases, file systems, or external APIs. 
+        Mocking is vital because it helps you test the behavior of yozur unit in a controlled and predictable environment.
+
+        When performing unit tests, we don't want to rely on external systems or services because:
+        1) They may be slow.
+        2) They might not be easily available.
+        3) They could introduce variability that makes the test unreliable.
+
+        Mocking solves this problem by creating controlled, lightweight objects that mimic the behavior of these external systems.
+
+        --Why is Mocking Important?
+
+        It ensures the unit being tested doesn’t depend on any external resources.
+        External resources like databases and APIs can slow down tests. Mocks bypass these, speeding up tests.
+
+
+        ---Creating a Mock Object
+
+        Creating a mock object with Moq is simple. You use the Mock<T> class where T is the type you want to mock.
+        Typically an interface or an abstract class.
+
+        */
     }
 }
