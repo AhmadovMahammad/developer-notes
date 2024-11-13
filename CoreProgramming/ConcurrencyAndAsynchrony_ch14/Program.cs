@@ -2152,6 +2152,35 @@ namespace ConcurrencyAndAsynchrony_ch14
             b) Delay is waiting to get back onto the UI thread to continue and complete.
 
             */
+
+            // Leetcode Questions
+
+            //Foo foo = new Foo();
+
+            //Action printFirst = () => Console.WriteLine("First");
+            //Action printSecond = () => Console.WriteLine("Second");
+            //Action printThird = () => Console.WriteLine("Third");
+
+            //Thread threadA = new Thread(() => foo.First(printFirst));
+            //Thread threadB = new Thread(() => foo.Second(printSecond));
+            //Thread threadC = new Thread(() => foo.Third(printThird));
+
+            //threadA.Start();
+            //threadB.Start();
+            //threadC.Start();
+
+            // -----
+
+            FooBar fooBar = new FooBar(3);
+
+            Action printFoo = () => Console.WriteLine("foo");
+            Action printBar = () => Console.WriteLine("bar");
+
+            Thread threadA = new Thread(() => fooBar.Foo(printFoo));
+            Thread threadB = new Thread(() => fooBar.Bar(printBar));
+
+            threadA.Start();
+            threadB.Start();
         }
 
         static async Task<int> Task1Async()
