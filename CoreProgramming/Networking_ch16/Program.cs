@@ -211,5 +211,103 @@ internal class Program
 
         */
 
+        /* URIs
+         
+        A URI (Uniform Resource Identifier) is a standardized way to identify resources on the internet or 
+        within a local network, such as web pages, files, or email addresses. 
+
+        http://www.ietf.org
+        ftp://myisp/doc.txt
+        mailto:joe@bloggs.com
+
+        --- Basic Components of a URI
+        A URI is typically broken down into key elements:
+
+        Scheme: Defines the protocol or method used to access the resource, such as http, https, ftp, file, or mailto.
+        Authority:  Identifies the host, which could be a domain name like www.example.com or an IP address.
+        Path: Specifies the exact location of the resource on the host, such as /images/photo.jpg.
+
+        For instance, in the URI http://www.example.com/images/photo.jpg, 
+        1) http is the scheme, 2) www.example.com is the authority, and 3) /images/photo.jpg is the path.
+
+        --- Working with URIs in .NET
+        The .NET Uri class (part of the System namespace) provides tools to handle and manipulate URIs, making it easy to:
+
+        1_ Validate URI formatting.
+        2_ Separate different components (like scheme, authority, and path).
+        3_ Distinguish between absolute and relative URIs.
+
+        This is especially useful when validating, modifying, or analyzing URIs in applications that use network resources.
+
+        Uri uri = new Uri("http://www.example.com:80/page.html");
+        Console.WriteLine(uri.Scheme);       // Outputs: http
+        Console.WriteLine(uri.Authority);    // Outputs: www.example.com
+        Console.WriteLine(uri.Port);         // Outputs: 80
+        Console.WriteLine(uri.AbsolutePath); // Outputs: /page.html
+
+        --- URI Types: Absolute vs. Relative URIs
+
+        1) Absolute URIs
+        An absolute URI contains all the necessary information to access a resource independently. 
+        This includes the scheme, authority, and path, which allow it to stand alone without additional context.
+
+        Examples: 
+        http://www.example.com/index.html
+        ftp://ftp.example.com/files/readme.txt
+
+        In .NET, if you provide a complete URI string, the Uri class interprets it as an absolute URI by default.
+
+        Uri absoluteUri = new Uri("http://www.example.com/page.html");
+        Console.WriteLine(absoluteUri.IsAbsoluteUri); // True
+
+        2) Relative URIs
+        A relative URI contains only a partial path to a resource, typically just the path portion, 
+        and relies on a base URI to form a complete address. 
+        Relative URIs are common in web applications, where paths link to resources on the same host.
+
+        Examples:
+        images/photo.jpg
+        page.html
+
+        In .NET, you can create a relative URI by specifying UriKind.Relative when constructing a new URI.
+
+        Uri relativeUri = new Uri("page.html", UriKind.Relative);
+        Console.WriteLine(relativeUri.IsAbsoluteUri); // Outputs: False
+
+        Since relativeUri lacks full address information, it needs a base URI to form a complete path.
+
+        --- Combining Relative URIs with Base URIs
+        
+        Combining a base URI with a relative URI generates an absolute URI. 
+        This is useful for applications where resources share a common host or directory.
+
+        Uri baseUri = new Uri("http://www.example.com");
+        Uri relativeUri = new Uri("page.html", UriKind.Relative);
+        Uri absoluteUri = new Uri(baseUri, relativeUri);
+
+        Console.WriteLine(absoluteUri);
+
+        --- Practical Usage of URI Properties and Methods
+        IsLoopback: Returns true if the URI references the local host (127.0.0.1).
+        IsFile: Indicates if the URI points to a local or UNC file path.
+        LocalPath: Converts AbsolutePath to the format native to the OS (slashes for Unix, backslashes for Windows).
+
+        Uri localFile = new Uri(@"file:///C:/myfiles/data.xlsx");
+        Console.WriteLine(localFile.IsFile);      // True
+        Console.WriteLine(localFile.LocalPath);   // C:\myfiles\data.xlsx
+
+        --- To compare or derive paths, Uri provides methods like MakeRelativeUri():
+
+        Uri baseUri = new Uri("http://www.domain.com:80/info/");
+        Uri pageUri = new Uri("http://www.domain.com/info/page.html");
+
+        if (pageUri.IsBaseOf(baseUri))
+        {
+            Uri relativeUri = baseUri.MakeRelativeUri(pageUri);
+            Console.WriteLine(relativeUri.ToString());
+        }
+
+        */
+
     }
 }
