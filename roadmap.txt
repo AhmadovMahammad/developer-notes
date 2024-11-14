@@ -32,11 +32,11 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.13. Diagnostics  
 	1.14. Concurrency and Asynchrony +
 	1.15. Streams and I/O +
-	1.16. Networking 
+	1.16. Networking +
 	1.17. Assemblies  
 	1.18. Reflection and Metadata  
-	1.19. Dynamic Programming  
-	1.20. Cryptography  
+	1.19. Dynamic Programming 
+	1.20. Cryptography 
 	1.21. Advanced Threading  
 	1.22. Parallel Programming  
 	1.23. Span<T> and Memory<T>  

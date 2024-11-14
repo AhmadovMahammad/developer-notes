@@ -1,4 +1,7 @@
-﻿internal class Program
+﻿using System.Net;
+using System.Net.Sockets;
+
+internal class Program
 {
     private static void Main(string[] args)
     {
@@ -106,6 +109,107 @@
         * Analogy: It’s like the user-friendly interface on your phone, 
         like the email app that lets you easily send and receive emails without worrying about what’s happening behind the scenes.
 
+        ---------------------------------------------------------
+
+        --- How .NET Works Within This Model?
+
+        Now, let’s connect this to .NET’s networking tools in the System.Net namespace. 
+        .NET provides classes and protocols that work mainly in the Application and Transport layers, 
+        meaning .NET allows you to focus on what your application is doing with the network, rather than the mechanics of data movement.
+
+        1_ Application Layer Tools: 
+        HttpClient, WebClient, SmtpClient, and other classes handle high-level protocols such as HTTP, FTP, and SMTP. 
+        These classes manage the communication specifics, 
+        allowing you to upload or download files, make API calls, and send emails without writing low-level code.
+
+        2_ Transport Layer Tools: 
+        Classes like TcpClient, UdpClient, and TcpListener operate at a lower level, 
+        enabling you to create custom, direct communication channels between devices over TCP or UDP. 
+        
+        For instance, in a chat application, you might use TcpClient for reliable messaging or 
+        UdpClient if you’re creating a fast-paced game where real-time speed is essential.
+
         */
+
+        /* Addresses
+         
+        For any device to participate in data transmission on the internet or a local network, 
+        it needs a unique identifier, this is where IP addresses come in.
+        
+        An IP address works like an "address label," helping each device know where to send or receive data. 
+        Without IP addresses, there would be no way to direct data to specific devices.
+        The internet primarily uses two types of IP addressing systems, IPv4 and IPv6.
+
+        1) IPv4 (Internet Protocol version 4) is the traditional addressing system. 
+        IPv4 addresses are 32 bits in length,
+        typically formatted as four decimal numbers separated by dots (e.g., 192.168.1.1). 
+        Each decimal represents 8 bits of the address, providing about 4.3 billion unique IP addresses, which was initially sufficient. 
+        
+        However, with the rapid growth of internet-connected devices, 
+        IPv4 address space has become increasingly scarce, leading to the development of IPv6.
+
+        2) IPv6 addresses are much larger—128 bits long—and are written in hexadecimal, 
+        separated by colons (e.g., 3EA0:FFFF:198A:E4A3:4FF2:54FA:41BC:8D31). 
+        
+        IPv6 was designed to accommodate a vastly larger number of devices and 
+        ensure that new devices could always be uniquely identified on the internet.
+
+        In .NET, the IPAddress class in the System.Net namespace handles both IPv4 and IPv6 addresses. 
+        It can be initialized with a byte array (IPv4 only) or parsed from a formatted string, 
+        which is convenient when working with either IP format. 
+
+        When parsed, the IPAddress object can return details like the AddressFamily property, 
+        which indicates whether it’s an InterNetwork (IPv4) or InterNetworkV6 (IPv6) address.
+
+        IPAddress ipv4Address = new IPAddress(new byte[] { 192, 168, 1, 1 });
+        IPAddress ipv4Address_v2 = IPAddress.Parse("192.168.1.1");
+        Console.WriteLine(ipv4Address);
+        Console.WriteLine(ipv4Address.AddressFamily); // InterNetwork
+
+        IPAddress ipv6Address = IPAddress.Parse("[3EA0:FFFF:198A:E4A3:4FF2:54FA:41BC:8D31]");
+        Console.WriteLine(ipv6Address);
+        Console.WriteLine(ipv6Address.AddressFamily); // InterNetworkV6
+
+        */
+
+        /* Ports and Protocols
+     
+        An IP address by itself only identifies a device but 
+        does not specify which application or service on that device should handle incoming data. 
+        
+        This is where ports come in. Ports are essentially "channels" on an IP address, 
+        allowing multiple applications to communicate over the same network interface without interfering with each other. 
+        
+        For instance, on a single IP address, port 80 is traditionally used for HTTP traffic, 
+        while port 25 is used for SMTP (email), enabling a computer to handle both web and email traffic simultaneously.
+
+        In .NET, the IPEndPoint class combines an IP address with a specific port. 
+        This combination allows for complete identification of a network endpoint for a particular service. 
+        The IPEndPoint class is useful for working with protocols like TCP and UDP that operate at the transport layer, 
+        facilitating direct data exchange between applications over a network.
+
+
+        IPAddress iPAddress = IPAddress.Parse("192.168.1.1");
+        int port = 8080;
+        IPEndPoint iPEndPoint = new IPEndPoint(iPAddress, port);
+
+        Console.WriteLine(iPEndPoint); // 192.168.1.1:8080
+
+        */
+
+        /* Firewalls and Port Restrictions
+         
+        In many network environments, especially corporate ones, 
+        firewalls restrict access to certain ports to prevent unauthorized access and protect the network. 
+        
+        Typically, only a few ports, like 80 (HTTP) and 443 (HTTPS), remain open for general traffic. 
+        This limitation can impact applications that use non-standard or high-numbered ports (e.g., 49152 to 65535), 
+        which are typically reserved for private or dynamic allocation. 
+        
+        These ports are often suitable for testing and custom applications, 
+        but they may be blocked by firewalls in restrictive environments, which is an essential consideration for network application developers.
+
+        */
+
     }
 }
