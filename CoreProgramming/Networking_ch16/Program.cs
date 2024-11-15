@@ -1,9 +1,15 @@
-﻿using System.Net;
+﻿using Networking_ch16;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 internal class Program
 {
-    private static void Main(string[] args)
+    private static async Task Main(string[] args)
     {
         /* Network Architecture
          
@@ -309,5 +315,397 @@ internal class Program
 
         */
 
+        /* HttpClient
+         
+        HttpClient is a powerful and flexible class provided by .NET to perform HTTP requests and handle responses. 
+        It is commonly used to interact with RESTful APIs and handle more complex HTTP tasks
+
+        -- Key Advantages of HttpClient Over WebClient
+
+        1) Concurrency:
+        A single instance of HttpClient can handle multiple concurrent requests, 
+        enabling efficient resource usage and reducing overhead. 
+        In contrast, WebClient requires a new instance for each concurrent request.
+
+        2) Custom Message Handlers:
+        HttpClient allows developers to plug in custom message handlers. 
+        These handlers can intercept requests and responses to add custom logic, such as logging, compression, or encryption.
+
+        Custom message handlers are also helpful in unit testing because 
+        they enable easy mocking of HTTP responses, making HttpClient more test-friendly than WebClient.
+
+        3) Extensible Header and Content System:
+        HttpClient has a rich type system for handling headers and content, 
+        allowing you to work with complex header configurations and different content types easily.
+
+        --- Using HttpClient for Basic Requests
+
+        The simplest way to use HttpClient is to create an instance and use one of its Get* methods 
+        (such as GetStringAsync, GetByteArrayAsync, or GetStreamAsync) to perform a request:
+
+        string html = await new HttpClient().GetStringAsync("https://bra-invest.com/");
+        Console.WriteLine(html);
+
+        All HttpClient methods that perform network I/O are asynchronous, 
+        which means you should always use await or .Result (with caution) when calling them.
+        To avoid DNS resolution overhead and keep sockets from being held open unnecessarily, 
+        you should reuse the same HttpClient instance across multiple requests.
+
+
+        --- Making Concurrent Requests with HttpClient
+
+        HttpClient supports concurrent requests, which makes it very efficient for applications that 
+        need to perform multiple network calls at once. Here’s how you can fetch multiple web pages in parallel:
+
+        var client = new HttpClient();
+
+        var task1 = client.GetStringAsync("http://www.linqpad.net");
+        var task2 = client.GetStringAsync("http://www.albahari.com");
+
+        string[] results = await Task.WhenAll(task1, task2);
+        Console.WriteLine(string.Join("-", results));
+
+        */
+
+        /* Configuration Options in HttpClient
+
+        HttpClient comes with several configurable properties to fine-tune request behavior:
+
+        1) Timeout:
+        The Timeout property sets the maximum time to wait for a request to complete. 
+        If the timeout is reached, an exception is thrown. 
+        By default, this timeout is set to 100 seconds, but you can modify it based on your needs.
+
+        HttpClient client = new HttpClient()
+        {
+            Timeout = TimeSpan.FromSeconds(10)
+        };
+
+
+        2) BaseAddress:
+        The BaseAddress property sets a base URL for all requests made by that HttpClient instance. 
+        This is particularly helpful when making multiple requests to the same base domain.
+
+        HttpClient client = new HttpClient()
+        {
+            Timeout = TimeSpan.FromSeconds(10),
+            BaseAddress = new Uri("https://bra-invest.com/")
+        };
+
+        string response = await client.GetStringAsync("about"); // Requests https://bra-invest.com/about
+         
+        
+        --- Advanced Configuration with HttpClientHandler
+
+        To manage more advanced configurations, such as cookies, proxies, and authentication, 
+        HttpClient uses the HttpClientHandler class. 
+        You can create an instance of HttpClientHandler and pass it to the HttpClient constructor to control behavior at a lower level.
+
+        HttpClientHandler handler = new HttpClientHandler()
+        {
+            UseProxy = false,
+            UseCookies = true
+        };
+
+        HttpClient httpClient = new HttpClient(handler);
+
+        */
+
+        /* Making a Request with HttpClient
+         
+        To demonstrate, we'll use the free JSONPlaceholder API (https://jsonplaceholder.typicode.com) to fetch 
+        fake data like posts, comments, and users.
+
+        Example: Basic GET Request
+
+        HttpClientHandler handler = new HttpClientHandler() { UseCookies = true };
+        HttpClient httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://jsonplaceholder.typicode.com/"),
+            Timeout = TimeSpan.FromSeconds(5),
+        };
+
+        try
+        {
+            // Send a GET request
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync("posts");
+            httpResponseMessage.EnsureSuccessStatusCode(); // Ensure the response was successful
+
+            string content = await httpResponseMessage.Content.ReadAsStringAsync();
+            Console.WriteLine($"Response Content: {content}");
+        }
+        catch (HttpRequestException exception)
+        {
+            Console.WriteLine(exception.Message);
+        }
+
+        --- Understanding Headers in HttpClient
+        HTTP headers provide additional information about the request or response.
+        They are key-value pairs sent in the header section of HTTP messages.
+
+        -Common HTTP Headers
+        1) User-Agent:
+        Identifies the client application making the request.
+        Example: Mozilla/5.0 for browsers or a custom string for APIs.
+
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "HttpClientExampleApp");
+
+        2) Authorization
+        Contains credentials to authenticate the client.
+        Example: Bearer <token> for token-based authentication.
+
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "token");
+
+        3) Content-Type:
+        Specifies the format of the request body.
+        Example: application/json for JSON payloads.
+
+        4) Accept:
+        Indicates the formats the client can process in the response.
+        Example: application/json for JSON responses.
+
+        httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        ---> Example:
+
+        HttpClientHandler handler = new HttpClientHandler() { UseCookies = true };
+        HttpClient httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://jsonplaceholder.typicode.com/"),
+            Timeout = TimeSpan.FromSeconds(5),
+        };
+
+        httpClient.DefaultRequestHeaders.Add("User-Agent", "HttClientExampleApp");
+
+        try
+        {
+            // Send a GET request
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync("posts/1");
+            httpResponseMessage.EnsureSuccessStatusCode(); // Ensure the response was successful
+
+            string content = await httpResponseMessage.Content.ReadAsStringAsync();
+            using JsonDocument jsonDocument = JsonDocument.Parse(content);
+            JsonElement root = jsonDocument.RootElement;
+
+            Console.WriteLine($"id: {root.GetProperty("id")}");
+            Console.WriteLine($"title: {root.GetProperty("title")}");
+            Console.WriteLine($"body: {root.GetProperty("body")}");
+        }
+        catch (HttpRequestException exception)
+        {
+            Console.WriteLine(exception.Message);
+        }
+
+        :Summary
+        HttpClient is a versatile and powerful tool for making HTTP requests in .NET. 
+        It simplifies the process of interacting with web APIs and supports advanced use cases through headers, concurrency, custom handlers. 
+
+        */
+
+        /* HTTP Status Codes and Exception Handling
+         
+        When you send an HTTP request using HttpClient, the server responds with an HTTP status code.
+        This status code indicates the outcome of the request:
+
+        2xx: Success (e.g., 200 OK, 201 Created).
+        3xx: Redirection (e.g., 301 Moved Permanently).
+        4xx: Client Errors (e.g., 404 Not Found, 400 Bad Request).
+        5xx: Server Errors (e.g., 500 Internal Server Error).
+
+        -- Handling HTTP Status Codes in HttpClient
+
+        By default, HttpClient doesn’t throw exceptions for non-successful status codes (e.g., 404). 
+        However, network errors or DNS resolution failures will throw exceptions.
+
+        You can enforce status code validation by calling httpResponseMessage.EnsureSuccessStatusCode().
+        This method throws an exception the the status code is not in the 2xx range.
+
+        EXAMPLE handling exceptions and status codes
+
+        HttpClient httpClient = new HttpClient()
+        {
+            BaseAddress = new Uri("https://jsonplaceholder.typicode.com/"),
+            Timeout = TimeSpan.FromSeconds(5),
+        };
+
+        try
+        {
+            // Send a GET request to a valid endpoint
+            HttpResponseMessage response = await httpClient.GetAsync("https://jsonplaceholder.typicode.com/posts/1");
+
+            // Check if the response is successful
+            if (response.IsSuccessStatusCode)
+            {
+                Console.WriteLine("Request successful!");
+                Console.WriteLine($"Status Code: {(int)response.StatusCode} {response.ReasonPhrase}");
+            }
+            else
+            {
+                Console.WriteLine($"Request failed. Status Code: {(int)response.StatusCode} {response.ReasonPhrase}");
+            }
+
+            // Enforce successful response
+            response.EnsureSuccessStatusCode(); // Throws an exception if not successful
+
+            // Read and print the content
+            string content = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Response Content:");
+            Console.WriteLine(content);
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Request error: {ex.Message}");
+        }
+
+        The HttpContent.CopyToAsync() method lets you write response content directly to another stream. 
+        This is useful for downloading large files without loading them entirely into memory.
+
+        response.EnsureSuccessStatusCode(); // Throws an exception if not successful
+
+        using FileStream fileStream = File.Create("response.json");
+        await response.Content.CopyToAsync(fileStream);
+        Console.WriteLine("Response content saved to 'response.json'");
+
+        JSON file: 
+        {
+          "userId": 1,
+          "id": 1,
+          "title": "sunt aut facere repellat provident occaecati excepturi optio reprehenderit",
+          "body": "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\nreprehenderit molestiae ut ut quas totam\nnostrum rerum est autem sunt rem eveniet architecto"
+        }
+
+        */
+
+        /* HTTP Verbs in HttpClient
+         
+        HttpClient supports all four primary HTTP verbs through the following methods:
+
+        _ GetAsync: Fetch data.
+        _ PostAsync: Upload data to create a resource.
+        _ PutAsync: Update a resource.
+        _ DeleteAsync: Remove a resource.
+
+        These methods are asynchronous and return an HttpResponseMessage.
+
+        HttpClient httpClient = new HttpClient()
+        {
+            BaseAddress = new Uri("https://jsonplaceholder.typicode.com/"),
+            Timeout = TimeSpan.FromSeconds(5),
+        };
+
+        PostModel postModel = new PostModel()
+        {
+            Id = 123456789,
+            Title = "foo",
+            Body = "bar",
+        };
+
+        string json = JsonSerializer.Serialize(postModel);
+        HttpContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(json));
+
+        try
+        {
+            // Send a GET request to a valid endpoint
+            HttpResponseMessage response = await httpClient.PostAsync("https://jsonplaceholder.typicode.com/posts", httpContent);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Response:");
+            Console.WriteLine(responseBody);
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Request error: {ex.Message}");
+        }
+
+
+        NOTE:
+        The four methods just described are all shortcuts for calling SendAsync, 
+        the single low-level method into which everything else feeds. 
+        To use this, you first construct an HttpRequestMessage:
+
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, "posts/1");
+        is equal to
+        httpClient.GetAsync("posts/1");
+
+        HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
+        is equal to
+        HttpResponseMessage response = await httpClient.PostAsync("https://jsonplaceholder.typicode.com/posts", httpContent);
+
+        Instantiating a HttpRequestMessage object means that you can customize properties of the request, 
+        such as the headers and the content itself, allowing you to upload data.
+        
+        string json = JsonSerializer.Serialize(postModel);
+        HttpContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(json));
+
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "posts")
+        {
+            Content = httpContent
+        };
+        httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        httpRequestMessage.Headers.Add("Custom-Header", "HttpClientExample");
+
+        try
+        {
+            // Send a GET request to a valid endpoint
+            HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
+            response.EnsureSuccessStatusCode();
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Response:");
+            Console.WriteLine(responseBody);
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Request error: {ex.Message}");
+        }
+
+        */
+
+        HttpClient httpClient = new HttpClient()
+        {
+            BaseAddress = new Uri("https://jsonplaceholder.typicode.com/"),
+            Timeout = TimeSpan.FromSeconds(5),
+        };
+
+        PostModel postModel = new PostModel()
+        {
+            Id = 123456789,
+            Title = "foo",
+            Body = "bar",
+        };
+
+        string json = JsonSerializer.Serialize(postModel);
+        HttpContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(json));
+
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "posts")
+        {
+            Content = httpContent
+        };
+
+        httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        httpRequestMessage.Headers.Add("Custom-Header", "HttpClientExample");
+
+        try
+        {
+            // Send a GET request to a valid endpoint
+            HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
+            response.EnsureSuccessStatusCode();
+
+            // Print headers
+            Console.WriteLine("Response Headers:");
+            foreach (var header in response.Headers)
+            {
+                Console.WriteLine($"{header.Key}: {string.Join(", ", header.Value)}");
+            }
+
+            string responseBody = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Response:");
+            Console.WriteLine(responseBody);
+        }
+        catch (HttpRequestException ex)
+        {
+            Console.WriteLine($"Request error: {ex.Message}");
+        }
     }
 }

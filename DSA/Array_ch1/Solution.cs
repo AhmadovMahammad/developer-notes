@@ -417,5 +417,44 @@ namespace Array_ch1
 
             return new string(response);
         }
+        public string IntToRoman(int num)
+        {
+            // symbols
+            /*
+                I	1
+                V	5
+                X	10
+                L	50
+                C	100
+                D	500
+                M	1000 
+            */
+
+            return string.Empty;
+        }
+        public string Convert(string s, int numRows)
+        {
+            // early exits
+            if (numRows == 1 || numRows > s.Length) return s;
+
+            List<List<char>> builder = new();
+            for (int i = 0; i < numRows; i++)
+            {
+                builder.Add(new List<char>());
+            }
+
+            bool toBottom = false;
+            int row = 0;
+
+            foreach (char c in s)
+            {
+                builder[row].Add(c);
+
+                if (row == 0 || row == numRows - 1) toBottom = !toBottom;
+                row = toBottom ? row + 1 : row - 1;
+            }
+
+            return string.Join("", builder.SelectMany(list => list));
+        }
     }
 }
