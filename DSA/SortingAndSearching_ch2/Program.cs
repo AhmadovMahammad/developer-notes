@@ -1,4 +1,5 @@
 ﻿using SortingAndSearching_ch2;
+using System.Net;
 
 internal class Program
 {
@@ -74,7 +75,7 @@ internal class Program
         }
 
         In each pass of the outer loop (i iterations), the largest unsorted element "bubbles up" to 
-        its correct position at the end of the array. 
+        its correct position at the end of the array.
         This means after the first pass, the largest element is guaranteed to be in the last position; 
         after the second pass, the second largest element is in the second-to-last position, and so on. 
         
@@ -83,16 +84,73 @@ internal class Program
 
         */
 
+        /* Selection Sort
+
+        Selection Sort is a simple comparison-based sorting algorithm. 
+        It works by dividing the array into two parts: 
+        1_ the sorted portion (built up from left to right) and 2_ the unsorted portion. 
+        
+        At each step, the algorithm selects the smallest (or largest, for descending order) element from the unsorted portion and 
+        swaps it with the first element of the unsorted portion,
+        effectively growing the sorted portion by one element.
+
+         public void SelectionSort(int[] nums)
+        {
+            // { 5, 4, 3, 2, 1 }
+
+            //    Sorted                  Unsorted
+            //    { }                     { 5, 4, 3, 2, 1 }
+            //    { 1 }                   { 4, 3, 2, 5 }
+            //    { 1, 2 }                { 4, 3, 5 }
+            //    { 1, 2, 3 }             { 4, 5 }
+            //    { 1, 2, 3, 4 }          { 5 }
+            //    { 1, 2, 3, 4, 5 }       
+
+            int n = nums.Length;
+
+            for (int i = 0; i < n - 1; i++)
+            {
+                int minIndex = i;
+
+                for (int j = i + 1; j < n; j++)
+                {
+                    // find the minimum element's index.
+                    if (nums[j] < nums[minIndex])
+                    {
+                        minIndex = j;
+                    }
+                }
+
+                (nums[i], nums[minIndex]) = (nums[minIndex], nums[i]);
+            }
+        }
+
+        Time Complexity: Best, Worst, and Average Case: 
+        O(n^2), because the algorithm always scans the entire unsorted portion of the array to find the minimum element.
+
+        While it has the same O(n^2) time complexity as Bubble Sort, Selection Sort tends to perform fewer swaps. 
+        However, the repeated scans through the unsorted portion make it less efficient than more advanced algorithms 
+        like Quick Sort or Merge Sort for large datasets.
+
+        */
+
+        /* Insertion Sort
+         
+        */
+
         Solution solution = new Solution();
+        int[] nums = new int[] { 5, 4, 3, 2, 1 };
 
         // bubble sort
-        //int[] nums = new int[] { 5, 4, 3, 2, 1 };
-
         //Console.WriteLine(string.Join(',', nums));
         //solution.BubbleSort(nums);
-
         //Console.WriteLine(string.Join(',', nums));
 
+        // selection sort
+        //Console.WriteLine(string.Join(',', nums));
+        //solution.SelectionSort(nums);
+        //Console.WriteLine(string.Join(',', nums));
 
+        // insertion sort
     }
 }

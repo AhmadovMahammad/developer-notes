@@ -29,5 +29,36 @@
                 if (!swapped) break;
             }
         }
+
+        public void SelectionSort(int[] nums)
+        {
+            // { 5, 4, 3, 2, 1 }
+
+            //    Sorted                  Unsorted
+            //    { }                     { 5, 4, 3, 2, 1 }
+            //    { 1 }                   { 4, 3, 2, 5 }
+            //    { 1, 2 }                { 4, 3, 5 }
+            //    { 1, 2, 3 }             { 4, 5 }
+            //    { 1, 2, 3, 4 }          { 5 }
+            //    { 1, 2, 3, 4, 5 }       
+
+            int n = nums.Length;
+
+            for (int i = 0; i < n - 1; i++)
+            {
+                int minIndex = i;
+
+                for (int j = i + 1; j < n; j++)
+                {
+                    // find the minimum element's index.
+                    if (nums[j] < nums[minIndex])
+                    {
+                        minIndex = j;
+                    }
+                }
+
+                (nums[i], nums[minIndex]) = (nums[minIndex], nums[i]);
+            }
+        }
     }
 }
