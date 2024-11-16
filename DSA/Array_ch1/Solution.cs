@@ -25,6 +25,7 @@ namespace Array_ch1
 
             return false;
         }
+
         public void ReverseArray(int[] nums)
         {
             // Problem:
@@ -59,6 +60,7 @@ namespace Array_ch1
 
             return maxSum;
         }
+
         public int MaxSubArraySum(int[] nums)
         {
             //  -2, 1, -3, 4, -1, 2, 1, -5, 4 
@@ -74,6 +76,7 @@ namespace Array_ch1
 
             return maxSum;
         }
+
         public int MinSubArraySum(int[] nums)
         {
             return 0;
@@ -98,6 +101,7 @@ namespace Array_ch1
 
             return maxSum;
         }
+
         public int MaxSumSlidingWindow(int[] nums, int k)
         {
             int n = nums.Length;
@@ -119,6 +123,7 @@ namespace Array_ch1
 
             return maxSum;
         }
+
         public int MinSizeSubarrayBruteForce(int[] nums, int S)
         {
             int minLength = int.MaxValue, n = nums.Length;
@@ -141,6 +146,7 @@ namespace Array_ch1
 
             return minLength == int.MaxValue ? 0 : minLength;
         }
+
         public int MinSizeSubarraySlidingWindow(int[] nums, int S)
         {
             // nums = { 2, 1, 5, 2, 3, 2 }, S = 7
@@ -178,6 +184,7 @@ namespace Array_ch1
 
             return prefix;
         }
+
         public int RangeSum(int[] prefix, int start, int end) // [2, 6, 12, 20, 28]
         {
             if (start == 0) return prefix[end];
@@ -207,19 +214,9 @@ namespace Array_ch1
 
             return new[] { -1, -1 };
         }
+
         public bool IsPalindrome(int x)
         {
-            /*
-                Input: x = 121
-                Output: true
-                
-                Input: x = -121
-                Output: false
-                
-                Input: x = 10
-                Output: false
-            */
-
             if (x < 0) return false;
             int temp = x;
             int reverse = 0;
@@ -232,6 +229,7 @@ namespace Array_ch1
 
             return x == reverse;
         }
+
         public int RomanToInt(string s)
         {
             int sum = 0, previousVal = 0;
@@ -255,6 +253,7 @@ namespace Array_ch1
 
             return sum;
         }
+
         public int MinSubArrayLen(int target, int[] nums) // 209, Medium
         {
             int minLen = int.MaxValue;
@@ -275,6 +274,7 @@ namespace Array_ch1
 
             return minLen == int.MaxValue ? 0 : minLen;
         }
+
         public double FindMaxAverage(int[] nums, int k) // 643, Easy
         {
             int n = nums.Length;
@@ -298,6 +298,7 @@ namespace Array_ch1
 
             return maxAverage;
         }
+
         public double FindMaxAverage2(int[] nums, int k) // 643, Easy
         {
             int n = nums.Length;
@@ -319,6 +320,7 @@ namespace Array_ch1
 
             return maxAverage;
         }
+
         public int SubarraySum(int[] nums, int k)
         {
             Dictionary<int, int> keyValuePairs = new() { { 0, 1 } };
@@ -339,6 +341,7 @@ namespace Array_ch1
 
             return count;
         }
+
         public int RemoveElement(int[] nums, int val)
         {
             int left = 0;
@@ -354,6 +357,7 @@ namespace Array_ch1
 
             return left;
         }
+
         public int[] PlusOne(int[] digits)
         {
             int n = digits.Length;
@@ -374,6 +378,7 @@ namespace Array_ch1
 
             return res;
         }
+
         public int[] PlusOne2(int[] digits)
         {
             int n = digits.Length;
@@ -393,6 +398,7 @@ namespace Array_ch1
 
             return res;
         }
+
         public string AddBinary(string a, string b)
         {
             int leftPadding = Math.Max(a.Length, b.Length);
@@ -417,21 +423,7 @@ namespace Array_ch1
 
             return new string(response);
         }
-        public string IntToRoman(int num)
-        {
-            // symbols
-            /*
-                I	1
-                V	5
-                X	10
-                L	50
-                C	100
-                D	500
-                M	1000 
-            */
 
-            return string.Empty;
-        }
         public string Convert(string s, int numRows)
         {
             // early exits
