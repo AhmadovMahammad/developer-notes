@@ -662,50 +662,278 @@ internal class Program
 
         */
 
-        HttpClient httpClient = new HttpClient()
+        /* Proxy
+
+        A proxy server acts as an intermediary between a client (your application) and the internet. 
+        It routes HTTP or FTP requests and responses, often for security, monitoring, or performance optimization. 
+        Proxy servers are widely used in corporate environments, schools, and some ISPs to manage internet access and enforce policies. 
+        They can also be used for caching, filtering content, or adding an extra layer of anonymity.
+
+        In .NET, proxies can be configured for your HTTP requests using the HttpClient class through its HttpClientHandler. 
+        This approach allows for flexible and efficient network communication while adhering to corporate or network policies.
+        Companies route traffic through a proxy to monitor, filter, and block malicious content.
+
+        --- Setting Up a Proxy with HttpClient
+        To configure a proxy for your HTTP requests in .NET, you need to:
+        
+            1_ Define the proxy's address and port.
+            2_ Set up credentials if the proxy requires authentication.
+            3_ Pass the proxy configuration to the HttpClientHandler, which is then passed to the HttpClient.
+
+        var proxyAddress = "192.178.10.49";
+        var proxyPort = 808;
+
+        var proxyCredentials = new NetworkCredential("username", "password", "domain");
+        var proxy = new WebProxy(proxyAddress, proxyPort)
         {
-            BaseAddress = new Uri("https://jsonplaceholder.typicode.com/"),
+            Credentials = proxyCredentials
+        };
+
+        var handler = new HttpClientHandler
+        {
+            Proxy = proxy,
+            UseProxy = true
+        };
+
+        HttpClient httpClient = new HttpClient(handler)
+        {
+            BaseAddress = new Uri("https://localhost:7268"),
             Timeout = TimeSpan.FromSeconds(5),
         };
 
-        PostModel postModel = new PostModel()
+        */
+
+        /* Using TCP
+        
+        TCP (Transmission Cont. Prot.) is one of the core protocols of the Internet Protocol Suite, operating at the transport layer. 
+        It is connection-oriented, meaning it ensures reliable communication through mechanisms like 
+        error-checking, retransmission, and flow control.
+
+        TCP provides a means for applications to exchange data across a network as a stream of bytes. 
+        In .NET, TCP communication can be implemented using classes such as TcpClient and TcpListener, or the lower-level Socket class.
+
+        When using TCP, there are distinct roles for the client and server. 
+        A client initiates the connection, while a server listens for incoming connections.
+
+        */
+
+        /* Basic TCP Communication
+         
+        The simplest implementation of TCP involves creating a server that listens for connections and 
+        a client that connects to the server. Here is an example:
+
+        The server uses the TcpListener class. This class requires an IP address and port to bind to. 
+        The server waits for incoming connections using the AcceptTcpClient method, which blocks until a client connects.
+
+        static void Server()
         {
-            Id = 123456789,
-            Title = "foo",
-            Body = "bar",
-        };
+            TcpListener server = new TcpListener(IPAddress.Any, 51111);
+            server.Start();
+            Console.WriteLine("Server started, waiting for client...");
 
-        string json = JsonSerializer.Serialize(postModel);
-        HttpContent httpContent = new ByteArrayContent(Encoding.UTF8.GetBytes(json));
-
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, "posts")
-        {
-            Content = httpContent
-        };
-
-        httpRequestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-        httpRequestMessage.Headers.Add("Custom-Header", "HttpClientExample");
-
-        try
-        {
-            // Send a GET request to a valid endpoint
-            HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
-
-            // Print headers
-            Console.WriteLine("Response Headers:");
-            foreach (var header in response.Headers)
+            using (TcpClient client = server.AcceptTcpClient())
+            using (NetworkStream stream = client.GetStream())
             {
-                Console.WriteLine($"{header.Key}: {string.Join(", ", header.Value)}");
+                Console.WriteLine("Client connected.");
+                StreamReader reader = new StreamReader(stream);
+                StreamWriter writer = new StreamWriter(stream);
+
+                string? message = reader.ReadLine();
+                Console.WriteLine($"Received: {message}");
+
+                writer.WriteLine($"{message} right back!");
+                writer.Flush();
             }
 
-            string responseBody = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("Response:");
-            Console.WriteLine(responseBody);
+            server.Stop();
         }
-        catch (HttpRequestException ex)
+
+        1) TcpListener listens for connections on a specified IP and port. 
+        IPAddress.Any ensures the server listens on all available network interfaces.
+        2) The AcceptTcpClient method blocks until a client connects.
+
+        static void Client()
         {
-            Console.WriteLine($"Request error: {ex.Message}");
+            using (TcpClient client = new TcpClient("localhost", 51111))
+            using (NetworkStream stream = client.GetStream())
+            {
+                StreamWriter writer = new StreamWriter(stream);
+                StreamReader reader = new StreamReader(stream);
+
+                writer.WriteLine("Hello");
+                writer.Flush();
+
+                string? response = reader.ReadLine();
+                Console.WriteLine($"Server responded: {response}");
+            }
+        }
+
+        1) The TcpClient connects to the server at the specified address (localhost) and port.
+
+        ----- Key Concepts in TCP Communication
+
+        1_ Blocking Nature of Synchronous Methods
+
+        Both AcceptTcpClient and Read/Write operations block until they complete. 
+        This means that the server cannot handle multiple clients simultaneously unless 
+        additional threads are created for each client. While this is fine for simple applications, it is not scalable.
+
+        2_ NetworkStream
+
+        The NetworkStream provides a two-way communication channel over TCP. 
+        It can read and write raw bytes, making it suitable for sending any type of data. 
+        
+        However, developers need to define their own protocol to ensure both the client and server understand 
+        the structure of the transmitted data.
+
+        3_ Reliability
+
+        TCP ensures that data is delivered reliably. 
+        It handles retransmission of lost packets, maintaining the order of transmitted bytes. 
+        Developers do not need to manage these complexities manually.
+
+        */
+
+        /* Asynchronous TCP Communication
+         
+        For scalability, asynchronous methods should be used. 
+        Instead of blocking threads, asynchronous methods return Task objects that can be awaited. 
+        This allows the application to handle thousands of concurrent connections without consuming an excessive number of threads.
+
+        --- Asynchronous Server
+        An asynchronous server listens for connections and processes each client in a separate Task.
+
+        static async Task Server()
+        {
+            TcpListener listener = new TcpListener(IPAddress.Any, 51111);
+            listener.Start();
+            Console.WriteLine("Server is listening...");
+
+            int n = 0;
+
+            while (true)
+            {
+                TcpClient client = await listener.AcceptTcpClientAsync();
+                Console.WriteLine("Client connected.");
+                n++;
+
+                _ = ProcessClient(client, n);
+
+                await Task.Delay(2 * 1000);
+            }
+        }
+
+        static async Task ProcessClient(TcpClient client, int n = 0)
+        {
+            using (client)
+            using (NetworkStream stream = client.GetStream())
+            {
+                StreamReader reader = new StreamReader(stream);
+                StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
+
+                string? message = await reader.ReadLineAsync();
+                Console.WriteLine($"Received_ {n}: {message}");
+                await writer.WriteLineAsync($"{message} right back from {n}!");
+            }
+        }
+
+        1_ AcceptTcpClientAsync is the asynchronous equivalent of AcceptTcpClient,
+        allowing the server to continue listening for new clients while processing current ones.
+        2_ Each client is handled in a separate Task, enabling concurrent processing.
+
+
+        static async Task Client()
+        {
+            using (TcpClient client = new TcpClient())
+            {
+                await client.ConnectAsync("localhost", 51111);
+                Console.WriteLine("Connected to a server.");
+
+                using (NetworkStream stream = client.GetStream())
+                {
+                    StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
+                    StreamReader reader = new StreamReader(stream);
+
+                    await writer.WriteLineAsync("Hello");
+                    string? response = await reader.ReadLineAsync();
+                    Console.WriteLine($"Server responded: {response}");
+                }
+            }
+        }
+
+
+        --- Protocol Design in TCP
+        TCP provides reliable byte-stream communication, but it does not define how to interpret the bytes. 
+        Developers must create their own application-level protocol. For instance:
+
+        1_ Prefixing messages with their length helps in determining when a message ends.
+        2_ Using JSON or XML can standardize data exchange but may introduce additional overhead.
+
+        The example server and client exchange simple textual messages. 
+        For more complex data, you might serialize objects using formats like JSON or 
+        Protocol Buffers before sending them over the stream.
+
+        */
+
+        _ = Server();
+        for (int i = 0; i < 10; i++)
+        {
+            _ = Client();
+        }
+
+        Console.ReadLine();
+    }
+
+    static async Task Server()
+    {
+        TcpListener listener = new TcpListener(IPAddress.Any, 51111);
+        listener.Start();
+        Console.WriteLine("Server is listening...");
+
+        int n = 0;
+
+        while (true)
+        {
+            TcpClient client = await listener.AcceptTcpClientAsync();
+            Console.WriteLine("Client connected.");
+            n++;
+
+            _ = ProcessClient(client, n);
+
+            await Task.Delay(2 * 1000);
+        }
+    }
+
+    static async Task ProcessClient(TcpClient client, int n = 0)
+    {
+        using (client)
+        using (NetworkStream stream = client.GetStream())
+        {
+            StreamReader reader = new StreamReader(stream);
+            StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
+
+            string? message = await reader.ReadLineAsync();
+            Console.WriteLine($"Received_ {n}: {message}");
+            await writer.WriteLineAsync($"{message} right back from {n}!");
+        }
+    }
+
+    static async Task Client()
+    {
+        using (TcpClient client = new TcpClient())
+        {
+            await client.ConnectAsync("localhost", 51111);
+            Console.WriteLine("Connected to a server.");
+
+            using (NetworkStream stream = client.GetStream())
+            {
+                StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
+                StreamReader reader = new StreamReader(stream);
+
+                await writer.WriteLineAsync("Hello");
+                string? response = await reader.ReadLineAsync();
+                Console.WriteLine($"Server responded: {response}");
+            }
         }
     }
 }
