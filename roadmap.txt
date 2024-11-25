@@ -33,10 +33,10 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.14. Concurrency and Asynchrony +
 	1.15. Streams and I/O +
 	1.16. Networking +
-	1.17. Assemblies  
+	1.17. Assemblies + (not completely)
 	1.18. Reflection and Metadata  
 	1.19. Dynamic Programming 
-	1.20. Cryptography 
+	1.20. Cryptography (do not forget)
 	1.21. Advanced Threading  
 	1.22. Parallel Programming  
 	1.23. Span<T> and Memory<T>  
@@ -105,7 +105,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
                 Two-Pointer Technique: Efficient for pair finding and reversal.
                 Array Reversal: Simple loop-based reversal.
             Intermediate Algorithms:
-                Subarray Sum Problems: Including Kadane’s Algorithm for min / max subarray sum.
+                Subarray Sum Problems: Including Kadaneï¿½s Algorithm for min / max subarray sum.
             Advanced Techniques:
                 Sliding Window Algorithms: Fixed and variable-sized windows for efficient searching.
                 Prefix Sum Arrays: Useful for range-based calculations in arrays.
@@ -141,7 +141,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
             Basic Operations: Creation, insertion, deletion, and traversal.
             Advanced Algorithms:
                 Linked List Reversal.
-                Cycle Detection: Using Floyd’s Cycle-Finding Algorithm.
+                Cycle Detection: Using Floydï¿½s Cycle-Finding Algorithm.
                 Merging Linked Lists: Merging sorted lists efficiently.
                 Node Removal: Removing the N-th node from the end with a two-pointer technique.
     
@@ -216,7 +216,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
             Graph Traversals: Depth-First Search (DFS), Breadth-First Search (BFS).
             Cycle Detection: Detect cycles in both directed and undirected graphs.
             Shortest Path: Dijkstra's and Bellman-Ford.
-            Minimum Spanning Tree: Kruskal’s and Prim’s algorithms.
+            Minimum Spanning Tree: Kruskalï¿½s and Primï¿½s algorithms.
     
     6.9 Dynamic Programming (DP)
         6.9.1 Theoretical Concepts:
@@ -254,7 +254,7 @@ You chose it because it challenges you, pushes you, and gives you the power to c
 Every line of code, every bug fixed, and every problem solved is one step closer to mastery.
 
 Tiredness is temporary, but the skills you're building are permanent. 
-Every late-night session and frustrating error message is an investment in your future self—
+Every late-night session and frustrating error message is an investment in your future selfï¿½
 a version of you that's more skilled, more confident, and more capable of taking on any challenge that comes your way. 
 Remember, even the greatest developers were once where you are now, battling through tiredness and self-doubt. They kept pushing, and so can you.
 
@@ -269,4 +269,4 @@ Imagine looking back a year from now and realizing that despite how tired you fe
 you kept going, and you made it further than you ever thought possible.
 
 Programming is a superpower, and you're already on the path to wielding it. 
-Rest if you need to, but never stop moving forward. Your future self will thank you for it.
+Rest if you need to, but never stop moving forward. Your future self will thankï¿½youï¿½forï¿½it.
