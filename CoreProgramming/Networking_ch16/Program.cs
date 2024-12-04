@@ -502,6 +502,8 @@ internal class Program
 
         */
 
+
+
         /* HTTP Status Codes and Exception Handling
          
         When you send an HTTP request using HttpClient, the server responds with an HTTP status code.
@@ -575,6 +577,7 @@ internal class Program
         }
 
         */
+
 
         /* HTTP Verbs in HttpClient
          

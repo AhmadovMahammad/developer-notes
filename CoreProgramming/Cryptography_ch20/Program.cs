@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Cryptography_ch20;
@@ -96,8 +97,6 @@ internal static class Program
         4. If the salt is long enough and randomly generated,
         it makes brute-forcing computationally infeasible because the attacker needs to guess the salt and the password simultaneously.
 
-
-
         */
 
         /* Hashing
@@ -165,6 +164,298 @@ internal static class Program
         byte[] utf8Bytes = Encoding.UTF8.GetBytes(text);
         string decodedText = Encoding.UTF8.GetString(utf8Bytes);
 
+        --- NOTES:
+
+        SHA1 and SHA256 are two of the HashAlgorithm subtypes provided by .NET.
+        Here are all the major algorithms, in ascending order of security (and hash length, in bytes):
+
+        MD5(16) → SHA1(20) → SHA256(32) → SHA384(48) → SHA512(64)
+
+        MD5 and SHA1 are currently the fastest algorithms,
+        although the other algorithms are not more than (roughly) two times slower in their current implementations.
+
+        Use at least SHA256 when hashing passwords or other security sensitive data.
+        MD5 and SHA1 are considered insecure for this purpose, and are suitable to protect only against accidental corruption, not deliberate tampering.
+
         */
+
+        /* Hashing Passwords
+        Hashing passwords involves transforming them into a fixed-length, irreversible code to securely store them.
+        This ensures that even if the database is compromised, plain text passwords remain protected.
+
+        A hashing algorithm transforms input data (e.g., a password) into a fixed-length string of characters, called a hash. Hashing is one-way encryption.
+
+        --- 1. Why Not Just Hash Once?
+        Basic hashing has vulnerabilities
+
+        1. Dictionary Attack: Hackers hash every word in a dictionary and compare it to the stored hash.
+        2. Rainbow Tables: Precomputed tables of hashes for common passwords make guessing easier.
+
+        --- 2. Adding Salt
+        Salt is a random value added to each password before hashing. It ensures that even if two users have the same password, their hashes will differ.
+
+        How Salt Works:
+
+        1. A random byte array (salt) is generated for each user during password creation.
+        2. The salt is combined with the password before hashing.
+
+        string password = "strng$5passw0rd";
+        byte[] salt = new byte[32];
+
+        RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
+        randomNumberGenerator.GetBytes(salt);
+
+        byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+        byte[] saltedPassword = [.. passwordBytes, .. salt];
+
+        byte[] hashedPassword2 = SHA1.HashData(saltedPassword);
+        Console.WriteLine(Convert.ToBase64String(hashedPassword2));
+
+        --- Advantages of Salt:
+
+        1. Rainbow Table Protection: Hackers cannot use precomputed hashes because the salt makes each hash unique.
+        2. Added Complexity: Hackers must now determine both the password and the salt.
+
+        --- 3. Stretching (Rehashing)
+        Stretching increases computational effort for hashing, by applying the hashing process multiple times.
+        The goal is to slow down brute-force attacks.
+
+        Example of Stretching:
+        1. Start with the initial hash of the salted password.
+        2. Use the result as input to the hash function repeatedly.
+
+        string password = "strng$5passw0rd";
+        byte[] salt = new byte[32];
+
+        RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
+        randomNumberGenerator.GetBytes(salt);
+
+        byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+        byte[] saltedPassword = [.. passwordBytes, .. salt];
+
+        byte[] hashedPassword = Array.Empty<byte>();
+        for (int i = 0; i < 1000; i++)
+        {
+            hashedPassword = SHA1.HashData(saltedPassword);
+        }
+
+        Console.WriteLine(Convert.ToBase64String(hashedPassword));
+
+        --- 4. Using PBKDF2 for Password Hashing
+
+        PBKDF2 (Password-Based Key Derivation Function 2) is a standard method for hashing and stretching passwords securely. It includes:
+
+        Salting: Adds randomness to the hash.
+        Stretching: Allows you to specify the number of iterations.
+        Key Derivation: Outputs a secure, fixed-length byte sequence.
+
+        .NET provides the Rfc2898DeriveBytes and the newer KeyDerivation.Pbkdf2 for this purpose.
+
+        ---CODE EXAMPLE:
+
+        string password = "strng$5passw0rd";
+
+        byte[] salt = new byte[32];
+        RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
+        randomNumberGenerator.GetBytes(salt);
+
+        byte[] hashedPassword = KeyDerivation.Pbkdf2(
+            password: password,
+            salt: salt,
+            prf: KeyDerivationPrf.HMACSHA256, // hashing algorithm
+            iterationCount: 10000, // Number of iterations
+            numBytesRequested: 64 // Output length in bytes
+        );
+
+        Console.WriteLine(Convert.ToBase64String(hashedPassword));
+
+        Advantages of PBKDF2:
+        1. Highly Secure: Combines salting and stretching.
+        2. Customizable: You can specify the number of iterations and the output length.
+        3. Widely Used: An industry standard for password hashing.
+
+        */
+
+        /* Symmetric Encryption in .NET
+
+        Symmetric encryption is a cryptographic technique where the same key is used for both encryption and decryption.
+        This makes it efficient and faster compared to other methods, such as asymmetric encryption.
+        However, it introduces the challenge of securely sharing the key between parties, known as the "key exchange problem."
+
+        The .NET Base Class Library (BCL) provides built-in support for symmetric encryption,
+        with AES (Advanced Encryption Standard) being the most recommended algorithm due to its balance between speed and security.
+        AES supports three key sizes:
+            16 bytes (128 bits),
+            24 bytes (192 bits),
+            and 32 bytes (256 bits).
+        All these sizes are currently considered secure for modern encryption needs.
+
+        --- Key and Initialization Vector (IV)
+        In symmetric encryption, two essential components are required: a key and an initialization vector (IV).
+        The key is a secret sequence of bytes that must remain confidential. If an attacker obtains this key, they can decrypt the data.
+        On the other hand, the IV is a sequence of bytes that adds randomness to the encryption process.
+
+        The IV is not secret and is typically sent alongside the encrypted data, such as in a message header.
+        Its primary role is to ensure that even if the same plaintext is encrypted multiple times using the same key,
+        the resulting ciphertext will differ.
+        This makes it harder for attackers to identify patterns in the encrypted data.
+
+        If you do not want the additional security of an IV, you can set it to a fixed value or reuse the same value for all messages.
+        However, this weakens the encryption and could make the ciphertext vulnerable to attacks, especially if multiple messages are encrypted with the same key.
+
+        --- How Symmetric Encryption Works in .NET
+
+        To perform symmetric encryption in .NET, the AES algorithm can be used through the Aes class.
+        This class is responsible for the mathematical operations of the cipher.
+        It supports both encryption and decryption by creating appropriate transforms.
+
+        For encryption, the process involves creating an encryptor with a key and IV, and
+        then writing the data to be encrypted using a CryptoStream.
+        A CryptoStream is a specialized stream that encrypts or decrypts data as it is read or written.
+
+        // code example:
+
+         string password = "strong%Password";
+        byte[] bytes = Encoding.UTF8.GetBytes(password);
+
+        byte[] key = new byte[16];
+        byte[] iv = new byte[16];
+
+        // Generate a random key and IV
+        using RandomNumberGenerator rng = RandomNumberGenerator.Create();
+        rng.GetBytes(key);
+        rng.GetBytes(iv);
+
+        byte[] encryptedBytes;
+        byte[] decryptedBytes;
+
+        // Encryption
+        using (Aes aes = Aes.Create())
+        using (ICryptoTransform encryptor = aes.CreateEncryptor(key, iv))
+        using (MemoryStream memoryStream = new MemoryStream())
+        {
+            using (CryptoStream cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
+            {
+                cryptoStream.Write(bytes, 0, bytes.Length);
+            }
+
+            // Get the encrypted data as a byte array
+            encryptedBytes = memoryStream.ToArray();
+        }
+
+        Console.WriteLine($"Encrypted Password: {Convert.ToBase64String(encryptedBytes)}");
+
+        // Decryption
+        using (Aes aes = Aes.Create())
+        using (ICryptoTransform decryptor = aes.CreateDecryptor(key, iv))
+        using (MemoryStream memoryStream = new MemoryStream(encryptedBytes))
+        using (CryptoStream cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+        using (MemoryStream outputStream = new MemoryStream())
+        {
+            cryptoStream.CopyTo(outputStream);
+            decryptedBytes = outputStream.ToArray();
+        }
+
+        Console.WriteLine($"Decrypted Password: {Encoding.UTF8.GetString(decryptedBytes)}");
+
+        --- Important Concepts and Best Practices
+
+        The use of Aes ensures that the encryption process is both secure and efficient. 
+        However, certain practices should be followed to maintain the integrity of the encrypted data. 
+        1. The key must always be kept confidential, as it is the most critical piece in the encryption process. 
+        2. The IV should not be reused across multiple messages, as doing so could expose the encryption to cryptanalysis attacks.
+
+        When encrypting multiple pieces of data, always use a unique IV for each encryption operation. 
+        This makes the ciphertext harder to analyze, even if an attacker obtains multiple encrypted messages. 
+        If the IV is transmitted with the encrypted data, ensure it is done securely to prevent tampering.
+
+        Symmetric encryption, while fast and efficient, is not suitable for all use cases. 
+        For scenarios such as password storage, one-way hashing is preferred. 
+        Symmetric encryption is most effective when the key can be securely exchanged or is shared in a controlled environment.
+
+
+        --- other code examples...
+
+        public class Encryption
+        {
+            public static string Encrypt(string rawData, byte[] key, byte[] iv)
+            {
+                byte[] encrypted = Encrypt(Encoding.UTF8.GetBytes(rawData), key, iv);
+                return Convert.ToBase64String(encrypted);
+            }
+        
+            private static byte[] Encrypt(byte[] data, byte[] key, byte[] iv)
+            {
+                using (Aes aes = Aes.Create())
+                using (ICryptoTransform encryptor = aes.CreateEncryptor(key, iv))
+                {
+                    return Crypt(data, encryptor);
+                }
+            }
+        
+            public static string Decrypt(string encryptedData, byte[] key, byte[] iv)
+            {
+                byte[] decrypted = Decrypt(Convert.FromBase64String(encryptedData), key, iv);
+                return Encoding.UTF8.GetString(decrypted);
+            }
+        
+            private static byte[] Decrypt(byte[] data, byte[] key, byte[] iv)
+            {
+                using (Aes aes = Aes.Create())
+                using (ICryptoTransform decryptor = aes.CreateDecryptor(key, iv))
+                {
+                    return Crypt(data, decryptor);
+                }
+            }
+        
+            private static byte[] Crypt(byte[] data, ICryptoTransform cryptoTransform)
+            {
+                MemoryStream stream = new MemoryStream();
+                using (CryptoStream cryptoStream = new CryptoStream(stream, cryptoTransform, CryptoStreamMode.Write))
+                {
+                    cryptoStream.Write(data, 0, data.Length);
+                }
+        
+                return stream.ToArray();
+            }
+        }
+
+        -----------------
+
+        string password = "strong%Password";
+        byte[] bytes = Encoding.UTF8.GetBytes(password);
+
+        byte[] key = new byte[16];
+        byte[] iv = new byte[16];
+
+        // Generate a random key and IV
+        using RandomNumberGenerator rng = RandomNumberGenerator.Create();
+        rng.GetBytes(key);
+        rng.GetBytes(iv);
+
+        string encrypted = Encryption.Encrypt("Yeah!", key, iv);
+        Console.WriteLine(encrypted); // Example output: R1/5gYvcxyR2vzPjnT7yaQ==
+
+        string decrypted = Encryption.Decrypt(encrypted, key, iv);
+        Console.WriteLine(decrypted); // Output: Yeah!
+
+        */
+
+        string password = "strong%Password";
+        byte[] bytes = Encoding.UTF8.GetBytes(password);
+
+        byte[] key = new byte[16];
+        byte[] iv = new byte[16];
+
+        // Generate a random key and IV
+        using RandomNumberGenerator rng = RandomNumberGenerator.Create();
+        rng.GetBytes(key);
+        rng.GetBytes(iv);
+
+        string encrypted = Encryption.Encrypt("Yeah!", key, iv);
+        Console.WriteLine(encrypted); // Example output: R1/5gYvcxyR2vzPjnT7yaQ==
+
+        string decrypted = Encryption.Decrypt(encrypted, key, iv);
+        Console.WriteLine(decrypted); // Output: Yeah!
     }
 }

@@ -2,7 +2,7 @@
          C# Learning Path
 ====================================
 This document outlines a comprehensive learning path for C# programming and related technologies. 
-The topics are categorized into five main sections: 
+The topics are categorized into six main sections: 
 
 1. Core Programming, 
 2. API Development, 
@@ -21,7 +21,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.2. C# Language Basics +
 	1.3. Creating Types in C# + 
 	1.4. Advanced C# +
-	1.5. .NET Overview  
+	1.5. .NET Overview 
 	1.6. .NET Fundamentals +
 	1.7. Collections +
 	1.8. LINQ Queries +  
@@ -29,15 +29,15 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.10. LINQ to XML +
 	1.11. Other XML and JSON Technologies +
 	1.12. Disposal and Garbage Collection +
-	1.13. Diagnostics  
+	1.13. Diagnostics 
 	1.14. Concurrency and Asynchrony +
 	1.15. Streams and I/O +
 	1.16. Networking +
-	1.17. Assemblies + (not completely)
-	1.18. Reflection and Metadata  
+	1.17. Assemblies + (not completed...)
+	1.18. Reflection and Metadata 
 	1.19. Dynamic Programming 
-	1.20. Cryptography (do not forget)
-	1.21. Advanced Threading  
+	1.20. Cryptography +
+	1.21. Advanced Threading +
 	1.22. Parallel Programming  
 	1.23. Span<T> and Memory<T>  
 	1.24. Native and COM Interoperability  
