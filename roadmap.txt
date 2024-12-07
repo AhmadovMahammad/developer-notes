@@ -33,7 +33,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.14. Concurrency and Asynchrony +
 	1.15. Streams and I/O +
 	1.16. Networking +
-	1.17. Assemblies + (not completed...)
+	1.17. Assemblies (basic info)
 	1.18. Reflection and Metadata 
 	1.19. Dynamic Programming 
 	1.20. Cryptography +
