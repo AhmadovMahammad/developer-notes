@@ -1,39 +1,38 @@
 ﻿using System.Collections;
 
-namespace Chapter7
+namespace Chapter7;
+
+public class MyEnumerator : IEnumerator
 {
-    public class MyEnumerator : IEnumerator
+    private readonly List<int> _list;
+    private int _position = -1; // Enumerator's position (starts before the first element)
+
+    public MyEnumerator(List<int> list)
     {
-        private readonly List<int> _list;
-        private int _position = -1; // Enumerator's position (starts before the first element)
+        _list = list;
+    }
 
-        public MyEnumerator(List<int> list)
+    public object Current
+    {
+        get
         {
-            _list = list;
-        }
-
-        public object Current
-        {
-            get
+            if (_position < 0 || _position >= _list.Count)
             {
-                if (_position < 0 || _position >= _list.Count)
-                {
-                    throw new IndexOutOfRangeException();
-                }
-
-                return _list[_position];
+                throw new IndexOutOfRangeException();
             }
-        }
 
-        public bool MoveNext()
-        {
-            _position++;
-            return _position < _list.Count;
+            return _list[_position];
         }
+    }
 
-        public void Reset()
-        {
-            _position = -1;
-        }
+    public bool MoveNext()
+    {
+        _position++;
+        return _position < _list.Count;
+    }
+
+    public void Reset()
+    {
+        _position = -1;
     }
 }

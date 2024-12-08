@@ -1,4 +1,3 @@
-﻿namespace Widgets
-{
-    public class Widget { }
-}
+﻿namespace Widgets;
+
+public class Widget { }

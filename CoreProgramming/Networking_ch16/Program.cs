@@ -1,11 +1,5 @@
-﻿using Networking_ch16;
-using System.Net;
-using System.Net.Http.Headers;
+﻿using System.Net;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 internal class Program
 {
@@ -923,20 +917,16 @@ internal class Program
 
     static async Task Client()
     {
-        using (TcpClient client = new TcpClient())
-        {
-            await client.ConnectAsync("localhost", 51111);
-            Console.WriteLine("Connected to a server.");
+        using TcpClient client = new TcpClient();
+        await client.ConnectAsync("localhost", 51111);
+        Console.WriteLine("Connected to a server.");
 
-            using (NetworkStream stream = client.GetStream())
-            {
-                StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
-                StreamReader reader = new StreamReader(stream);
+        using NetworkStream stream = client.GetStream();
+        StreamWriter writer = new StreamWriter(stream) { AutoFlush = true };
+        StreamReader reader = new StreamReader(stream);
 
-                await writer.WriteLineAsync("Hello");
-                string? response = await reader.ReadLineAsync();
-                Console.WriteLine($"Server responded: {response}");
-            }
-        }
+        await writer.WriteLineAsync("Hello");
+        string? response = await reader.ReadLineAsync();
+        Console.WriteLine($"Server responded: {response}");
     }
 }

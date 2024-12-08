@@ -1,40 +1,39 @@
-﻿namespace ConcurrencyAndAsynchrony_ch14
+﻿namespace ConcurrencyAndAsynchrony_ch14;
+
+public class FileProcessor
 {
-    public class FileProcessor
+    public async Task ProcessFilesAsync(IEnumerable<string> filePaths, CancellationToken cancellationToken)
     {
-        public async Task ProcessFilesAsync(IEnumerable<string> filePaths, CancellationToken cancellationToken)
+        Console.WriteLine("Beginning file processing...");
+
+        foreach (var filePath in filePaths)
         {
-            Console.WriteLine("Beginning file processing...");
-
-            foreach (var filePath in filePaths)
+            try
             {
-                try
-                {
-                    await ProcessFileAsync(filePath, cancellationToken);
-                }
-                catch (OperationCanceledException)
-                {
-                    Console.WriteLine($"\nProcessing cancelled for {filePath}.");
-                    break;
-                }
+                await ProcessFileAsync(filePath, cancellationToken);
             }
-
-            Console.WriteLine("File processing operation completed.");
+            catch (OperationCanceledException)
+            {
+                Console.WriteLine($"\nProcessing cancelled for {filePath}.");
+                break;
+            }
         }
 
-        private async Task ProcessFileAsync(string filePath, CancellationToken cancellationToken)
+        Console.WriteLine("File processing operation completed.");
+    }
+
+    private async Task ProcessFileAsync(string filePath, CancellationToken cancellationToken)
+    {
+        Console.WriteLine($"Starting processing of {filePath}");
+
+        for (int i = 0; i < 5; i++)
         {
-            Console.WriteLine($"Starting processing of {filePath}");
+            cancellationToken.ThrowIfCancellationRequested();
 
-            for (int i = 0; i < 5; i++)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                Console.WriteLine($"Processing stage {i} for {filePath}...");
-                await Task.Delay(500, cancellationToken); // each stage takes hal
-            }
-
-            Console.WriteLine($"Completed processing of {filePath}.");
+            Console.WriteLine($"Processing stage {i} for {filePath}...");
+            await Task.Delay(500, cancellationToken); // each stage takes hal
         }
+
+        Console.WriteLine($"Completed processing of {filePath}.");
     }
 }

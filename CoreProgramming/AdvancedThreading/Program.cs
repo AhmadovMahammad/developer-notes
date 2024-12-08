@@ -1,6 +1,4 @@
-﻿using AdvancedThreading;
-
-internal class Program
+﻿internal class Program
 {
     private static void Main(string[] args)
     {
@@ -156,32 +154,69 @@ internal class Program
         */
 
         /* Monitor.Enter and Monitor.Exit
-         
-        */
 
-        #region codeExamples
-        var account = new BankAccount(1000);
+        The Monitor.Enter and Monitor.Exit methods are the foundation upon which C#’s lock statement is built. 
+        These methods are used to create critical sections in your code, 
+        ensuring that only one thread can execute the protected block of code at a time. 
+        This mechanism helps prevent issues like race conditions when multiple threads attempt to access shared resources.
 
-        // Create multiple threads performing operations on the same account
-        var thread1 = new Thread(() =>
+        To better understand how Monitor.Enter and Monitor.Exit work, let's break it down:
+
+        When you use the lock statement in C#, the compiler automatically translates it into calls to Monitor.Enter and Monitor.Exit, 
+        wrapped in a try/finally block to ensure proper release of the lock, even if an exception occurs.
+
+        Monitor.Enter(_locker); // Acquires a lock on the specified object (_locker).
+        try
         {
-            for (int i = 0; i < 10; i++)
-            {
-                account.Deposit(100);
-            }
-        });
-        // initial deposit: 1000 
-        // thread 1 deposits 1000
-
-        var thread2 = new Thread(() =>
+            // Protected code goes here.
+            if (_val2 != 0) 
+                Console.WriteLine(_val1 / _val2); // Example of a critical section.
+            _val2 = 0;
+        }
+        finally
         {
-            for (int i = 0; i < 10; i++)
+            Monitor.Exit(_locker); // Releases the lock to allow other threads to acquire it.
+        }
+
+        ----- Key Points about Monitor.Enter and Monitor.Exit:
+        1. Monitor.Enter acquires a lock on the specified object. 
+        Only one thread at a time can acquire the lock on the same object. 
+        Any other thread attempting to acquire the lock will block until the lock is released.
+
+        2. Monitor.Exit releases the lock. This allows another thread to acquire the lock and proceed with execution.
+
+        3. The try/finally block is critical because it ensures that the lock is always released, 
+        even if an exception occurs within the critical section. 
+        Failing to release the lock would cause a deadlock, preventing other threads from continuing.
+
+        4. If Monitor.Exit is called without a prior call to Monitor.Enter on the same object, an exception is thrown. 
+        This ensures that locks are correctly paired with their acquisition and release.
+
+        Class:
+        public class SharedResource
+        {
+            private readonly object _lock = new object();
+            private int _counter;
+        
+            public void Increment()
             {
-                account.Withdraw(50);
+                Monitor.Enter(_lock);
+                try
+                {
+                    _counter++;
+                    Console.WriteLine($"Value incremented to: {_counter}");
+                }
+                finally
+                {
+                    Monitor.Exit(_lock);
+                }
             }
-        });
-        // thread 2 withdraws 500
-        // should be 1500
+        }
+
+        var resource = new SharedResource();
+
+        Thread thread1 = new Thread(resource.Increment);
+        Thread thread2 = new Thread(resource.Increment);
 
         thread1.Start();
         thread2.Start();
@@ -189,8 +224,230 @@ internal class Program
         thread1.Join();
         thread2.Join();
 
-        // Print final balance
-        Console.WriteLine($"Final Balance: {account.GetBalance()}");
+        If it is called without Lock or Monitor statement, Output can be like this.
+
+        // OUTPUT:
+        // Value incremented to: 2
+        // Value incremented to: 2
+
+        But in this example:
+        Monitor.Enter ensures that only one thread can increment the shared resource’s value at a time.
+        Monitor.Exit guarantees the lock is released regardless of 
+        what happens inside the critical section.
+
+
+        ----- Why Use Monitor.Enter/Exit Instead of Lock?
+        While the lock statement is easier and safer to use, Monitor.Enter and Monitor.Exit offer more flexibility. 
+        For instance, you might use them directly if you need finer control over the locking mechanism, 
+        or if you want to add custom logic before or after acquiring/releasing the lock.
+
+        */
+
+        /* The lockTaken overloads
+        
+        The lockTaken overloads of Monitor.Enter help address a subtle but important issue that could lead to a deadlock 
+        if an exception occurs between calling Monitor.Enter and entering the try block. 
+
+        Without these overloads, if an exception (like an OutOfMemoryException) is thrown before the lock is acquired, 
+        the lock could be left unreleased, leading to a situation where subsequent threads are unable to acquire the lock.
+        
+        --- Monitor.Enter with lockTaken
+        The Monitor.Enter method has an overload that takes a ref bool lockTaken parameter. 
+        This overload ensures that you can safely check if the lock was successfully acquired, 
+        even if an exception is thrown during the process. 
+        
+        The lockTaken parameter will be set to false if the lock wasn't acquired (for example, if an exception occurred), 
+        which allows you to handle the situation more robustly.
+
+        ---
+        In simple terms, when we say that a lock was successfully acquired,
+        it means that the thread requesting the lock was able to gain exclusive access to the resource (in this case, the object being locked).
+        Here’s a breakdown:
+        
+            1. The lock object is like a key to a resource, and when a thread wants to access the resource, it needs to have the key.
+            2. When Monitor.Enter is called, it’s like the thread trying to grab the key. 
+               If no other thread is using the key, the thread gets the key and is allowed to access the resource.
+            3. Successfully acquired means the thread was able to grab the key (the lock) and now has exclusive access to the resource. 
+               No other thread can access it until the thread that holds the lock is done and releases it.
+        ---
+
+        public class SharedResource
+        {
+            private readonly object _lock = new object();
+            private bool lockTaken = false;
+            private int _counter;
+        
+            public void Increment()
+            {
+                Monitor.Enter(_lock, ref lockTaken); // Try to acquire the lock
+                try
+                {
+                    _counter++;
+                    Console.WriteLine($"Value incremented to: {_counter}");
+                }
+                finally
+                {
+                    // Ensure the lock is released only if it was acquired
+                    if (lockTaken)
+                    {
+                        Monitor.Exit(_lock);
+                    }
+                }
+            }
+        }
+
+
+        */
+
+        /* Monitor TryEnter Method
+         
+        In addition to the Enter method, Monitor provides the TryEnter method, which adds a level of flexibility 
+        by allowing you to specify a timeout for acquiring the lock. 
+        The TryEnter method attempts to acquire the lock and returns a bool indicating whether the lock was successfully obtained. 
+        This allows your code to handle situations where acquiring the lock may take too long, instead of blocking indefinitely.
+
+        1. TryEnter() – This version tries to acquire the lock and returns true if the lock is successfully acquired, 
+        or false if the lock is unavailable.
+
+        public void Increment_v3()
+        {
+            if (Monitor.TryEnter(_lock))
+            {
+                try
+                {
+                    _counter++;
+                    Console.WriteLine($"Value incremented to: {_counter}");
+                }
+                finally
+                {
+                    // Ensure the lock is released only if it was acquired
+                    if (lockTaken)
+                    {
+                        Monitor.Exit(_lock);
+                    }
+                }
+            }
+            else
+            {
+                Console.WriteLine("Could not get Lock object.");
+            }
+        }
+
+        OUTPUT:
+        Value incremented to: 1
+        Could not get Lock object.
+
+
+        2. TryEnter(int milliseconds) – This version allows you to specify a timeout in milliseconds. 
+        If the lock cannot be acquired within the specified time, it will return false. 
+        If the lock is acquired within the time frame, it returns true.
+
+        public void Increment_v4()
+        {
+            if (Monitor.TryEnter(_lock, 1000))
+            {
+                try
+                {
+                    _counter++;
+                    Console.WriteLine($"Value incremented to: {_counter}");
+                }
+                finally
+                {
+                    Monitor.Exit(_lock);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Could not get Lock object.");
+            }
+        }
+
+
+        3. TryEnter(TimeSpan timeout) – This version allows specifying a timeout as a TimeSpan instead of milliseconds. 
+        It works similarly to the millisecond-based overload, but it allows for more granular control over the timeout period.
+
+
+        NOTES: Summary of Key Differences:
+        1. Monitor.Enter requires manual management of the lock state, often paired with a try/finally block to ensure the lock is released.
+        
+        2. Monitor.TryEnter offers a non-blocking approach, allowing you to specify a timeout for acquiring the lock. 
+           It returns a bool indicating whether the lock was successfully obtained, 
+           providing a way to avoid indefinitely blocking threads when the lock isn't available.
+
+        3. Monitor.Enter with lockTaken ensures that even if an exception occurs while trying to acquire the lock, 
+           you can safely determine if the lock was actually obtained before calling Monitor.Exit.
+
+        */
+
+
+
+        #region codeExamples
+
+        //var resource = new SharedResource();
+
+        //Thread thread1 = new Thread(resource.Increment_v3);
+        //Thread thread2 = new Thread(resource.Increment_v3);
+
+        //Thread thread1 = new Thread(resource.Increment_v4);
+        //Thread thread2 = new Thread(resource.Increment_v4);
+
+        //thread1.Start();
+        //thread2.Start();
+
+        //thread1.Join();
+        //thread2.Join();
+
+
+        // ----------------------------------------------------
+
+        //var resource = new SharedResource();
+
+        //Thread thread1 = new Thread(resource.Increment);
+        //Thread thread2 = new Thread(resource.Increment);
+
+        //thread1.Start();
+        //thread2.Start();
+
+        //thread1.Join();
+        //thread2.Join();
+
+        //OUTPUT:
+        //Value incremented to: 2
+        //Value incremented to: 2
+
+        // ----------------------------------------------------
+
+        //var account = new BankAccount(1000);
+
+        //// Create multiple threads performing operations on the same account
+        //var thread1 = new Thread(() =>
+        //{
+        //    for (int i = 0; i < 10; i++)
+        //    {
+        //        account.Deposit(100);
+        //    }
+        //});
+        //// initial deposit: 1000 
+        //// thread 1 deposits 1000
+
+        //var thread2 = new Thread(() =>
+        //{
+        //    for (int i = 0; i < 10; i++)
+        //    {
+        //        account.Withdraw(50);
+        //    }
+        //});
+        //// thread 2 withdraws 500
+        //// should be 1500
+
+        //thread1.Start();
+        //thread2.Start();
+
+        //thread1.Join();
+        //thread2.Join();
+
+        //// Print final balance
+        //Console.WriteLine($"Final Balance: {account.GetBalance()}");
         #endregion
     }
 }

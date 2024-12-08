@@ -1,13 +1,4 @@
-﻿using StreamArchitecture_ch15;
-using System.IO.Compression;
-using System.Net;
-using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Unicode;
-using System.Xml;
-
-internal class Program
+﻿internal class Program
 {
     private static void Main(string[] args)
     {

@@ -1,46 +1,45 @@
 ﻿using System.Collections;
 
-namespace Chapter7
+namespace Chapter7;
+
+public class GenericEnumerator<T> : IEnumerator<T>
 {
-    public class GenericEnumerator<T> : IEnumerator<T>
+    private readonly List<T> _list;
+    private int _position = -1;
+
+    public GenericEnumerator(List<T> list)
     {
-        private readonly List<T> _list;
-        private int _position = -1;
+        _list = list;
+    }
 
-        public GenericEnumerator(List<T> list)
+    public T Current
+    {
+        get
         {
-            _list = list;
-        }
-
-        public T Current
-        {
-            get
+            if (_position < 0 || _position >= _list.Count)
             {
-                if (_position < 0 || _position >= _list.Count)
-                {
-                    throw new IndexOutOfRangeException();
-                }
-
-                return _list[_position];
+                throw new IndexOutOfRangeException();
             }
+
+            return _list[_position];
         }
+    }
 
-        object IEnumerator.Current => Current!;
+    object IEnumerator.Current => Current!;
 
-        public bool MoveNext()
-        {
-            _position++;
-            return _position < _list.Count;
-        }
+    public bool MoveNext()
+    {
+        _position++;
+        return _position < _list.Count;
+    }
 
-        public void Reset()
-        {
-            _position = -1;
-        }
+    public void Reset()
+    {
+        _position = -1;
+    }
 
-        public void Dispose()
-        {
+    public void Dispose()
+    {
 
-        }
     }
 }

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Net.Http.Headers;
-using System.Reflection.Emit;
-using System.Text;
-using System.Xml;
-using System.Xml.Serialization;
-
-internal class Program
+﻿internal class Program
 {
     private static void Main(string[] args)
     {

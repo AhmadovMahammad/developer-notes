@@ -13,11 +13,9 @@ public class Encryption
 
     private static byte[] Encrypt(byte[] data, byte[] key, byte[] iv)
     {
-        using (Aes aes = Aes.Create())
-        using (ICryptoTransform encryptor = aes.CreateEncryptor(key, iv))
-        {
-            return Crypt(data, encryptor);
-        }
+        using Aes aes = Aes.Create();
+        using ICryptoTransform encryptor = aes.CreateEncryptor(key, iv);
+        return Crypt(data, encryptor);
     }
 
     public static string Decrypt(string encryptedData, byte[] key, byte[] iv)
@@ -28,11 +26,9 @@ public class Encryption
 
     private static byte[] Decrypt(byte[] data, byte[] key, byte[] iv)
     {
-        using (Aes aes = Aes.Create())
-        using (ICryptoTransform decryptor = aes.CreateDecryptor(key, iv))
-        {
-            return Crypt(data, decryptor);
-        }
+        using Aes aes = Aes.Create();
+        using ICryptoTransform decryptor = aes.CreateDecryptor(key, iv);
+        return Crypt(data, decryptor);
     }
 
     private static byte[] Crypt(byte[] data, ICryptoTransform cryptoTransform)

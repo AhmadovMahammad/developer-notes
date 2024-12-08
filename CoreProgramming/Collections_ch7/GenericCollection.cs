@@ -1,25 +1,23 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 
-namespace Chapter7
+namespace Chapter7;
+
+public class GenericCollection<T> : IEnumerable<T>
 {
-    public class GenericCollection<T> : IEnumerable<T>
+    private readonly List<T> _list = new();
+
+    public void Add(T item)
     {
-        private readonly List<T> _list = new();
+        _list.Add(item);
+    }
 
-        public void Add(T item)
-        {
-            _list.Add(item);
-        }
+    public IEnumerator<T> GetEnumerator()
+    {
+        return new GenericEnumerator<T>(_list);
+    }
 
-        public IEnumerator<T> GetEnumerator()
-        {
-            return new GenericEnumerator<T>(_list);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return GetEnumerator();
     }
 }

@@ -1,32 +1,31 @@
-﻿namespace ConcurrencyAndAsynchrony_ch14
+﻿namespace ConcurrencyAndAsynchrony_ch14;
+
+public class Foo // LeetCode Question
 {
-    public class Foo // LeetCode Question
+    private readonly ManualResetEvent firstDone = new ManualResetEvent(false);
+    private readonly ManualResetEvent secondDone = new ManualResetEvent(false);
+
+    public Foo() { }
+
+    public void First(Action printFirst)
     {
-        private readonly ManualResetEvent firstDone = new ManualResetEvent(false);
-        private readonly ManualResetEvent secondDone = new ManualResetEvent(false);
+        printFirst();
+        firstDone.Set();
+    }
 
-        public Foo() { }
+    public void Second(Action printSecond)
+    {
+        firstDone.WaitOne();
 
-        public void First(Action printFirst)
-        {
-            printFirst();
-            firstDone.Set();
-        }
+        printSecond();
 
-        public void Second(Action printSecond)
-        {
-            firstDone.WaitOne();
+        secondDone.Set();
+    }
 
-            printSecond();
+    public void Third(Action printThird)
+    {
+        secondDone.WaitOne();
 
-            secondDone.Set();
-        }
-
-        public void Third(Action printThird)
-        {
-            secondDone.WaitOne();
-
-            printThird();
-        }
+        printThird();
     }
 }

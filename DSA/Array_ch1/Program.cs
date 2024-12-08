@@ -1,8 +1,4 @@
 ﻿using Array_ch1;
-using System.Collections;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 
 internal class Program
 {
