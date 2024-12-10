@@ -1,4 +1,4 @@
-﻿namespace AdvancedThreading;
+﻿namespace AdvancedThreading_ch21;
 
 public class UnsafeThread
 {

@@ -70,7 +70,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Assemblies_ch17", "CoreProg
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Cryptography_ch20", "CoreProgramming\Cryptography_ch20\Cryptography_ch20.csproj", "{86F52C50-ED68-492A-8B2D-68A1A30E7A5E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedThreading", "CoreProgramming\AdvancedThreading\AdvancedThreading.csproj", "{E6E99F94-3430-443F-B30E-60ECA95B3548}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdvancedThreading_ch21", "CoreProgramming\AdvancedThreading_ch21\AdvancedThreading_ch21.csproj", "{E6E99F94-3430-443F-B30E-60ECA95B3548}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

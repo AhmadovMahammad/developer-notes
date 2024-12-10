@@ -1,4 +1,6 @@
-﻿internal class Program
+﻿using AdvancedThreading_ch21;
+
+internal class Program
 {
     private static void Main(string[] args)
     {
@@ -379,9 +381,329 @@
 
         */
 
+        /* Choosing the Synchronization Object
+        In C#, synchronization ensures that only one thread can access certain resources at a time. 
+        To manage this, we use synchronization objects that help control access to shared data or critical sections of code. 
+        
+        The synchronization object must be a reference type, 
+        meaning it needs to be an object and not a value type like int or struct.
 
+
+        ----- Key Points about Synchronization Objects:
+        1. Reference Type Requirement: The reference type requirement means that 
+        the object used in a lock must be something that all threads can recognize and reference consistently. 
+        In simple terms, a reference type like an object or class instance allows threads to "agree" on what they're locking.
+        
+        For example, if you use a value type like an int, each thread might get its own copy, 
+        which defeats the purpose of locking. 
+        
+        But with a reference type (like object _locker = new object();), 
+        all threads use the same shared lock, ensuring proper synchronization.
+
+        2. Private Synchronization Object: Typically, the synchronization object is kept private, which helps encapsulate the locking logic. 
+        This ensures that no other code can accidentally lock on the same object and potentially cause issues, such as deadlocks.
+
+        3. Synchronizing Object Can Be the Protected Resource: 
+        Sometimes, the object that’s being protected by the lock can also serve as the synchronization object itself. 
+        For example, in the following code:
+
+        class ThreadSafe
+        {
+            List<string> _list = new List<string>();
+            void Test()
+            {
+                lock (_list)
+                {
+                    _list.Add("Item 1");
+                    // other operations
+                }
+            }
+        }
+        
+        Here, the _list field is both the object being protected (from concurrent access) and the synchronization object. 
+        However, this method can sometimes make it harder to manage the locking behavior and 
+        to avoid potential issues like deadlocks.
+
+        --- What Locking Doesn’t Do:
+        Locking does not prevent other threads from calling methods on the synchronization object itself. 
+        For example, if lock (x) is used, it only blocks other threads from entering the critical section protected by that lock. 
+        It does not prevent them from calling other methods (like ToString()) on the same object. 
+
+        */
+
+        /* Nested Locking: The Concept of Reentrancy
+        C#'s lock is reentrant, meaning if a thread holds a lock and tries to acquire the same lock again (nested), 
+        it won’t block itself.
+
+        ----------------
+
+        lock (lockObject)
+        {
+            Console.WriteLine("Outer lock acquired");
+
+            lock (lockObject)  // Nested lock
+            {
+                Console.WriteLine("Inner lock acquired");
+            }
+
+            Console.WriteLine("Inner lock released");
+        }
+
+        Console.WriteLine("Outer lock released");
+
+        ----------------
+
+        --- What Happens Here?
+
+        1. The first lock on lockObject is acquired by the thread.
+        
+        2. The thread then enters the inner lock block.
+        Even though it’s trying to acquire the same lock (lockObject), it doesn’t block itself. 
+        This is because C# allows reentrant locks. So, the thread can acquire the lock again without waiting.
+        
+        3. Once the thread exits the inner lock, it releases the lock for the second time.
+        4. Finally, when it exits the outer lock, the lock is fully released, allowing other threads to enter.
+
+
+        --- Why Is Nested Locking Important?
+        Nested locking is useful when you have methods that call other methods that also need to lock shared resources. For example:
+
+        public class Bank
+        {
+            private readonly object _lock = new object();
+            public double balance { get; private set; } = 1500;
+        
+            public void WithdrawWithLock(double amount)
+            {
+                lock (_lock)
+                {
+                    if (balance >= amount)
+                    {
+                        Console.WriteLine($"Transaction started: Withdrawing {amount}");
+                        balance -= amount;
+                        Console.WriteLine($"Transaction completed: {amount} withdrawn. Current balance: {balance}");
+                        LogTransaction($"Withdrawn: {amount}");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Insufficient funds!");
+                    }
+                }
+            }
+        
+            private void LogTransaction(string message)
+            {
+                lock (_lock) // Same lock, reentrant behavior allows it
+                {
+                    Console.WriteLine($"Logging transaction: {message}");
+                    Thread.Sleep(100);
+                }
+            }
+        }
+
+        Here, the Withdraw method calls LogTransaction, and both methods need to acquire the balanceLocker. 
+        Without nested locking, the second lock on balanceLocker in the LogTransaction method would block, causing a deadlock. 
+        But since C# supports reentrant locking, the thread doesn't block itself, and both operations can proceed without issues.
+
+
+        --- The Pitfalls of Using Two Locks
+        While nested locking is useful, you often need two or more locks in more complex scenarios to protect different resources.
+        Here's why:
+
+        1. Granularity of Locking: When dealing with multiple resources (e.g., modifying a balance and logging a transaction), 
+        you may want to lock only the critical sections, not the entire method. 
+
+        This helps with performance by reducing the time threads are blocked, 
+        allowing other threads to work on different parts of the program.
+
+        2. Avoiding Deadlocks: If you use multiple locks, always acquire them in a consistent order. 
+        If two threads acquire locks in the opposite order, it can lead to a deadlock, 
+        where both threads are waiting on each other to release a lock.
+
+        // Thread 1: locks balance first, then transaction
+        lock (balanceLocker) { lock (transactionLocker) { } }
+        
+        // Thread 2: locks transaction first, then balance
+        lock (transactionLocker) { lock (balanceLocker) { } }  // This causes deadlock!
+
+
+        */
+
+        /* What Is a Deadlock?
+        A deadlock occurs when two or more threads in a program are stuck waiting for each other to release resources, 
+        and as a result, they are unable to proceed. 
+        
+        It is a situation where threads block each other indefinitely because each thread is holding a resource the other thread needs. 
+        To illustrate this in simple terms:
+
+        Thread 1 locks Resource A and needs Resource B.
+        Thread 2 locks Resource B and needs Resource A.
+        Now, both threads are waiting on the other to release a lock, but neither can proceed, 
+        and they’re stuck in a circular waiting pattern. This is a deadlock.
+
+
+        --- Deadlock Example in Code
+        Imagine two resources, locker1 and locker2, and two threads. 
+        Each thread tries to acquire both locks, but in reverse order. 
+        This creates a deadlock because each thread is waiting for the other to release a lock.
+
+        object locker_1 = new object();
+        object locker_2 = new object();
+
+        Thread thread_1 = new Thread(() =>
+        {
+            lock (locker_1)
+            {
+                Thread.Sleep(1000); //  simulate some work...
+                Console.WriteLine($"Thread {Environment.CurrentManagedThreadId}: within locker 1");
+
+                lock (locker_2)
+                {
+                    Console.WriteLine($"Thread {Environment.CurrentManagedThreadId}: within locker 1");
+                }
+            }
+        });
+
+        Thread thread_2 = new Thread(() =>
+        {
+            lock (locker_2)
+            {
+                Thread.Sleep(1000); //  simulate some work...
+                Console.WriteLine($"Thread {Environment.CurrentManagedThreadId}: within locker 2");
+
+                lock (locker_1)
+                {
+                    Console.WriteLine($"Thread {Environment.CurrentManagedThreadId}: within locker 1");
+                }
+            }
+        });
+
+        thread_1.Start();
+        thread_2.Start();
+
+        --- What's Happening Here?
+
+        Thread 1 locks locker1 and waits for locker2, which is held by Thread 2.
+        Thread 2 locks locker2 and waits for locker1, which is held by Thread 1.
+
+        Both threads are stuck in a circular waiting pattern. 
+        Neither can proceed because each is waiting on the other to release the lock it needs. 
+        This is a classic example of a deadlock.
+
+        --- Why Is This Dangerous?
+        Deadlocks can cause a program to freeze, leading to:
+
+        1. Infinite waiting: The threads involved will never complete their tasks.
+        2. Performance degradation: The program becomes unresponsive, as it’s stuck waiting for resources that will never be released.
+        3. Difficult debugging: Deadlocks can be hard to detect and reproduce because they might only occur in specific timing conditions.
+
+        --- How to Prevent Deadlocks?
+
+        1. Locking in a Consistent Order
+        
+        One of the simplest ways to avoid deadlocks is to acquire locks in a consistent order. 
+        If both threads always acquire the locks in the same order, 
+        they won’t end up in a situation where one thread holds a lock and is waiting for the other.
+
+        2. Timeout for Lock Acquisition
+
+        Another method is to set a timeout for acquiring a lock. 
+        If a thread cannot acquire a lock within a certain period, it can give up or try again later. 
+        This prevents threads from waiting indefinitely.
+
+        object locker_1 = new object();
+        object locker_2 = new object();
+        bool lockAcquired = false;
+
+        Thread thread_1 = new Thread(() =>
+        {
+            while (!lockAcquired)
+            {
+                if (Monitor.TryEnter(locker_1, TimeSpan.FromSeconds(1))) // Try to lock locker1 within 1 second
+                {
+                    try
+                    {
+                        Console.WriteLine($"{Environment.CurrentManagedThreadId}");
+                        Thread.Sleep(TimeSpan.FromSeconds(1));
+                        if (Monitor.TryEnter(locker_2, TimeSpan.FromSeconds(1))) // Try to lock locker2 within 1 second
+                        {
+                            try
+                            {
+                                Console.WriteLine($"{Environment.CurrentManagedThreadId}");
+                                lockAcquired = true;
+                            }
+                            finally
+                            {
+                                Monitor.Exit(locker_2);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(locker_1);
+                    }
+                }
+            }
+        });
+
+        Thread thread_2 = new Thread(() =>
+        {
+            while (!lockAcquired)
+            {
+                if (Monitor.TryEnter(locker_2, TimeSpan.FromSeconds(1))) // Try to lock locker1 within 1 second
+                {
+                    try
+                    {
+                        Console.WriteLine($"{Environment.CurrentManagedThreadId}");
+                        Thread.Sleep(TimeSpan.FromMilliseconds(500));
+                        if (Monitor.TryEnter(locker_1, TimeSpan.FromSeconds(1))) // Try to lock locker2 within 1 second
+                        {
+                            try
+                            {
+                                Console.WriteLine($"{Environment.CurrentManagedThreadId}");
+                                lockAcquired = true;
+                            }
+                            finally
+                            {
+                                Monitor.Exit(locker_1);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        Monitor.Exit(locker_2);
+                    }
+                }
+            }
+        });
+
+        thread_1.Start();
+        thread_2.Start();
+
+        With this approach, if a thread cannot acquire both locks within the timeout, 
+        it will revert and try again later, potentially preventing a deadlock situation.
+
+        */
+
+        /* Mutex in C#
+         
+        */
 
         #region codeExamples
+        //Bank bank = new Bank();
+
+        //Thread thread1 = new Thread(() => bank.WithdrawWithLock(300));  // Withdraw 300 from account
+        //Thread thread2 = new Thread(() => bank.WithdrawWithLock(500));  // Withdraw 500 from account
+
+        //thread1.Start();
+        //thread2.Start();
+
+        //thread1.Join();
+        //thread2.Join();
+
+        //Console.WriteLine("Final Balance (with lock): " + bank.balance);
+
+        // ------------------------------------------
 
         //var resource = new SharedResource();
 
