@@ -52,6 +52,7 @@ internal class Program
         */
 
         /* Exclusive Locking - The lock Statement
+        
         The lock statement is a fundamental construct in C# used for synchronization in multithreaded programs. 
         Its primary purpose is to prevent race conditions by ensuring that only one thread at a time can execute a specific section of code. 
         This is particularly important when multiple threads need to access or modify shared data, 
@@ -154,6 +155,7 @@ internal class Program
         can lead to deadlocks where threads are indefinitely waiting for each other to release locks.
 
         */
+
 
         /* Monitor.Enter and Monitor.Exit
 
@@ -686,8 +688,340 @@ internal class Program
         */
 
         /* Mutex in C#
+        
+        A Mutex (short for Mutual Exclusion) is a synchronization object that is used to manage access to a resource 
+        by multiple threads or processes. 
+        
+        It is conceptually similar to a lock but has the additional power of working across multiple processes. 
+
+
+        --- Key Features of Mutex
+        
+        1. Works across processes: Unlike a lock, which is limited to thread synchronization within a single application, 
+        a Mutex can synchronize threads across multiple processes. 
+
+        This makes it suitable for situations where you want to ensure that
+        only one instance of a program runs at a time, even across different processes.
+
+        2. Slower than lock: Acquiring and releasing a Mutex is slower than a lock due to the overhead of inter-process synchronization. 
+        A lock is extremely fast because it’s confined to a single process, 
+        whereas a Mutex may involve OS-level coordination across processes.
+
+        3. Thread-specific release: Just like a lock, a Mutex must be released by the thread that acquired it. 
+        If you attempt to release a Mutex from a thread that did not acquire it, it will throw an exception (AbandonedMutexException).
+
+        4. Abandoned Mutexes: If a thread acquires a Mutex and exits without releasing it (e.g., if it crashes), 
+        the next thread that tries to acquire the Mutex will throw an exception. 
+        This is called an abandoned mutex.
+
+
+        --- How a Mutex Works
+
+        A Mutex works by blocking access to a resource. 
+        A thread that needs access to a resource first calls the WaitOne() method, 
+        which blocks the thread until it can acquire the mutex (i.e., when no other thread or process holds the mutex). 
+        
+        Once the thread finishes using the resource, it releases the mutex using the ReleaseMutex() method.
+
+        // Create a named Mutex that is available system-wide.
+        // Use a unique name for your application (e.g., "Global\YourAppName").
+        using var mutex = new Mutex(true, @"Global\MyUniqueMutexName");
+
+        // Try to acquire the mutex for up to 3 seconds.
+        if (!mutex.WaitOne(TimeSpan.FromSeconds(3), false))
+        {
+            Console.WriteLine("Another instance of the app is running. Bye!");
+            return;
+        }
+
+        try
+        {
+            // Run the main program logic here
+            Console.WriteLine("Running.");
+        }
+        finally
+        {
+            // Always release the mutex when done
+            mutex.ReleaseMutex();
+        }
+
+        -------------------------------------
+
+        mutex.WaitOne(TimeSpan.FromSeconds(3), false) tries to acquire the mutex, waiting for up to 3 seconds. 
+        If the mutex is already acquired by another instance of the program, it will not acquire it within the 3-second timeout, 
+        and the application will display a message and exit.
+
+        */
+
+        /* Mutex and Thread Synchronization
+        In contrast to lock statements, which only ensure synchronization within the same process,
+        a Mutex allows synchronization between threads and processes running on the same machine.
+        
+        For example, if you have two different instances of a program running in two separate processes, 
+        you can use a Mutex to ensure that only one instance runs at a time.
+        
+        ---
+        For this reason, a common use of Mutexes is in preventing multiple instances of an application, such as:
+
+        1. Single Instance Applications: 
+        Ensuring that only one instance of an application runs at a time, 
+        such as a desktop application that should not be opened multiple times.
+        
+        2. Global Resource Access: 
+        Synchronizing access to resources that are shared by multiple processes, like shared files or databases.
+
+        In cases where you don’t need cross-process synchronization, using a lock statement (which is faster) is usually preferred. 
+        A lock works well when you’re working within a single process and 
+        just need to synchronize access to shared data between threads.
+
+
+        // Create a named Mutex that is available system-wide.
+        // Use a unique name for your application (e.g., "Global\YourAppName").
+        using var mutex = new Mutex(true, @"Global\MyUniqueMutexName");
+        // Try to acquire the mutex for up to 3 seconds.
+        if (!mutex.WaitOne(TimeSpan.FromSeconds(3)))
+        {
+            Console.WriteLine("Another instance of the app is running. Bye!");
+            return;
+        }
+
+        try
+        {
+            // Run the main program logic here
+            Console.WriteLine("Running.");
+        }
+        finally
+        {
+            // Always release the mutex when done
+            mutex.ReleaseMutex();
+        }
+
+
+        */
+
+
+        /* Nonexclusive Locking
+        
+        In multithreading and parallel programming, a semaphore is a synchronization mechanism that controls access to a shared resource by multiple threads. 
+        It enforces a limit on how many threads can access the resource simultaneously. 
+        To understand semaphores deeply, let's explore the concept from scratch with practical, real-world analogies and technical details.
+
+        */
+
+        /* What is a Semaphore?
+        A semaphore can be thought of as a "counter" that tracks how many threads (or processes) can access a shared resource concurrently.
+        
+        Imagine a nightclub with a strict capacity limit. 
+        The club can hold only a certain number of people at once. 
+        A bouncer at the door controls access:
+        
+            1. If there's space, the bouncer lets a person in.
+            2. If the club is full, new arrivals must wait in line.
+            3. When someone leaves the club, the bouncer lets the next person in.
+        
+        This is the essence of a semaphore:
+        
+            1. It has a capacity limit (e.g., the nightclub's maximum occupancy).
+            2. It allows threads to wait when the limit is reached.
+            3. It allows threads to proceed when space becomes available.
+         
+        --- How Does a Semaphore Work?
+        
+        A semaphore has two main operations:
+        
+            1. Wait (Acquire): Decrements the semaphore's counter, indicating that a thread is entering the resource. 
+            If the counter is zero, the thread waits until another thread releases.
+            
+            2. Release: Increments the counter, signaling that a thread has exited the resource and space is now available.
+
+        --- Types of Semaphores
+
+        1. Binary Semaphore:
+        A semaphore with a capacity of 1. 
+        It acts like a mutex or lock because it allows only one thread to access the resource at a time.
+
+        2. Counting Semaphore:
+        A semaphore with a capacity greater than 1. 
+        This is used when you want to allow multiple threads to access the resource simultaneously, up to a specific limit.
+
+
+
+        --- Code Example
+
+        public class Club
+        {
+            private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(5); // maximum capacity of 5
+        
+            public Club()
+            {
+                // Simulate 5 people trying to enter the club
+                for (int i = 1; i <= 10; i++)
+                {
+                    int personId = i; // Capture the loop variable
+                    new Thread(() => Enter(personId)).Start();
+                }
+            }
+        
+            private void Enter(int id)
+            {
+                Console.WriteLine($"Person {id} wants to enter.");
+        
+                // Wait for permission to enter (decrement the semaphore count)
+                _semaphore.Wait();
+        
+                Console.WriteLine($"Person {id} is in!");
+                Thread.Sleep(1000 * id); // Simulate time spent in the club
+        
+                Console.WriteLine($"Person {id} is leaving.");
+        
+                // Release the semaphore (increment the count)
+                _semaphore.Release();
+            }
+        }
+        -----------------------------------
+
+        --- When to Use Semaphores
+        1. Rate Limiting: Limiting the number of concurrent requests to a service or API.
+        2. Throttling: Ensuring a system doesn't exceed its capacity in terms of processing threads.
+
+
+                                    Semaphore vs SemaphoreSlim
+
+        Feature	                        Semaphore	                        SemaphoreSlim
+        Purpose	                        Works across processes	            Works within the same process
+        Performance	                    Higher latency	                    Optimized for low latency
+        Async Support	                No	                                Yes
+        Cancellation Token	            No	                                Yes
+
+
+        ----- Real-World Example: Web Server Request Limiting
+        In a web server, there may be a limit to how many simultaneous requests the server can process. 
+        Using SemaphoreSlim, you can enforce this limit as follows:
+
+        public class WebServer
+        {
+            private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(10); // allow 10 concurrent requests at a time
+            private readonly object _lock = new object();
+            private readonly List<string> _res = new List<string>();
+        
+            public async Task Run()
+            {
+                Task[] tasks = new Task[20];
+                for (int i = 0; i < tasks.Length; i++)
+                {
+                    tasks[i] = ProcessRequestAsync(i + 1);
+                }
+        
+                await Task.WhenAll(tasks);
+            }
+        
+            private async Task ProcessRequestAsync(int reqID)
+            {
+                // Wait for a slot to process the request
+                await _semaphoreSlim.WaitAsync();
+                Console.WriteLine($"Request: {reqID} is waiting for a slot to process the request.");
+        
+                try
+                {
+                    // Simulate processing work
+                    await Task.Delay(2000);
+        
+                    lock (_lock)
+                    {
+                        Console.WriteLine($"Request: {reqID} is processed.");
+                        _res.Add($"Request: {reqID} is processed.");
+                    }
+                }
+                finally
+                {
+                    // Release the semaphore slot
+                    _semaphoreSlim.Release();
+                    Console.WriteLine($"Request: {reqID} is leaving.");
+                }
+            }
+        
+            private void HandleResults(List<string> results)
+            {
+                string aggregatedResults = string.Join(", ", results);
+                Console.WriteLine(aggregatedResults);
+            }
+        }
+
+        Output:
+
+        Request: 1 is waiting for a slot to process the request.
+        Request: 2 is waiting for a slot to process the request.
+        Request: 3 is waiting for a slot to process the request.
+        Request: 4 is waiting for a slot to process the request.
+        Request: 5 is waiting for a slot to process the request.
+        Request: 6 is waiting for a slot to process the request.
+        Request: 7 is waiting for a slot to process the request.
+        Request: 8 is waiting for a slot to process the request.
+        Request: 9 is waiting for a slot to process the request.
+        Request: 10 is waiting for a slot to process the request.
+        Request: 10 is processed.
+        Request: 9 is processed.
+        Request: 9 is leaving.
+        Request: 11 is waiting for a slot to process the request.
+        Request: 8 is processed.
+        Request: 8 is leaving.
+        Request: 12 is waiting for a slot to process the request.
+        Request: 1 is processed.
+        Request: 1 is leaving.
+        Request: 13 is waiting for a slot to process the request.
+        Request: 4 is processed.
+        Request: 4 is leaving.
+        Request: 14 is waiting for a slot to process the request.
+        Request: 6 is processed.
+        Request: 6 is leaving.
+        Request: 7 is processed.
+        Request: 15 is waiting for a slot to process the request.
+        Request: 7 is leaving.
+        Request: 3 is processed.
+        Request: 16 is waiting for a slot to process the request.
+        Request: 18 is waiting for a slot to process the request.
+        Request: 10 is leaving.
+        Request: 17 is waiting for a slot to process the request.
+        Request: 3 is leaving.
+        Request: 5 is processed.
+        Request: 5 is leaving.
+        Request: 2 is processed.
+        Request: 19 is waiting for a slot to process the request.
+        Request: 2 is leaving.
+        Request: 20 is waiting for a slot to process the request.
+        Request: 15 is processed.
+        Request: 15 is leaving.
+        Request: 12 is processed.
+        Request: 12 is leaving.
+        Request: 14 is processed.
+        Request: 14 is leaving.
+        Request: 11 is processed.
+        Request: 11 is leaving.
+        Request: 13 is processed.
+        Request: 13 is leaving.
+        Request: 16 is processed.
+        Request: 16 is leaving.
+        Request: 18 is processed.
+        Request: 18 is leaving.
+        Request: 17 is processed.
+        Request: 17 is leaving.
+        Request: 19 is processed.
+        Request: 19 is leaving.
+        Request: 20 is processed.
+        Request: 20 is leaving.
+
+
+        Output Explanation
+
+        Up to 10 requests are processed simultaneously because the semaphore capacity is 10.
+        The other requests wait until a slot becomes available.
+
+        */
+
+        /* Reader/Writer Locks
          
         */
+        
 
         #region codeExamples
         //Bank bank = new Bank();
