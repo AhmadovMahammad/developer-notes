@@ -812,7 +812,7 @@ internal class Program
         A semaphore can be thought of as a "counter" that tracks how many threads (or processes) can access a shared resource concurrently.
         
         Imagine a nightclub with a strict capacity limit. 
-        The club can hold only a certain number of people at once. 
+        The club can hold only a certain number of people at once.
         A bouncer at the door controls access:
         
             1. If there's space, the bouncer lets a person in.
@@ -1019,9 +1019,173 @@ internal class Program
         */
 
         /* Reader/Writer Locks
-         
-        */
         
+        Reader/Writer locks are a specialized synchronization mechanism designed for scenarios where 
+        a shared resource is read frequently but updated only occasionally.
+        
+        These locks balance concurrency and safety by allowing multiple threads to read simultaneously 
+        while ensuring exclusive access for writing operations. 
+        
+        The primary motivation behind such locks is to enhance performance in applications dominated by read operations, 
+        such as caching in business servers, without compromising the integrity of data during updates.
+
+
+        ----- The Need for Reader/Writer Locks
+
+        In multi-threaded environments, concurrent read and write operations on shared data can lead to 
+        race conditions, data corruption, or inconsistent states. 
+        
+        The simplest way to ensure safety is to use an exclusive lock (like Monitor.Enter/Exit) that serializes all access to the resource. 
+        However, this approach can unnecessarily restrict concurrency, especially when most operations are reads. 
+        
+        For example, if 10 threads are reading from a shared cache and 1 thread occasionally writes to it, 
+        an exclusive lock would block all readers whenever the writer accesses the resource, 
+        leading to significant performance bottlenecks. 
+        
+        Reader/Writer locks address this issue by distinguishing between read and write access, optimizing concurrency for read-heavy workloads.
+
+
+        ----- How Reader/Writer Locks Work
+
+        Reader/Writer locks operate using two distinct types of locks:
+
+        1. Read Lock:
+        This lock is shared among multiple threads. If no thread is holding a write lock, 
+        any number of threads can simultaneously acquire a read lock, allowing concurrent reads. 
+        This maximizes parallelism and improves performance when read operations dominate.
+
+        Write Lock:
+        This lock is exclusive. When a thread acquires a write lock, it prevents all other threads - 
+        whether attempting to read or write from accessing the resource. 
+        This ensures that updates are atomic and data consistency is maintained.
+
+        The fundamental rule is that a write lock blocks all other threads, while a read lock blocks only writers, not other readers.
+
+
+        ----- ReaderWriterLockSlim in .NET
+        The .NET framework provides the ReaderWriterLockSlim class, a modern implementation of Reader/Writer locks. 
+        It replaces the older ReaderWriterLock class, which had design flaws and was significantly slower. 
+        
+        ReaderWriterLockSlim strikes a balance between simplicity, performance, and functionality, 
+        making it ideal for scenarios where read operations are frequent and write operations are infrequent.
+
+        --- Key Features:
+        1. High Performance: Although it is slower than a simple lock (like Monitor), 
+        it is significantly reduces contention in read-heavy scenarious
+
+        2. Timeout Support: The TryEnterReadLock and TryEnterWriteLock methods allow threads to attempt acquiring locks with a timeout, 
+        preventing indefinite blocking in highly contended situations.
+
+        3. Monitoring and Debugging: Properties like IsReadLockHeld, IsWriteLockHeld and CurrentReadCount provide insights
+        into the lock's state, aiding in debugging and performance tuning.
+
+
+        ----- Example: Using ReaderWriterLockSlim
+
+        using System.Security.Cryptography;
+
+        namespace AdvancedThreading_ch21;
+        public class ReaderWriterLockExample
+        {
+            private readonly ReaderWriterLockSlim _lockSlim = new ReaderWriterLockSlim();
+            private readonly List<int> _sharedList = new List<int>();
+            private readonly Random _random = new Random();
+        
+            public void StartThreads()
+            {
+                new Thread(Read).Start();
+                new Thread(Read).Start();
+                new Thread(Read).Start();
+                new Thread(Write).Start("Writer A");
+                new Thread(Write).Start("Writer B");
+            }
+        
+            private void Read()
+            {
+                while (true)
+                {
+                    _lockSlim.EnterReadLock();
+                    try
+                    {
+                        Console.WriteLine("Reader: Reading the list...");
+                        _sharedList.ForEach(num =>
+                        {
+                            Console.WriteLine($"Reader: {num}");
+                            Thread.Sleep(20);
+                        });
+                    }
+                    finally
+                    {
+                        _lockSlim.ExitReadLock();
+                    }
+                }
+            }
+        
+            private void Write(object? writerName)
+            {
+                if (writerName is null) return;
+        
+                while (true)
+                {
+                    int newVal = _random.Next(200);
+                    _lockSlim.EnterWriteLock();
+        
+                    try
+                    {
+                        _sharedList.Add(newVal);
+                        Console.WriteLine($"{writerName}: added {newVal}");
+                    }
+                    finally
+                    {
+                        _lockSlim.ExitWriteLock();
+                    }
+        
+                    Task.Delay(2 * 1000).Wait();
+                }
+            }
+        }
+
+        Lock Held	        New Read Lock Allowed?	        New Write Lock Allowed?
+        ---------------------------------------------------------------------------
+        Read Lock	        Yes	                            No
+        Write Lock	        No	                            No
+
+
+
+        --- Monitoring Lock State
+
+        ReaderWriterLockSlim provides several properties for monitoring and debugging:
+        
+        IsReadLockHeld: Indicates whether the current thread holds a read lock.
+        IsWriteLockHeld: Indicates whether the current thread holds a write lock.
+        CurrentReadCount: Shows the number of threads currently holding read locks.
+        WaitingReadCount and WaitingWriteCount: Indicate the number of threads waiting for read or write locks.
+        -----
+        -----
+        bool readHeld = _lockSlim.IsReadLockHeld;
+        bool writerHeld = _lockSlim.IsWriteLockHeld;
+        
+        int curReadCount = _lockSlim.CurrentReadCount;
+        
+        int waitingReadCount = _lockSlim.WaitingReadCount;
+        int waitingWriteCount = _lockSlim.WaitingWriteCount;
+
+
+        --- Conclusion
+        
+        Reader/Writer locks, particularly the ReaderWriterLockSlim class, 
+        are a powerful tool for managing shared resources in multi-threaded environments. 
+        
+        By enabling concurrent reads while ensuring exclusive writes, 
+        they optimize performance in scenarios dominated by read operations. 
+        
+        Proper use of these locks, along with careful exception handling and monitoring, 
+        ensures both safety and efficiency in concurrent programming.
+
+        */
+
+        ReaderWriterLockExample readerWriterLockExample = new ReaderWriterLockExample();
+        readerWriterLockExample.StartThreads();
 
         #region codeExamples
         //Bank bank = new Bank();
