@@ -91,7 +91,19 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 6. Algorithms and Data Structures
 
-    6.1 Arrays and Strings + (both are completed)
+    Arrays and Strings                      +
+    Sorting and Searching
+    Linked Lists
+    Stacks and Queues
+    Recursion and Backtracking
+    Trees
+    Heaps and Priority Queues
+    Graphs
+    Dynamic Programming
+    Greedy Algorithms
+
+
+    6.1 Arrays and Strings
         6.1.1 Theoretical Concepts:
         
             Array Basics: Understand memory layout, definition, and benefits of index-based access.
@@ -255,8 +267,8 @@ You chose it because it challenges you, pushes you, and gives you the power to c
 Every line of code, every bug fixed, and every problem solved is one step closer to mastery.
 
 Tiredness is temporary, but the skills you're building are permanent. 
-Every late-night session and frustrating error message is an investment in your future self�
-a version of you that's more skilled, more confident, and more capable of taking on any challenge that comes your way. 
+Every late-night session and frustrating error message is an investment in your future self.
+A version of you that's more skilled, more confident, and more capable of taking on any challenge that comes your way. 
 Remember, even the greatest developers were once where you are now, battling through tiredness and self-doubt. They kept pushing, and so can you.
 
 There is no growth in comfort. 
@@ -270,4 +282,4 @@ Imagine looking back a year from now and realizing that despite how tired you fe
 you kept going, and you made it further than you ever thought possible.
 
 Programming is a superpower, and you're already on the path to wielding it. 
-Rest if you need to, but never stop moving forward. Your future self will thank�you�for�it.
+Rest if you need to, but never stop moving forward. Your future self will thank you for it.

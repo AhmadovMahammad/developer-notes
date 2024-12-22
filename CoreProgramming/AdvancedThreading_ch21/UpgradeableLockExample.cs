@@ -1,5 +1,7 @@
-﻿namespace AdvancedThreading_ch21;
-public class ReaderWriterLockExample
+using System.ComponentModel;
+
+namespace AdvancedThreading_ch21;
+public class UpgradeableLockExample
 {
     private readonly ReaderWriterLockSlim _lockSlim = new ReaderWriterLockSlim();
     private readonly List<int> _sharedList = new List<int>() { 1, 2, 3, 4, 5 };
@@ -7,15 +9,6 @@ public class ReaderWriterLockExample
 
     public void StartThreads()
     {
-        bool readHeld = _lockSlim.IsReadLockHeld;
-        bool writerHeld = _lockSlim.IsWriteLockHeld;
-
-        int curReadCount = _lockSlim.CurrentReadCount;
-
-        int waitingReadCount = _lockSlim.WaitingReadCount;
-        int waitingWriteCount = _lockSlim.WaitingWriteCount;
-
-        new Thread(Read).Start();
         new Thread(Read).Start();
         new Thread(Read).Start();
         new Thread(Write).Start("Writer A");
@@ -30,11 +23,11 @@ public class ReaderWriterLockExample
             try
             {
                 Console.WriteLine("Reader: Reading the list...");
-                _sharedList.ForEach(num =>
+                foreach (var num in _sharedList)
                 {
                     Console.WriteLine($"Reader: {num}");
-                    Thread.Sleep(20);
-                });
+                    Thread.Sleep(200);
+                }
             }
             finally
             {
@@ -49,17 +42,32 @@ public class ReaderWriterLockExample
 
         while (true)
         {
-            int newVal = _random.Next(200);
-            _lockSlim.EnterWriteLock();
+            int newNumber = _random.Next(100);
+            _lockSlim.EnterUpgradeableReadLock();
 
             try
             {
-                _sharedList.Add(newVal);
-                Console.WriteLine($"{writerName}: added {newVal}");
+                if (!_sharedList.Contains(newNumber))
+                {
+                    _lockSlim.EnterWriteLock();
+                    try
+                    {
+                        _sharedList.Add(newNumber);
+                        Console.WriteLine($"{writerName}: added {newNumber}");
+                    }
+                    finally
+                    {
+                        _lockSlim.ExitWriteLock();
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"{writerName}: {newNumber} already exists.");
+                }
             }
             finally
             {
-                _lockSlim.ExitWriteLock();
+                _lockSlim.ExitUpgradeableReadLock();
             }
 
             Thread.Sleep(2000);

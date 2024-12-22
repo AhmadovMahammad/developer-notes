@@ -1145,6 +1145,9 @@ internal class Program
             }
         }
 
+        ReaderWriterLockExample readerWriterLockExample = new ReaderWriterLockExample();
+        readerWriterLockExample.StartThreads();
+
         Lock Held	        New Read Lock Allowed?	        New Write Lock Allowed?
         ---------------------------------------------------------------------------
         Read Lock	        Yes	                            No
@@ -1184,8 +1187,149 @@ internal class Program
 
         */
 
-        ReaderWriterLockExample readerWriterLockExample = new ReaderWriterLockExample();
-        readerWriterLockExample.StartThreads();
+        /* Upgradeable Locks
+        
+        Upgradeable locks are a specialized feature in ReaderWriterLockSlim designed to address scenarios 
+        where you need to perform an operation that begins with read-only access but might escalate to require write access.
+        Their main advantage is that they ensure thread safety while minimizing the time spent holding exclusive write locks. 
+
+        --- The Need for Upgradeable Locks
+        Consider the following common scenario in multithreaded programming:
+
+        1. You have a shared resource (e.g., a list) that is frequently read but occasionally modified.
+        2. You want to modify the resource only if certain conditions are met. 
+           For example, add an item to a list only if it is not already present.
+        3. While reading, you do not want to block other threads from accessing the resource unless absolutely necessary. 
+           Write operations, however, must still be exclusive.
+
+        The problem lies in ensuring atomicity (i.e., that no other thread modifies the resource between checking and modifying it). 
+        Without upgradeable locks, this would require:
+
+        - Releasing the read lock after verifying the condition.
+        - Reacquiring a write lock to modify the resource.
+
+        This introduces a race condition: another thread could modify the resource after you release the read lock 
+        but before you acquire the write lock.
+        
+        Upgradeable locks solve this problem by allowing a read lock to be promoted to a write lock atomically 
+        while ensuring no other threads can interfere during the upgrade process.
+
+
+        ----- Behaviour of Upgradeable Locks
+    
+        1. Read Access with Intent to Write:
+        An upgradeable lock behaves like a read lock, allowing concurrent access with other readers.
+        However, only one upgradeable lock can exist at any time. 
+        This ensures that two threads cannot simultaneously attempt to escalate to a write lock, which could lead to deadlock.
+
+        2. Atomic Upgrade to Write Lock:
+        The upgradeable lock can be promoted to a write lock via EnterWriteLock. 
+        This operation is atomic, meaning no other thread can modify the resource during the promotion process.
+    
+        3. Compatibility Rules:
+        Upgradeable locks are compatible with other read locks but not with write locks or additional upgradeable locks. 
+        This prevents conflicts and ensures thread safety during upgrades.
+
+
+        ----- How Upgradeable Locks Work
+
+        public class UpgradeableLockExample
+        {
+            private readonly ReaderWriterLockSlim _lockSlim = new ReaderWriterLockSlim();
+            private readonly List<int> _sharedList = new List<int>() { 1, 2, 3, 4, 5 };
+            private readonly Random _random = new Random();
+        
+            public void StartThreads()
+            {
+                new Thread(Read).Start();
+                new Thread(Read).Start();
+                new Thread(Write).Start("Writer A");
+                new Thread(Write).Start("Writer B");
+            }
+        
+            private void Read()
+            {
+                while (true)
+                {
+                    _lockSlim.EnterReadLock();
+                    try
+                    {
+                        Console.WriteLine("Reader: Reading the list...");
+                        foreach (var num in _sharedList)
+                        {
+                            Console.WriteLine($"Reader: {num}");
+                            Thread.Sleep(200);
+                        }
+                    }
+                    finally
+                    {
+                        _lockSlim.ExitReadLock();
+                    }
+                }
+            }
+        
+            private void Write(object? writerName)
+            {
+                if (writerName is null) return;
+        
+                while (true)
+                {
+                    int newNumber = _random.Next(100);
+                    _lockSlim.EnterUpgradeableReadLock();
+        
+                    try
+                    {
+                        if (!_sharedList.Contains(newNumber))
+                        {
+                            _lockSlim.EnterWriteLock();
+                            try
+                            {
+                                _sharedList.Add(newNumber);
+                                Console.WriteLine($"{writerName}: added {newNumber}");
+                            }
+                            finally
+                            {
+                                _lockSlim.ExitWriteLock();
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{writerName}: {newNumber} already exists.");
+                        }
+                    }
+                    finally
+                    {
+                        _lockSlim.ExitUpgradeableReadLock();
+                    }
+        
+                    Thread.Sleep(2000);
+                }
+            }
+        }
+
+        --- Why This Design Is Important ?
+
+        1. Minimizes Contention:
+        By allowing multiple threads to acquire read locks concurrently and promoting to write locks only when necessary
+        upgradeable locks reduce contention and improve performance.
+
+        2. Ensures Thread Safety:
+        The atomic promotion mechanism guarantees that no thread can interfere between the read and write operations, 
+        maintaining the integrity of the shared resource.
+
+
+        ----- Conclusion:
+        
+        Upgradeable locks provide a powerful mechanism for scenarios where read operations dominate but occasional writes are necessary. 
+        By allowing atomic promotion to a write lock, they ensure thread safety while optimizing performance. 
+        They are particularly useful in situations where write operations are rare but critical, 
+        such as maintaining a unique list of elements.
+
+        */
+
+        /*
+         
+        */
 
         #region codeExamples
         //Bank bank = new Bank();
