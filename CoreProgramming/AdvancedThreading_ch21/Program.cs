@@ -300,7 +300,6 @@ internal class Program
             }
         }
 
-
         */
 
         /* Monitor TryEnter Method
@@ -693,7 +692,6 @@ internal class Program
         by multiple threads or processes. 
         
         It is conceptually similar to a lock but has the additional power of working across multiple processes. 
-
 
         --- Key Features of Mutex
         
@@ -1327,9 +1325,154 @@ internal class Program
 
         */
 
-        /*
-         
+
+        /* Signaling with Event Wait Handles
+
+        The simplest kind of signaling constructs are called event wait handles (unrelated to C# events). 
+        Event wait handles come in three flavors: AutoResetEvent, ManualResetEvent(Slim), and CountdownEvent. 
+        The former two are based on the common EventWaitHandle class from which they derive all their functionality.
+
         */
+
+        /* AutoResetEvent
+        
+        An AutoResetEvent is one of the most foundational synchronization primitives in multithreaded programming, 
+        enabling threads to coordinate by signaling events. 
+        
+        Think of it as a mechanism to implement a "turnstile" where only one thread is allowed to proceed at a time when it's signaled. 
+        Its purpose is to provide a thread-safe and efficient way to allow threads to communicate, 
+        especially when one thread must pause and wait for a signal from another before proceeding. 
+
+
+        ----- Key Concepts of AutoResetEvent
+
+        An AutoResetEvent is based on the EventWaitHandle class, which provides the core signaling capabilities in the .NET threading model. 
+        The defining characteristic of an AutoResetEvent is that 
+        it automatically resets itself to a non-signaled state as soon as one thread is allowed to pass. 
+
+        This means that it’s designed to release exactly one thread per signal, 
+        and after that, it reverts to its "closed" or "non-signaled" state.
+
+
+        The signaling mechanism of AutoResetEvent is straightforward yet powerful:
+        1. A thread signals an AutoResetEvent using the Set method.
+        2. Any thread waiting on that event (using the WaitOne method) is unblocked and allowed to proceed.
+        3. The event automatically resets after releasing the waiting thread, ensuring only one thread can proceed for each signal.
+
+
+        --- How It Works
+        When you create an AutoResetEvent, you specify its initial state—signaled (true) or non-signaled (false):
+
+        - If initialized with false, threads calling WaitOne on this event will block until another thread calls Set.
+        - If initialized with true, the first thread to call WaitOne will proceed immediately, and the event will reset automatically afterward.
+
+        When a thread calls the WaitOne method, it’s essentially saying:
+        --- "Wait here until I’m signaled to proceed."
+
+        When another thread calls the Set method on the same AutoResetEvent, it signals one waiting thread to continue. 
+        If no threads are waiting at the time of the signal, the AutoResetEvent remains signaled until the next WaitOne call.
+
+        The automatic reset behavior ensures that extra signals are "wasted" rather than queued. 
+        This prevents over-signaling from allowing multiple threads to proceed simultaneously.
+
+        --- Example Explanation
+        public class BasicWaitHandle
+        {
+            private readonly EventWaitHandle _waitHandle = new AutoResetEvent(false);
+        
+            public void Main()
+            {
+                new Thread(Waiter).Start();
+                string input = string.Empty;
+        
+                while (!string.Equals(input, "3", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("You should input 3 for activating 'Waiter' thread");
+                    input = Console.ReadLine() ?? string.Empty;
+                }
+        
+                _waitHandle.Set();
+            }
+        
+            private void Waiter()
+            {
+                Console.WriteLine("Waiting for the number: 3");
+                _waitHandle.WaitOne();
+                Console.WriteLine("Notified");
+            }
+        }
+
+        --- Behavior When no Thread are waiting?
+        If a thread calls Set on an AutoResetEvent when no threads are currently blocked by WaitOne, 
+        the event remains signaled until the next WaitOne is called. 
+        This behavior is crucial to avoid race conditions where a thread signals too early, and another thread misses the signal entirely.
+
+        However, calling Set repeatedly on a turnstile at which no one is waiting doesn’t allow an entire party through when they arrive: 
+        only the next single person is let through, and the extra tickets are “wasted.”
+
+
+        --- Timeouts with WaitOne
+
+        The WaitOne method also supports a timeout, allowing a thread to stop waiting after a specified duration if the event hasn’t been signaled. 
+        This is particularly useful when you want to implement a fallback behavior in case of delays or deadlocks.
+
+        if (!_waitHandle.WaitOne(5 * 1000)) Console.WriteLine("Timeout: No signal received.");
+        else Console.WriteLine("Signal received within timeout.");
+
+        */
+
+        /* Two-way signaling
+         
+        Suppose that we want the main thread to signal a worker thread three times in a row. 
+        If the main thread simply calls Set on a wait handle several times in rapid succession, 
+        the second or third signal can become lost because the worker might take time to process each signal.
+
+        The solution is for the main thread to wait until the worker’s ready before signaling it. 
+        We can do this by using another AutoResetEvent, as follows
+
+        class TwoWaySignaling
+        {
+            static EventWaitHandle _ready = new AutoResetEvent(false);
+            static EventWaitHandle _go = new AutoResetEvent(false);
+            static readonly object _locker = new object();
+            static string? _message;
+        
+            static void Main()
+            {
+                new Thread(Work).Start();
+                _ready.WaitOne(); // First wait until worker is ready
+                lock (_locker) _message = "ooo";
+                _go.Set(); // Tell worker to go
+                _ready.WaitOne();
+                lock (_locker) _message = "ahhh"; // Give the worker another message
+                _go.Set();
+                _ready.WaitOne();
+                lock (_locker) _message = null; // Signal the worker to exit
+                _go.Set();
+            }
+            static void Work()
+            {
+                while (true)
+                {
+                    _ready.Set(); // Indicate that we're ready
+                    _go.WaitOne(); // Wait to be kicked off...
+                    lock (_locker)
+                    {
+                        if (_message == null) return; // Gracefully exit
+                        Console.WriteLine(_message);
+                    }
+                }
+            }
+        }
+
+        // Output:
+        ooo
+        ahhh
+
+        */
+
+        //BasicWaitHandle basicWaitHandle = new BasicWaitHandle();
+        //basicWaitHandle.Main();
 
         #region codeExamples
         //Bank bank = new Bank();
