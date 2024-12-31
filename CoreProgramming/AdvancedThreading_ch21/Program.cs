@@ -1471,8 +1471,109 @@ internal class Program
 
         */
 
-        //BasicWaitHandle basicWaitHandle = new BasicWaitHandle();
-        //basicWaitHandle.Main();
+
+        /* ManualResetEvent
+        
+        The ManualResetEvent is a powerful threading construct in .NET that acts like a gate controlling the flow of threads. 
+        Unlike AutoResetEvent, which automatically resets after releasing one thread, 
+        ManualResetEvent remains open once it is set, allowing multiple threads to pass through simultaneously. 
+        To block threads again, it must be explicitly reset.
+
+        This behavior makes ManualResetEvent suitable for scenarios where you need to allow multiple threads to proceed at once, 
+        such as initializing shared resources before allowing worker threads to start. 
+
+
+        --- Conceptual Overview
+        
+        Imagine a gate at the entrance to a park. The gate can be opened or closed.
+        - When the gate is closed, people wait outside until it opens.
+        - When the gate is opened, anyone waiting can walk through, and it stays open until someone explicitly closes it again.
+
+
+        --- ManualResetEvent functions similarly:
+
+        - Set(): Opens the gate, allowing all threads waiting on it to pass.
+        - Reset(): Closes the gate, causing threads that subsequently call WaitOne to block until the gate opens again.
+
+        NOTE: This behavior contrasts with AutoResetEvent, where the gate closes automatically after releasing one thread.
+
+
+        --- Construction > You can create a ManualResetEvent in two ways:
+
+        1. using its direct construct:
+        var manual1 = new ManualResetEvent(false); // Initially closed
+
+        2. using the EventWaitHandle class:
+        var manual2 = new EventWaitHandle(false, EventResetMode.ManualReset);
+
+        the false parameter indicates that the gate starts in a closed state initially.
+
+        -----------------------------------
+
+        ManualResetEventExample manualResetEvent = new ManualResetEventExample();
+        manualResetEvent.Main();
+
+        ---
+
+        public class ManualResetEventExample
+        {
+            private readonly EventWaitHandle _gate = new EventWaitHandle(false, EventResetMode.ManualReset);
+        
+            public void Main()
+            {
+                for (int i = 1; i <= 3; i++)
+                {
+                    new Thread(() => WorkerThread(i)).Start();
+                }
+        
+                Console.WriteLine("Main thread: Performing initialization...");
+                Thread.Sleep(2000);
+                Console.WriteLine("Main thread: Initialization complete. Opening the gate!");
+        
+                _gate.Set();
+        
+                // Allow time for threads to complete their tasks
+                Thread.Sleep(2000);
+        
+                Console.WriteLine("Main Thread: Closing the gate...");
+                _gate.Reset();
+            }
+        
+            public void WorkerThread(int threadNumber)
+            {
+                Console.WriteLine($"Worker: {threadNumber}: waiting for the gate");
+                _gate.WaitOne();
+                Console.WriteLine($"Worker: {threadNumber}: entered the gate");
+            }
+        }
+
+        OUTPUT:
+        
+        Main thread: Performing initialization...
+        Worker: 3: waiting for the gate
+        Worker: 4: waiting for the gate
+        Worker: 4: waiting for the gate
+        Main thread: Initialization complete. Opening the gate!
+        Worker: 3: entered the gate
+        Worker: 4: entered the gate
+        Worker: 4: entered the gate
+        Main Thread: Closing the gate...
+
+
+        --- Differences Between ManualResetEvent and ManualResetEventSlim
+
+        # Performance:
+        1. ManualResetEventSlim is optimized for scenarios with short waiting times.
+        2. It uses spinning constructs (a thread keeps checking in a tight loop for a short time before blocking) to reduce overhead.
+        3. Spinning avoids expensive OS-level context switching if the wait is brief.
+
+        # Cancellation:
+        1. ManualResetEventSlim allows waiting to be cancelled via a CancellationToken.
+
+        # Compatibility:
+        1. ManualResetEventSlim does not subclass WaitHandle, though it provides a WaitHandle property if needed.
+
+        */
 
         #region codeExamples
         //Bank bank = new Bank();
