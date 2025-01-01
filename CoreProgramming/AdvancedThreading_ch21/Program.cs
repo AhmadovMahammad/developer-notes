@@ -1575,6 +1575,106 @@ internal class Program
 
         */
 
+        /* CountdownEvent
+        CountdownEvent is a synchronization object in .NET that allows a thread to wait until a specified number of signals have been received. 
+        It is particularly useful when coordinating multiple threads that 
+        must all complete some work before a main thread can continue.
+
+        --- It works like a countdown:
+        1. When created, it starts with an initial count value.
+        2. Each call to Signal() decrements the count.
+        3. Once the count reaches to zero, the Wait() method unblocks any waiting threads.
+
+
+        --- Initialization
+        A CountdownEvent is instantiated with an initial count, 
+        which represents the number of signals that must occur before it is considered "complete."
+
+        * var countdown = new CountdownEvent(3); // Initialize with a count of 3.
+        
+        The count of 3 means that the event will not signal (allow threads waiting on Wait() to proceed) 
+        until three calls to Signal() are made.
+
+
+        --- Signalling
+        The Signal() method decrements the count by 1. 
+        Each time a thread completes its task, it calls Signal() to notify the CountdownEvent.
+
+        * countdown.Signal(); // Decrease the count by 1.
+        When the count reaches zero, the event is signaled, and any threads waiting on Wait() are released.
+
+
+        --- Waiting (Wait())
+        The Wait() method blocks the calling thread until the count of the CountdownEvent reaches zero.
+
+        * countdown.Wait(); // Wait until Signal() has been called the specified number of times.
+        If the count is already zero when Wait() is called, the method returns immediately.
+
+
+        --- code example:
+
+        public class CountdownEventExample
+        {
+            private const int _threadCount = 3;
+            private readonly CountdownEvent _countdownEvent = new CountdownEvent(_threadCount);
+            private readonly object _lock = new object();
+        
+            public void Main()
+            {
+                Console.WriteLine("The main thread will carry out its work when every thread has said 'hi'.");
+        
+                for (int i = 1; i <= _threadCount; i++)
+                {
+                    int capturedThreadId = i;
+                    new Thread(() => Speaker(capturedThreadId)) { IsBackground = false }.Start();
+                }
+        
+                _countdownEvent.Wait();
+                Console.WriteLine("Now that every thread has said 'hi', the main thread will carry out its execution.");
+            }
+        
+            private void Speaker(int threadId)
+            {
+                lock (_lock)
+                {
+                    string input = "";
+                    while (!string.Equals(input, "hi", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine($"Thread #{threadId} > You should write 'hi' to invoke signal.");
+                        input = Console.ReadLine() ?? string.Empty;
+                    }
+        
+                    _countdownEvent.Signal();
+                }
+            }
+        }
+
+        CountdownEventExample example = new CountdownEventExample();
+        example.Main();
+
+
+        --- Reincrementing the Count (AddCount and TryAddCount)
+        1. AddCount(int count): Adds a specified value to the count, effectively incrementing it.
+        _countdownEvent.AddCount(1);
+
+        However, it cannot be called if the count has already reached zero. If you try, it throws an exception.
+        System.InvalidOperationException: 'The event is already signaled and cannot be incremented.'
+
+        2. TryAddCount(int count): Similar to AddCount, but safer. It returns false if the count is already zero, avoiding an exception.
+        if (_countdownEvent.TryAddCount(1))
+        {
+            Console.WriteLine("Cannot add count because the countdown has reached zero.");
+        }
+
+
+        --- Resetting the Countdown (Reset)
+        The Reset() method resets the countdown to its original value. 
+        This is useful if you need to reuse the same CountdownEvent for multiple rounds of work.
+
+        _countdownEvent.Reset(); // Resets to the original count.
+
+        */
+
         #region codeExamples
         //Bank bank = new Bank();
 
