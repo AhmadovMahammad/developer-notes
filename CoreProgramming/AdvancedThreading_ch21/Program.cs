@@ -1,4 +1,5 @@
 ﻿using AdvancedThreading_ch21;
+using System.Security.AccessControl;
 
 internal class Program
 {
@@ -1674,6 +1675,70 @@ internal class Program
         _countdownEvent.Reset(); // Resets to the original count.
 
         */
+
+        /* Creating a Cross-Process EventWaitHandle
+        The concept of a cross-process EventWaitHandle is powerful for scenarios where 
+        you need inter-process communication (IPC). Here's a detailed explanation: 
+
+        --- Key Points
+        1. Purpose:
+
+        An EventWaitHandle allows multiple threads to signal and wait on events.
+        When given a name, it extends this capability across multiple processes.
+
+        2. Named Handles:
+
+        The name parameter uniquely identifies the EventWaitHandle.
+        If the specified name already exists, the OS returns a reference to the existing handle. Otherwise, a new one is created.
+        To avoid conflicts, use a unique and descriptive name (e.g., use a company/app-specific prefix).
+
+        new Thread(() =>
+        {
+            EventWaitHandle wh = new EventWaitHandle(false, EventResetMode.AutoReset, @"Global\MyCompany");
+
+            Console.WriteLine("Press Enter to signal the event...");
+            Console.ReadLine();
+
+            // Signal the event
+            wh.Set();
+            Console.WriteLine("Event has been signaled.");
+        }).Start();
+
+        new Thread(() =>
+        {
+            EventWaitHandle wh = new EventWaitHandle(false, EventResetMode.AutoReset, @"Global\MyCompany");
+            Console.WriteLine("Waiting for the event to be signaled...");
+
+            // Wait for signal
+            wh.WaitOne();
+            Console.WriteLine("Event was signaled! Proceeding with execution.");
+        }).Start();
+
+        */
+
+        new Thread(() =>
+        {
+            EventWaitHandle wh = new EventWaitHandle(false, EventResetMode.AutoReset, @"Global\MyCompany");
+
+            Console.WriteLine("Press Enter to signal the event...");
+            Console.ReadLine();
+
+            // Signal the event
+            wh.Set();
+            Console.WriteLine("Event has been signaled.");
+        }).Start();
+
+        new Thread(() =>
+        {
+            EventWaitHandle wh = new EventWaitHandle(false, EventResetMode.AutoReset, @"Global\MyCompany");
+            Console.WriteLine("Waiting for the event to be signaled...");
+
+            // Wait for signal
+            wh.WaitOne();
+            Console.WriteLine("Event was signaled! Proceeding with execution.");
+        }).Start();
+
+        // todo: from 'the barrier class' to 'timers'
 
         #region codeExamples
         //Bank bank = new Bank();
