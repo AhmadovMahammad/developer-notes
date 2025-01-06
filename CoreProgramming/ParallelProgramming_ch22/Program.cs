@@ -1,9 +1,11 @@
-﻿namespace ParallelProgramming_ch22;
+﻿using System;
+
+namespace ParallelProgramming_ch22;
 internal class Program
 {
     private static void Main(string[] args)
     {
-        /* Why PFX?
+        /* Introduction into PFX?
         
         The PFX (Parallel Framework Extensions) libraries in C# are designed to enable parallel programming, 
         which is essential in taking advantage of modern multicore processors. 
@@ -108,9 +110,30 @@ internal class Program
         ----------------------------------------
 
         --- Structured vs Unstructured Parallelism.
+        
+        One significant difference between data parallelism and task parallelism is the structure of the work. 
+        Data parallelism tends to be structured because the tasks that are parallelized typically start and finish at the same time, 
+        and they often follow a regular, predictable pattern. 
+        This makes it easier to implement because the framework can manage the partitioning, execution, and collation of results.
 
+        In contrast, task parallelism tends to be unstructured, 
+        meaning that the parallel tasks may start and finish at different times, with varying complexities. 
+        Unstructured parallelism can be more flexible but also harder to manage correctly and efficiently.
 
         */
+
+        /* Why PFX?
+
+        The Parallel Framework Extensions (PFX) libraries are specifically designed to address the challenges of parallel programming. 
+        PFX provides abstractions and tools to simplify the partitioning of work when dealing with data parallelism. 
+        
+        The Parallel class in PFX (such as Parallel.For, Parallel.ForEach, and Parallel.Invoke) is ideal for 
+        handling structured parallelism in scenarios where data can be partitioned easily and tasks can be executed concurrently.
+
+        --- 1. Parallel.For
+        
+        This method is used for iterative tasks where you process a range of numbers in parallel. 
+        It splits the iterations across threads automatically.
 
         int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         int[] squares = new int[numbers.Length];
@@ -121,5 +144,125 @@ internal class Program
         });
 
         Console.WriteLine($"Squares: {string.Join(',', squares)}");
+
+        Here, the Parallel.For method divides the range [0, numbers.Length) among multiple threads. 
+        Each thread computes the square of the number at its assigned index.
+
+        --- 2. Parallel.ForEach
+
+        This method works for collections like arrays, lists, or any enumerable structure. 
+        It processes each item in the collection in parallel.
+
+        int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        List<int> squares = new List<int>();
+        object lockObj = new object();
+
+        Parallel.ForEach(numbers, (int number) =>
+        {
+            lock (lockObj)
+            {
+                squares.Add(number * number);
+            }
+        });
+
+        Console.WriteLine($"Squares: {string.Join(',', squares)}");
+
+        The Parallel.ForEach method splits the collection among threads, 
+        and each thread processes a subset of items. 
+        Note the use of lock to handle thread-safe access to the shared results list.
+
+
+        --- 3. Parallel.Invoke
+
+        This method is used to execute independent tasks concurrently. 
+        It is typically for scenarios where you have several methods or actions to run in parallel.
+
+        int result_factorial = 0;
+        int result_square = 0;
+        int result_cube = 0;
+
+        Parallel.Invoke(
+            () => result_factorial = ComputeFactorial(3), // Task 1
+            () => result_cube = ComputeCube(3),           // Task 2
+            () => result_square = ComputeSquare(3)        // Task 3
+        );
+
+        The Parallel.Invoke method runs each provided action in parallel. 
+        Since these tasks are independent, there's no need for synchronization.
+
+        ------------------------------------------------------------------------
+
+        In summary, PFX allows developers to write high-performance parallel code without needing to deal 
+        directly with low-level thread management, locks, and synchronization mechanisms. 
+        
+        By focusing on data parallelism, PFX simplifies the task of leveraging multicore processors, 
+        thus enabling applications to run faster and scale more effectively.
+
+        */
+
+        /* PFX Components Overview
+
+        The Parallel Framework Extensions (PFX) in C# is structured into two primary layers, 
+        each offering different levels of abstraction for parallel programming: 
+
+        Higher Layer:
+
+            1. PLINQ (Parallel LINQ): A declarative approach to parallelism.
+            2. Parallel Class: An imperative approach for structured parallelism.
+        
+        Lower Layer:
+        
+            1. Task Parallelism: Explicit control for low-level tasks.
+            2. Concurrent Collections and Spinning Primitives: Tools for managing concurrency efficiently, minimizing locking and contention.
+
+        */
+
+        /* Higher Layer
+
+        */
+
+        #region code examples
+
+        //int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        //int[] squares = new int[numbers.Length];
+
+        //Parallel.For(0, numbers.Length, (int index) =>
+        //{
+        //    squares[index] = numbers[index] * numbers[index];
+        //});
+
+        //Console.WriteLine($"Squares: {string.Join(',', squares)}");
+
+
+        //int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+        //List<int> squares = new List<int>();
+        //object lockObj = new object();
+
+        //Parallel.ForEach(numbers, (int number) =>
+        //{
+        //    lock (lockObj)
+        //    {
+        //        squares.Add(number * number);
+        //    }
+        //});
+
+        //Console.WriteLine($"Squares: {string.Join(',', squares)}");
+
+
+        //int result_factorial = 0;
+        //int result_square = 0;
+        //int result_cube = 0;
+
+        //Parallel.Invoke(
+        //    () => result_factorial = ComputeFactorial(3), // Task 1
+        //    () => result_cube = ComputeCube(3),           // Task 2
+        //    () => result_square = ComputeSquare(3)        // Task 3
+        //);
+
+        #endregion
     }
+
+    static int ComputeFactorial(int n) => n <= 1 ? 1 : n * ComputeFactorial(n - 1);
+    static int ComputeCube(int n) => n * n * n;
+    static int ComputeSquare(int n) => n * n;
 }
