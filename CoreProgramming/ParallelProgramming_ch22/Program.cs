@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 
 namespace ParallelProgramming_ch22;
 internal class Program
@@ -203,7 +204,7 @@ internal class Program
         /* PFX Components Overview
 
         The Parallel Framework Extensions (PFX) in C# is structured into two primary layers, 
-        each offering different levels of abstraction for parallel programming: 
+        each offering different levels of abstraction for parallel programming:
 
         Higher Layer:
 
@@ -219,9 +220,290 @@ internal class Program
 
         /* Higher Layer
 
+        1. PLINQ (Parallel LINQ)
+        PLINQ is designed to provide the most automated and feature-rich experience for parallel programming. 
+        It builds upon LINQ (Language Integrated Query) and allows you to process collections in parallel 
+        without worrying about partitioning, threading, or result collation.
+
+        Key Features:
+
+        1. Declarative: You specify "what" needs to be done, and the runtime determines "how" to execute it in parallel.
+        2. Automates partitioning, task execution, and result collation.
+
+        var numbers = Enumerable.Range(1, 10);
+        var results = numbers
+            .AsParallel() // enable parallelism.
+            .Where(m => m % 2 == 0)
+            .Select(m => Math.Pow(m, 2))
+            .ToArray();
+
+        Console.WriteLine(string.Join(',', results));
+        // Output: 36,4,64,100,16
+
+        In this example:
+        Partitioning: PLINQ automatically divides the numbers sequence into chunks.
+
+
+        2. Parallel Class
+        The Parallel class provides methods like Parallel.For, Parallel.ForEach, and Parallel.Invoke. 
+        While it automates partitioning, it leaves the responsibility of collating results to the developer. 
+        This approach is less abstracted compared to PLINQ and is suitable when you need finer control over how tasks are executed.
+
+        int[] numbers = { 1, 2, 3, 4, 5 };
+        int total = 0;
+        object lockObj = new object(); // For thread-safe access to total
+
+        Parallel.For(0, numbers.Length, i =>
+        {
+            int square = numbers[i] * numbers[i];
+            lock (lockObj)
+            {
+                total += square;
+            }
+        });
+
+        Here, the Parallel.For method automatically partitions the iterations, 
+        but the result (total) is collated manually using a lock to ensure thread safety.
+
+        */
+
+        /* Lower Layer
+        
+        1. Task Parallelism
+        At the lowest level, task parallelism gives developers explicit control over partitioning and result collation. 
+        This approach involves using the Task class and related constructs to create and manage threads. 
+        It provides maximum flexibility but requires more effort. 
+
+        Example: Summing the squares of numbers with tasks:
+        int[] numbers = { 1, 2, 3, 4, 5 };
+        int total = 0;
+        object lockObject = new object();
+
+        var tasks = numbers.Select(m => Task.Run(() =>
+        {
+            lock (lockObject)
+            {
+                total += m * m;
+            }
+        })).ToArray();
+
+        Task.WaitAll(tasks);
+
+
+        2. Concurrent Collections and Spinning Primitives
+        These are advanced tools optimized for highly concurrent access. 
+        Unlike traditional collections, such as List<T> or Dictionary<K, V>, concurrent collections are designed to handle 
+        concurrent operations without significant contention.
+
+        Examples include:
+
+        * ConcurrentQueue<T>
+        * ConcurrentStack<T>
+        * ConcurrentBag<T>
+
+        --- Why Do We Need Concurrent Collections?
+        When working with a shared collection (e.g., a List<T> or Dictionary<K, V>) in a multithreaded environment, 
+        multiple threads might try to read or modify the collection simultaneously. 
+        This can lead to race conditions, data corruption, or even crashes because these collections are not inherently thread-safe.
+
+        --- The Problem with List<T> and Locking
+        Take a simple List<int> as an example. Imagine you have multiple threads adding elements to the list. 
+        Without proper synchronization, two threads might access the internal structure of the list at the same time, 
+        causing unexpected behavior:
+
+        To avoid this, you’d typically use a lock to serialize access:
+        
+        List<int> list = new List<int>();
+        object lockObj = new object();
+        
+        Parallel.For(0, 100, i =>
+        {
+            lock (lockObj)
+            {
+                list.Add(i);
+            }
+        });
+
+        --- This works, but locking comes at a cost:
+        1. It blocks other threads, causing delays.
+        2. It doesn’t scale well on systems with many cores, as threads spend more time waiting for locks to be released.
+
+        --- How Concurrent Collections Help
+        Concurrent collections, like ConcurrentBag<T>, ConcurrentQueue<T>, or ConcurrentDictionary<K, V>
+        are specifically designed to handle concurrent operations without requiring external locking. 
+        They solve the problem in the following ways:
+
+        1. Optimized for Multi-Threading.
+        Internally, they use techniques like fine-grained locking (locking only parts of the collection) or 
+        lock-free algorithms (atomic operations to avoid locking entirely).
+        
+        This reduces contention and allows multiple threads to access the collection simultaneously, 
+        significantly improving performance.
+
+        2. Thread-Safe by Design.
+        These collections ensure that operations like Add, Remove, or TryGetValue are atomic. 
+        You can use them without needing additional synchronization (e.g., lock statements).
+        
+        3. Reduced Blocking.
+        Blocking (threads waiting for access) is minimized or eliminated, 
+        making these collections more efficient in highly concurrent scenarios.
+
+        --- Examples
+        
+        -----------------------------------
+        * Using a ConcurrentBag
+
+        var bag = new ConcurrentBag<int>();
+        //var list = new List<int>();
+
+        Parallel.For(0, 100, (int i) =>
+        {
+            bag.Add(i); // thread-safe addition
+        });
+
+        int total = 0;
+        //total = list.Sum();
+        while (bag.TryTake(out int num))
+        {
+            total += num;
+        }
+
+        Console.WriteLine($"Total: {total}");
+        -------------------------------------
+
+        In this example:
+
+        1. Multiple threads can safely call Add and TryTake concurrently.
+        2. Internally, the ConcurrentBag ensures thread-safe access without needing explicit locks.
+        -------------------------------------
+
+
+        -----------------------------------
+        * Using a ConcurrentDictionary
+
+        var dictionary = new ConcurrentDictionary<int, int>();
+        Parallel.For(0, 100, i =>
+        {
+            dictionary.TryAdd(i, i * i);
+        });
+
+        foreach (var kvp in dictionary)
+        {
+            Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+        }
+
+        * You don’t need to worry about locks when adding, updating, or retrieving items.
+        * The dictionary handles all concurrency issues internally.
+
+        */
+
+        /* Fine-Grained Locking: Locking Only parts of the Collection.
+        
+        --- What It Means
+        Instead of locking the entire collection when performing operations like adding, removing, or updating an element, 
+        fine-grained locking involves locking only specific "parts" of the collection. 
+        This approach reduces contention by allowing multiple threads to work on different parts of the collection simultaneously.
+
+
+        --- Example in a Dictionary
+        Let’s take a traditional Dictionary<K, V> as an example:
+
+        If you lock the entire dictionary when adding an element,
+        all threads trying to add or access any key must wait, even if they are working on different keys.
+
+        With fine-grained locking, the dictionary might divide its internal storage (buckets) into multiple segments. 
+        Each segment has its own lock, so threads can operate on separate segments in parallel.
+
+
+        --- How Concurrent Collections Use Fine-Grained Locking
+
+        The ConcurrentDictionary<K, V> in .NET uses fine-grained locking by dividing its underlying storage 
+        into multiple independent segments, based on the hash code of the keys. Here's how it works:
+
+        1. Hash Partitioning:
+            * When you add or retrieve a key-value pair, the dictionary determines the segment based on the hash of the key.
+            * Each segment operates independently with its own lock, 
+            * so threads modifying different segments can proceed without blocking each other.
+
+        2. Thread Safety with Multiple Locks:
+            * When thread A adds a key to segment 1, and thread B adds a key to segment 2, they can proceed in parallel.
+            * However, if thread A and thread B both try to modify segment 1, one thread will block until the lock is released.
+
+
+        */
+
+        /* Lock-Free Algorithms
+        
+
         */
 
         #region code examples
+        //var dictionary = new ConcurrentDictionary<int, int>();
+        //Parallel.For(0, 100, i =>
+        //{
+        //    dictionary.TryAdd(i, i * i);
+        //});
+
+        //foreach (var kvp in dictionary)
+        //{
+        //    Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+        //}
+
+
+        //var bag = new ConcurrentBag<int>();
+        //Parallel.For(0, 100, (int i) =>
+        //{
+        //    bag.Add(i); // thread-safe addition
+        //});
+
+        //int total = 0;
+        //while (bag.TryTake(out int num))
+        //{
+        //    total += num;
+        //}
+
+        //Console.WriteLine($"Total: {total}");
+
+
+        //int[] numbers = { 1, 2, 3, 4, 5 };
+        //int total = 0;
+        //object lockObject = new object();
+
+        //var tasks = numbers.Select(m => Task.Run(() =>
+        //{
+        //    lock (lockObject)
+        //    {
+        //        total += m * m;
+        //    }
+        //})).ToArray();
+
+        //Task.WaitAll(tasks);
+
+
+        //var numbers = Enumerable.Range(1, 10);
+        //var results = numbers
+        //    .AsParallel() // enable parallelism.
+        //    .Where(m => m % 2 == 0)
+        //    .Select(m => Math.Pow(m, 2))
+        //    .ToArray();
+
+
+        //Console.WriteLine(string.Join(',', results));
+        // Output: 36,4,64,100,16
+
+        //int[] numbers = { 1, 2, 3, 4, 5 };
+        //int total = 0;
+        //object lockObj = new object(); // For thread-safe access to total
+
+        //Parallel.For(0, numbers.Length, i =>
+        //{
+        //    int square = numbers[i] * numbers[i];
+        //    lock (lockObj)
+        //    {
+        //        total += square;
+        //    }
+        //});
+
 
         //int[] numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         //int[] squares = new int[numbers.Length];
