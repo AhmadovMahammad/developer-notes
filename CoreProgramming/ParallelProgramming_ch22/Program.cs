@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
-
-namespace ParallelProgramming_ch22;
+﻿namespace ParallelProgramming_ch22;
 internal class Program
 {
     private static void Main(string[] args)
@@ -433,9 +430,290 @@ internal class Program
         */
 
         /* Lock-Free Algorithms
-        
+        In lock-free algorithms, operations are designed to avoid locking entirely. 
+        Instead of locking and blocking threads, they use atomic operations (hardware-level instructions) to manage shared resources.
+
+        --- How It Works
+        Lock-free algorithms rely on compare-and-swap (CAS) operations, which ensure atomicity without requiring locks. For example:
+
+        * When adding an element, the algorithm checks the current state of the collection.
+        * If the state hasn’t changed, it proceeds with the update.
+        * If the state has changed (e.g., another thread modified the collection), the operation retries.
+
+        -----
+        In computer science, compare-and-swap (CAS) is an atomic instruction used in multithreading to achieve synchronization. 
+        It compares the contents of a memory location with a given value and, 
+        only if they are the same, modifies the contents of that memory location to a new given value. 
+
+        This is done as a single atomic operation. 
+        The atomicity guarantees that the new value is calculated based on up-to-date information; 
+        if the value had been updated by another thread in the meantime, the write would fail. 
+        The result of the operation must indicate whether it performed the substitution; 
+
+        this can be done either with a simple boolean response (this variant is often called compare-and-set), 
+        or by returning the value read from the memory location (not the value written to it), 
+        thus "swapping" the read and written values. 
+
+        --- Putting It Together: Fine-Grained Locking vs. Lock-Free Algorithms
+        Feature	            Fine-Grained Locking                            Lock-Free Algorithms
+        ---------------------------------------------------------------------------------------------------------------------------------
+        Mechanism	        Locks specific parts of the collection.	        Avoids locks entirely, using atomic operations.
+        Use Case	        Collections where some level of locking         Scenarios requiring maximum concurrency (e.g., ConcurrentBag).
+                            is acceptable (e.g., ConcurrentDictionary).	
+        Complexity	        Easier to implement compared                    More complex to implement, but highly efficient. 
+                            to lock-free algorithms.	
+
+
 
         */
+
+        /* PLINQ
+        PLINQ (Parallel LINQ) is a specialized LINQ extension designed to simplify parallel execution of LINQ queries, 
+        leveraging multicore processors for enhanced performance. 
+        It automates two challenging aspects of parallel programming: 
+
+        1. partitioning work across multiple threads and 
+        2. collating results efficiently.
+        
+        --- PLINQ Basics and Execution
+        PLINQ introduces parallelism by using the AsParallel() method on an enumerable sequence. 
+        This converts the sequence into a ParallelQuery<T>, 
+        enabling parallel execution of subsequent query operators. For instance:
+
+        public class ParallelQuery : IEnumerable
+        {
+        
+        }
+
+        IEnumerable<int> numbers = Enumerable.Range(3, 1_000_000);
+        var parallelQuery = numbers
+            .AsParallel()
+            .Where(num => Enumerable.Range(2, (int)Math.Sqrt(num)).All(nth => num % nth > 0));
+        
+        int[] primes = parallelQuery.ToArray();
+        Console.WriteLine($"count: {primes.Length}");
+
+        
+        --- How It Works:
+
+        1. Partitioning: The sequence is divided into chunks, with each chunk processed on a separate thread.
+        2. Execution: Each thread executes the query logic (e.g., filtering, mapping) on its assigned partition.
+        3. Collation: Results from all threads are merged into a single output sequence, ensuring order and correctness where needed.
+
+
+        --- Key Concepts in PLINQ
+
+        1. AsParallel() and Query Operators
+        The AsParallel() method is the entry point into PLINQ. It transforms a standard LINQ query into a parallel query.
+        After calling AsParallel(), LINQ operators (e.g., Where, Select, GroupBy) are replaced with their parallelized counterparts, 
+        defined in the System.Linq.ParallelEnumerable namespace.
+
+        2. AsSequential() for Sequential Execution
+        If part of the query must run sequentially (e.g., due to thread-safety issues or side effects), 
+        the AsSequential() method can revert the query back to sequential mode.
+
+        var mixedQuery = numbers.AsParallel()
+           .Where(n => n % 2 == 0)
+           .AsSequential() // Revert to sequential processing
+           .Select(n => SomeThreadUnsafeOperation(n));
+
+
+        --- Query Composition
+        1. Once a query is parallelized using AsParallel(), subsequent operators produce ParallelQuery<T> outputs, maintaining parallelism.
+        2. Avoid reapplying AsParallel() within the same query, as it introduces unnecessary overhead (merging and repartitioning).
+
+        For query operators that accept two input sequences (Join, GroupJoin, Concat, Union, Intersect, Except, and Zip), 
+        you must apply AsParallel() to both input sequences (otherwise, an exception is thrown). 
+        
+        You don’t, however, need to keep applying AsParallel to a query as it progresses, 
+        because PLINQ’s query operators output another ParallelQuery sequence. 
+        In fact, calling AsParallel again introduces inefficiency in that it forces merging and repartitioning of the query:
+
+        mySequence.AsParallel()     // Wraps sequence in ParallelQuery<int>
+            .Where (n => n > 100)   // Outputs another ParallelQuery<int>
+            .AsParallel()           // Unnecessary - and inefficient!
+            .Select (n => n * n)
+
+        Notes:
+        PLINQ is only for local collections: it doesn’t work with Entity Framework, for instance, 
+        because in those cases the LINQ translates into SQL, which then executes on a database server. 
+        However, you can use PLINQ to perform additional local querying on the result sets obtained from database queries.
+
+        */
+
+        /* Parallel Execution Ballistics
+        
+        Parallel Execution Ballistics in PLINQ refers to how queries execute and manage their results when operating in parallel. 
+        Although PLINQ maintains lazy evaluation like ordinary LINQ, 
+        there are significant differences in execution behavior due to the nature of parallelism.
+
+        --- Lazy Evaluation in PLINQ
+        
+        In both LINQ and PLINQ, queries are lazily evaluated. 
+        This means that execution doesn't start immediately when you define the query. 
+        Instead, it begins only when you consume the results—such as with a foreach loop, calling ToArray, 
+        or accessing a terminal operator like First or Count.
+
+        --- Sequential Query Behavior
+        In an ordinary sequential LINQ query:
+
+        1. Execution happens entirely in a "pull-based" manner.
+        2. Each element is fetched and processed just in time, only when needed by the consumer.
+        3. For example, if you iterate over a query with a foreach loop, 
+           elements are processed one by one, sequentially, as the loop iterates.
+
+        --- PLINQ Query Behavior
+        In a PLINQ query:
+
+        1. Execution is still lazy, but it proceeds in parallel.
+        2. Multiple threads process the query ahead of time by fetching elements from the input sequence
+           slightly before the consumer requests them. This is similar to a teleprompter showing text to a newsreader before it's spoken.
+
+        3. The results of the processing are temporarily stored in a buffer so they are ready for the consumer when needed.
+
+
+        --- Buffering in PLINQ
+        The buffer acts as an intermediary storage:
+
+        1. It holds processed results in small chunks so that the consumer can retrieve them 
+           without waiting for parallel processing to finish completely.
+
+        2. If the consumer pauses or stops consuming the results (e.g., by breaking out of a foreach loop early), 
+           PLINQ halts further execution to avoid wasting CPU or memory.
+
+        --- Tweaking Buffering Behavior
+        You can control how PLINQ buffers results by using the WithMergeOptions method after AsParallel. 
+        The merge options affect when and how results are made available to the consumer:
+
+        1. AutoBuffered (Default):
+
+            - A small buffer is maintained to store results before they are passed to the consumer.
+            - This is a good balance between:
+                Minimizing delays (consumer gets results quickly).
+                Reducing memory and CPU overhead (processing isn’t done all at once unless needed).
+        
+        When to use it: Default behavior works for most scenarios, such as general data analysis.
+        
+        2. NotBuffered:
+
+            - No buffering is used. Results are sent to the consumer immediately as they are processed, without waiting to fill a buffer.
+            - This ensures the fastest possible visibility of results, but may slow down overall performance as threads work on-demand.
+        
+        When to use it: Real-time or streaming scenarios where you need immediate results (e.g., processing sensor data or live updates).
+        
+        3. FullyBuffered:
+
+            - All parallel work is completed and stored in memory before any results are presented to the consumer.
+            - This ensures all results are available at once, 
+              which is necessary for operations that depend on the full dataset (e.g., sorting with OrderBy).
+        
+        When to use it: Scenarios that require the complete dataset to be processed together, such as sorting or grouping.
+
+        
+        --- Concrete Example of PLINQ’s Benefits
+
+        1. Sequential LINQ Example
+        var numbers = Enumerable.Range(1, 100000);
+        var squares = numbers.Where(n => n % 2 == 0).Select(n => n * n).ToList();
+
+        This query processes numbers one at a time, using only a single core.
+        For a large dataset (e.g., 100,000 numbers), this can be slow because:
+            - It doesn’t utilize all CPU cores.
+            - Each element is fetched and processed only when required.
+
+        2. PLINQ Example with Default Buffering
+        var numbers = Enumerable.Range(1, 1000000);
+        var squares = numbers.AsParallel()
+            .Where(n => n % 2 == 0)
+            .Select(n => n * n)
+            .ToList();
+
+        What happens here:
+
+        - AsParallel() tells PLINQ to split the data into chunks (partitions) and process them on multiple threads.
+        - Results are buffered as they are processed, so the consumer (ToList) doesn’t wait for all numbers to be processed sequentially.
+        - The work is distributed across all CPU cores, maximizing performance.
+
+        3. Using NotBuffered:
+        Imagine you're analyzing live temperature readings.
+        Using NotBuffered ensures that as soon as a temperature reading is processed, you can see it immediately—ideal for time-sensitive applications.
+
+        var sensorData = Enumerable.Range(1, 1000000);
+        var liveReadings = sensorData.AsParallel()
+            .WithMergeOptions(ParallelMergeOptions.NotBuffered)
+            .Where(temp => temp > 500_000)
+            .ToList();
+
+        4. Using FullyBuffered:
+        Imagine you’re sorting a massive dataset of names alphabetically.
+        The entire dataset must be processed before sorting is meaningful, so you use FullyBuffered.
+
+        var sortedNames = names.AsParallel()
+           .WithMergeOptions(ParallelMergeOptions.FullyBuffered)
+           .OrderBy(name => name)
+           .ToList();
+
+        */
+
+        /* PLINQ and Ordering
+
+        A side effect of parallelizing the query operators is that when the results are collated, it’s not necessarily in the same order that 
+        they were submitted. In other words, LINQ’s normal order-preservation guarantee for sequences no longer holds.
+
+        If you need order preservation, you can force it by calling AsOrdered() after AsParallel():
+        myCollection.AsParallel().AsOrdered()...
+
+        Calling AsOrdered incurs a performance hit with large numbers of elements because PLINQ must keep track of each element’s original position.
+
+        You can negate the effect of AsOrdered later in a query by calling AsUnordered: this introduces a “random shuffle point,” 
+        which allows the query to execute more efficiently from that point on. 
+        So, if you wanted to preserve input-sequence ordering for just the first two query operators, you’d do this:
+
+        inputSequence.AsParallel().AsOrdered()
+            .QueryOperator1()
+            .QueryOperator2()
+            .AsUnordered() // From here on, ordering doesn’t matter
+            .QueryOperator3();
+
+        AsOrdered is not the default because for most queries, the original input ordering doesn’t matter. 
+        In other words, if AsOrdered were the default, you’d need to apply AsUnordered to the majority of your parallel queries to get the best performance,
+        which would be burdensome.
+
+        */
+
+        /* Using ThreadLocal<T>
+         
+        */
+
+
+        //var numbers = Enumerable.Range(1, 100000);
+        //var squares = numbers.Where(n => n % 2 == 0).Select(n => n * n).ToList();
+
+        //var numbers = Enumerable.Range(1, 1000000);
+        //var squares = numbers.AsParallel()
+        //    .Where(n => n % 2 == 0)
+        //    .Select(n => n * n)
+        //    .ToList();
+
+        //var sensorData = Enumerable.Range(1, 1000000);
+        //var liveReadings = sensorData.AsParallel()
+        //    .WithMergeOptions(ParallelMergeOptions.NotBuffered)
+        //    .Where(temp => temp > 500_000)
+        //    .ToList();
+
+
+        // --------------------
+        //var nums = Enumerable.Range(1, 1_000)
+        //    .AsParallel()
+        //    .Where(n => n % 2 != 0)
+        //    .AsSequential()
+        //    .Select(n => n);
+
+        //foreach (var item in nums)
+        //{
+        //    Console.WriteLine(item);
+        //    Task.Delay(200).Wait();
+        //}
 
         #region code examples
         //var dictionary = new ConcurrentDictionary<int, int>();
