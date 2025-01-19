@@ -1,4 +1,7 @@
-﻿namespace ParallelProgramming_ch22;
+﻿using System.Collections.Concurrent;
+using System.Security.Cryptography;
+
+namespace ParallelProgramming_ch22;
 internal class Program
 {
     private static void Main(string[] args)
@@ -681,10 +684,418 @@ internal class Program
 
         */
 
-        /* Using ThreadLocal<T>
-         
+        /* Cancellation
+        Canceling a PLINQ query whose results you’re consuming in a foreach loop is easy: 
+        simply break out of the foreach, and the query will be automatically canceled as the enumerator is implicitly disposed. 
+
+        For a query that terminates with a conversion, element, or aggregation operator, 
+        you can cancel it from another thread via a cancellation token. To insert a token, 
+        call WithCancellation after calling AsParallel, passing in the Token property of a CancellationTokenSource object.
+        Another thread can then call Cancel on the token source, which throws an OperationCanceledException on the query’s consumer:
+        
+        IEnumerable<int> numbers = Enumerable.Range(3, 1000000);
+        var cts = new CancellationTokenSource();
+
+        var parallelQuery = numbers
+           .AsParallel().WithCancellation(cts.Token)
+           .Where(num => Enumerable.Range(2, (int)Math.Sqrt(num)).All(nth => num % nth > 0));
+
+        try
+        {
+            foreach (int num in parallelQuery)
+            {
+                if (num / 1000 >= 1)
+                {
+                    cts.Cancel();
+                }
+
+                Console.WriteLine(num);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("Operation cancelled by user.");
+        }
+
         */
 
+        /* The Parallel Class
+        
+        ***** Parallel.Invoke is a method provided to execute multiple independent tasks (or delegates) in parallel. 
+        It simplifies parallel programming by handling task management, thread allocation, and load balancing for you. 
+        Let’s dive deeper into its functionality, behavior, and practical use cases.
+
+        --- Core Mechanism of Parallel.Invoke
+
+        1. Execution Model:
+
+        - It accepts an array of Action delegates, which represent the code to execute in parallel.
+        - All the provided delegates are executed concurrently, utilizing multiple threads.
+        - Once all the delegates have completed, the method returns.
+
+        2. Thread and Task Management:
+
+        - It doesn't create one thread or Task per delegate; instead, 
+          it intelligently batches large numbers of actions into smaller groups and 
+          distributes them among a limited number of threads or Task instances.
+        
+        - This avoids the overhead of creating too many threads or tasks when processing a massive array of delegates.
+
+        IEnumerable<int> numbers = Enumerable.Range(1, 1_000_000);
+        foreach (var item in numbers)
+        {
+            Task.Run(() =>
+            {
+
+            });
+        }
+
+        - What happens here?
+
+            - For every iteration of the loop, a new Task is created using Task.Run.
+            - Each Task potentially requires its own thread. 
+              Since there are 1,000,000 iterations, this could mean creating up to 1,000,000 threads 
+              (depending on the thread pool's capacity and task scheduling).
+            - Each thread consumes memory for its stack and incurs significant overhead for context switching and scheduling.
+            - The system can quickly run out of resources (threads and memory) and degrade performance or even crash.
+        
+        - Why is this inefficient?
+        
+            - Threads are expensive in terms of memory and processing.
+            - Most tasks will spend time waiting for CPU cycles, leading to wasted resources.
+            - Managing such a large number of threads introduces excessive overhead and inefficiencies.
+
+        Parallel.ForEach(numbers, x =>
+        {
+
+        });
+
+        - What happens here?
+
+            - Parallel.ForEach does not create a separate thread for each item in the collection.
+            - Instead, it partitions the collection into chunks (or batches) of numbers and assigns those chunks to a limited number of threads.
+            - The threads are drawn from the thread pool, and 
+              the partitioning ensures that the number of active threads is proportional to the number of available CPU cores.
+            - For example, on a 4-core machine, it might create 4 threads and process the collection in 4 parallel chunks. 
+              Once a thread finishes its assigned chunk, it picks up another chunk until all items are processed.
+        
+        How is this efficient?
+        
+            - By limiting the number of threads to match the available CPU cores, Parallel.ForEach reduces thread creation overhead.
+            - Tasks share the workload efficiently, leading to better CPU utilization and faster execution.
+            - Partitioning ensures that threads spend less time waiting for CPU cycles and more time doing actual work.
+
+
+        --- When to Use Parallel.Invoke
+        
+        1. When you have multiple independent tasks that can run simultaneously.
+        2. When those tasks are compute-bound (CPU-intensive) rather than I/O-bound (e.g., waiting for network or file operations).
+
+
+        --- Using ParallelOptions
+        The overload of Parallel.Invoke that accepts a ParallelOptions object allows fine-tuning of parallel execution:
+
+        1. Cancellation: Use a CancellationToken to cancel unstarted tasks. Tasks already running will complete:
+        
+        CancellationTokenSource cts = new CancellationTokenSource();
+        ParallelOptions options = new ParallelOptions { CancellationToken = cts.Token };
+
+        Parallel.Invoke(
+            options,
+            () => ComputeCube(3),
+            () => ComputeCube(4),
+            () => ComputeCube(5));
+
+        cts.Cancel();
+
+        2. Concurrency Control: Limit the number of threads using the MaxDegreeOfParallelism property:
+
+        ParallelOptions options = new ParallelOptions { MaxDegreeOfParallelism = 2 };
+        Parallel.Invoke(
+            options,
+            () => ComputeHeavyTask(1),
+            () => ComputeHeavyTask(2),
+            () => ComputeHeavyTask(3)
+        );
+
+        MaxDegreeOfParallelism controls how many tasks or threads can run concurrently in a parallel operation, 
+        such as Parallel.ForEach or PLINQ.
+
+        Here’s a simplified explanation of how it works:
+        
+            1. Without MaxDegreeOfParallelism:
+                - By default, the system chooses the number of threads to use based on the available CPU cores.
+                - For example, if you have 8 CPU cores, it will typically use 8 threads for maximum efficiency.
+        
+            2. With MaxDegreeOfParallelism:
+                - You can limit the number of threads explicitly by setting the MaxDegreeOfParallelism property in ParallelOptions or PLINQ.
+                - For example, setting MaxDegreeOfParallelism = 4 ensures that 
+                  only 4 threads will execute at any given time, even if there are more CPU cores.
+
+
+
+        ***** Parallel.For and Parallel.ForEach
+        
+        1. Parallel.For
+
+        A sequential for loop:
+        for (int i = 0; i < 100; i++)
+            Foo(i);
+
+        Can be parallelised as:
+        Parallel.For(0, 100, i => Foo(i));
+
+        2. Parallel.ForEach
+
+        A sequential foreach loop:
+        foreach (char c in "Hello, world")
+            Foo(c);
+
+        Can be parallelized as:
+        Parallel.ForEach("Hello, world", c => Foo(c));
+
+        var keyPairs = new string[6];
+        Parallel.For(0, keyPairs.Length, (int index) =>
+        {
+            keyPairs[index] = RSA.Create().ToXmlString(true);
+        });
+
+
+        --- Indexed Parallel.ForEach
+        Parallel.ForEach can also provide the index of each iteration, similar to a for loop. For example:
+
+        Parallel.ForEach("Hello, world", (c, state, index) =>
+        {
+            Console.WriteLine($"{c} at index {index}");
+        });
+
+        */
+
+        /* Concurrent collections in NET
+
+        The System.Collections.Concurrent namespace provides thread-safe collections optimized for high-concurrency scenarios. 
+        These collections allow multiple threads to safely interact with the collection without explicit locking, 
+        making them particularly useful in parallel or multi-threaded programming.
+        
+        Available Concurrent Collections
+        ---------------------------------------------------------------------
+           Concurrent Collection	                 Nonconcurrent Equivalent
+
+        1. ConcurrentStack<T>	                     Stack<T>
+        2. ConcurrentQueue<T>	                     Queue<T>
+        3. ConcurrentBag<T>	                         (No direct equivalent)
+        4. ConcurrentDictionary<TKey, TValue>	     Dictionary<TKey, TValue>
+
+        --- Key Characteristics
+
+        1. Thread Safety:
+        Concurrent collections are inherently thread-safe, eliminating the need to use locks for access. 
+        However, this does not make all code using them automatically thread-safe.
+
+        2. Atomic Operations:
+        Concurrent collections expose specialized methods (like TryAdd, TryRemove, or TryPop) that perform atomic test-and-act operations. 
+        These methods ensure correctness without requiring explicit locks.
+
+
+        In other words, these collections are not merely shortcuts for using an ordinary collection with a lock. 
+        To demonstrate, if we execute the following code on a single thread:
+
+            var d = new ConcurrentDictionary<int,int>();
+            for (int i = 0; i < 1000000; i++) d[i] = 123;
+        
+        it runs three times more slowly than this:
+        
+            var d = new Dictionary<int,int>();
+            for (int i = 0; i < 1000000; i++) lock (d) d[i] = 123;
+        
+        (Reading from a ConcurrentDictionary, however, is fast because reads are lock-free.)
+
+
+        -----------------------------------------
+        var queue = new ConcurrentQueue<int>();
+
+        // Producer
+        Task.Run(() =>
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                queue.Enqueue(i);
+                Console.WriteLine($"Produced: {i}");
+            }
+        });
+
+        // Consumer
+        Task.Run(() =>
+        {
+            while (true)
+            {
+                if (queue.TryDequeue(out int item))
+                {
+                    Console.WriteLine($"Consumed: {item}");
+                }
+            }
+        });
+
+        Console.ReadLine();
+
+
+        */
+
+        /* IProducerConsumerCollection<T>
+        
+        The IProducerConsumerCollection<T> interface in .NET represents a thread-safe collection optimized for the producer-consumer pattern. 
+        This pattern involves one or more threads (producers) adding items to a collection, 
+        while one or more threads (consumers) remove and process those items. 
+        The interface and its implementations provide methods to perform these operations safely and efficiently in concurrent scenarios.
+
+        --- Key Concepts of IProducerConsumerCollection<T>
+        - Primary Operations
+
+        1. Adding an Element (TryAdd):
+        
+        ~ Safely adds an item to the collection.
+        ~ Returns true if the operation succeeds.
+        ~ Can have restrictions, such as not allowing duplicates (in custom implementations).
+
+        2. Removing an Element (TryTake):
+
+        ~ Atomically retrieves and removes an item from the collection.
+        ~ Returns true if the operation succeeds, with the item output via an out parameter.
+        ~ The exact element removed depends on the underlying collection type:
+        ~     Stack: Removes the most recently added item (LIFO).
+        ~     Queue: Removes the earliest added item (FIFO).
+        ~     Bag: Removes an arbitrary item efficiently.
+
+        3. Utility Methods:
+
+        ~ CopyTo(T[] array, int index): Copies the elements to an array starting at a specified index.
+        ~ ToArray(): Returns a new array containing all elements of the collection.
+
+        Implementations of IProducerConsumerCollection<T>
+
+        1. ConcurrentStack<T>:
+            A thread-safe stack (LIFO behavior).
+            Use case: When you need to process items in reverse order of their addition.
+
+        2. ConcurrentQueue<T>:
+            A thread-safe queue (FIFO behavior).
+            Use case: Tasks or data items are processed in the order they are added.
+
+        3. ConcurrentBag<T>:
+            A thread-safe, unordered collection.
+            Use case: Scenarios where the order of processing doesn't matter.
+
+        -------------------------------------------------------------
+        ProducerConsumerDemo consumerDemo = new ProducerConsumerDemo();
+
+        public class ProducerConsumerDemo
+        {
+            private readonly CancellationTokenSource _cts;
+            private readonly IProducerConsumerCollection<int> _queue;
+            private readonly Random _random;
+        
+            public ProducerConsumerDemo()
+            {
+                _cts = new CancellationTokenSource();
+                _queue = new ConcurrentQueue<int>();
+                _random = new Random();
+        
+                // Start multiple producers
+                var producerTasks = new Task[3];
+                for (int i = 0; i < producerTasks.Length; i++)
+                {
+                    int producerId = i + 1;
+                    producerTasks[i] = Task.Run(() => Producer(_queue, _cts.Token, producerId));
+                }
+        
+                // Start multiple consumers
+                var consumerTasks = new Task[2];
+                for (int i = 0; i < consumerTasks.Length; i++)
+                {
+                    int consumerId = i + 1;
+                    consumerTasks[i] = Task.Run(() => Consumer(_queue, _cts.Token, consumerId));
+                }
+        
+                // Let the producers and consumers run for 5 seconds
+                Task.Delay(5000).Wait();
+                _cts.Cancel();
+        
+                // Wait for all tasks to complete
+                Task.WhenAll(producerTasks).Wait();
+                Task.WhenAll(consumerTasks).Wait();
+        
+                Console.WriteLine("Processing complete.");
+            }
+        
+            private void Producer(IProducerConsumerCollection<int> queue, CancellationToken token, int producerId)
+            {
+                while (!token.IsCancellationRequested)
+                {
+                    int item = _random.Next(1, 100);
+                    if (_queue.TryAdd(item))
+                    {
+                        Console.WriteLine($"Producer {producerId} added: {item}");
+                        Task.Delay(100).Wait();
+                    }
+                }
+            }
+        
+            private void Consumer(IProducerConsumerCollection<int> queue, CancellationToken token, int consumerId)
+            {
+                while (_queue.TryTake(out int item) && !token.IsCancellationRequested)
+                {
+                    Console.WriteLine($"Consumer {consumerId} processed: {item}");
+                    Task.Delay(100).Wait();
+                }
+            }
+        }
+
+        */
+
+        ProducerConsumerDemo consumerDemo = new ProducerConsumerDemo();
+
+        #region code examples
+        //Parallel.ForEach("Hello, world", (c, state, index) =>
+        //{
+        //    Console.WriteLine($"{c} at index {index}");
+        //});
+
+
+        //CancellationTokenSource cts = new CancellationTokenSource();
+        //ParallelOptions options = new ParallelOptions { CancellationToken = cts.Token, MaxDegreeOfParallelism = 2 };
+
+        //Parallel.Invoke(
+        //    options,
+        //    () => ComputeCube(3),
+        //    () => ComputeCube(4),
+        //    () => ComputeCube(5));
+
+        //cts.Cancel();
+
+
+        //IEnumerable<int> numbers = Enumerable.Range(3, 1000000);
+        //var cts = new CancellationTokenSource();
+
+        //var parallelQuery = numbers
+        //   .AsParallel().WithCancellation(cts.Token)
+        //   .Where(num => Enumerable.Range(2, (int)Math.Sqrt(num)).All(nth => num % nth > 0));
+
+        //try
+        //{
+        //    foreach (int num in parallelQuery)
+        //    {
+        //        if (num / 1000 >= 1)
+        //        {
+        //            cts.Cancel();
+        //        }
+
+        //        Console.WriteLine(num);
+        //    }
+        //}
+        //catch (OperationCanceledException)
+        //{
+        //    Console.WriteLine("Operation cancelled by user.");
+        //}
 
         //var numbers = Enumerable.Range(1, 100000);
         //var squares = numbers.Where(n => n % 2 == 0).Select(n => n * n).ToList();
@@ -715,7 +1126,6 @@ internal class Program
         //    Task.Delay(200).Wait();
         //}
 
-        #region code examples
         //var dictionary = new ConcurrentDictionary<int, int>();
         //Parallel.For(0, 100, i =>
         //{
