@@ -210,6 +210,70 @@ internal class Program
 
         */
 
+        /* Character Escapes
+        
+        --- What are Metacharacters?
+        Metacharacters are characters in regular expressions that have a special meaning, 
+        such as \, *, +, ?, |, {, [, (, ), ^, $, ., and #. 
+        
+        If you want to use these characters literally in a pattern, 
+        you need to escape them by prefixing them with a backslash (\).
+
+
+        --- Why Escape Metacharacters?
+        When metacharacters are unescaped, they trigger special behaviors. 
+        Escaping ensures they are treated as literal characters instead.
+
+        Examples:
+
+        1. Matching the literal question mark ?:
+        Console.WriteLine(Regex.Match("what?", @"what\?").Success); // True
+        Console.WriteLine(Regex.Match("what?", @"what?").Success);  // False
+
+        In the first pattern, \? escapes the question mark, treating it literally.
+        In the second pattern, ? is interpreted as a quantifier.
+
+
+        2. Matching the backslash (\): Without the @ literal in C#, escaping a backslash requires four backslashes:
+        Console.WriteLine(Regex.Match("\\", "\\\\").Success); // True
+
+
+        --- Regex.Escape and Regex.Unescape
+
+        1. User-Generated Search Patterns
+        When building applications like search engines, 
+        users might provide input that includes characters with special meanings in regular expressions (e.g., *, +, ?). 
+        These inputs can unintentionally break your regex pattern. 
+        Regex.Escape ensures such inputs are treated as literals.
+
+        Scenario
+        A user searches for the file name file?.txt. Since ? is a metacharacter in regex, it would need escaping.
+
+        string userInput = "file?.txt";
+        string escapedPattern = Regex.Escape(userInput); // Escapes special characters, file\?\.txt
+
+        // Using escaped pattern in regex
+        Console.WriteLine(Regex.IsMatch("file1.txt", escapedPattern)); // False
+        Console.WriteLine(Regex.IsMatch("file?.txt", escapedPattern)); // True
+
+
+        2. Displaying Regex Patterns to Users
+        When displaying regex patterns in a user-friendly interface (e.g., documentation or debug output), 
+        escaping helps show the regex exactly as it should be written, without misinterpretation.
+
+        Scenario
+        Display a regex pattern to match URLs in a formatted string.
+
+        string urlPattern = @"https?:\/\/\w+\.\w+";
+        string escapedPattern = Regex.Escape(urlPattern); // Prepare for display
+        Console.WriteLine($"The regex pattern to match URLs is: {escapedPattern}");
+        
+        // To use it, unescape back
+        string usablePattern = Regex.Unescape(escapedPattern);
+        Console.WriteLine(Regex.IsMatch("http://example.com", usablePattern)); // True
+
+
+        */
 
 
     }
