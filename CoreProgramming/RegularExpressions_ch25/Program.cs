@@ -161,5 +161,56 @@ internal class Program
 
         */
 
+        /* Complied Regular Expressions
+        
+        When working with regular expressions in C#, 
+        you often encounter scenarios where a specific pattern is used repeatedly for matching. 
+        While the static methods of the Regex class, like Regex.Match or Regex.IsMatch, are convenient, 
+        they can incur additional overhead because the regular expression engine processes the pattern from scratch 
+        each time it is invoked.
+
+
+        When you use RegexOptions.Compiled, the regular expression pattern you provide is turned into a special piece of code 
+        that is customized for that pattern. 
+        This process happens only once, when the Regex object is created. 
+        After that, this special code is reused every time you need to match something with that pattern.
+
+        This reuse makes matching faster, especially when you use the same pattern many times. 
+        However, creating the special code takes a little extra time upfront, 
+        so it’s most beneficial for situations where you’ll repeatedly use the same pattern.
+
+
+
+        --- Example of Compiled Regex
+
+        Regex r = new Regex(@"sausages?", RegexOptions.Compiled);
+
+        // Performing matches using the compiled regex
+        Console.WriteLine(r.Match("sausage").Value);   // Output: sausage
+        Console.WriteLine(r.Match("sausages").Value);  // Output: sausages
+        Console.WriteLine(r.Match("sausage and eggs").Value);  // Output: sausage
+
+        Each call to r.Match reuses the compiled code, making it efficient for repeated matches.
+
+
+
+        --- Performance Considerations
+
+        1. When to Use RegexOptions.Compiled:
+
+        If you need to repeatedly match a specific pattern across many strings, or 
+        in a performance-sensitive application, using RegexOptions.Compiled is advantageous.
+        The dynamic code generation ensures faster execution after the initial compilation cost.
+
+        2. When Not to Use RegexOptions.Compiled:
+
+        If the pattern is only used a few times or in a one-off operation, 
+        the overhead of dynamic code generation may outweigh its benefits.
+        Regular expressions without compilation are already fast, often completing simple matches in less than a microsecond.
+
+        */
+
+
+
     }
 }
