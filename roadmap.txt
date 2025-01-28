@@ -41,7 +41,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.22. Parallel Programming                      +
 	1.23. Span<T> and Memory<T>                     +
 	1.24. Native and COM Interoperability  
-	1.25. Regular Expressions  
+	1.25. Regular Expressions                       +
 
 2. API Development
 	
