@@ -548,5 +548,182 @@ internal class Program
 
         */
 
+        /* What Are Quantifiers?
+        Quantifiers in regular expressions define how many times a character, group, or character set can appear in a match.
+        
+        --- Quantifier Syntax and Meaning
+
+        1. *: Matches zero or more occurrences.
+        
+        Matches zero or more occurrences of the preceding element.
+        This means the element may be completely absent or appear any number of times.
+        
+        Example:
+        Pattern: "ab*c"
+        Matches: "ac", "abc", "abbc", "abbbc" (any number of b's, including zero).
+        
+
+        2. +: Matches one or more occurrences.
+        
+        Matches one or more occurrences of the preceding element.
+        This means the element must appear at least once.
+        
+        Example:
+        Pattern: "ab+c"
+        Matches: "abc", "abbc", "abbbc" (but not "ac" because at least one b is required).
+
+
+        3. ?: Matches zero or one occurrence.
+
+        Matches zero or one occurrence of the preceding element.
+        This is often used for optional elements.
+        
+        Example:
+        Pattern: "colou?r"
+        Matches: "color", "colour" (the u is optional).
+
+
+        4. {n}: Matches exactly n occurrences.
+        Matches exactly n occurrences of the preceding element.
+
+        Example:
+        Pattern: "a{3}"
+        Matches: "aaa" (exactly 3 a's, no more, no less).
+
+
+        5. {n,}: Matches n or more occurrences.
+        Matches at least n occurrences of the preceding element.
+
+        Example:
+        Pattern: "a{2,}"
+        Matches: "aa", "aaa", "aaaa" (at least 2 a's, but no upper limit).
+
+
+        6. {n,m}: Matches between n and m occurrences.
+        Matches at least n but at most m occurrences of the preceding element.
+
+        Example:
+        Pattern: "a{2,4}"
+        Matches: "aa", "aaa", "aaaa" (between 2 and 4 a's).
+
+
+        ~ Quantifier Real-World Examples
+
+        1. File Names with Numbers
+        You want to match file names like file.docx, file1.docx, or file123.docx.
+
+          string pattern = @"file[0-9]*\.docx"; 
+          string pattern = @"file\d*\.docx"; 
+        
+        ~ Pattern Explanation
+
+        file: Matches the word file.
+        \d*: Matches zero or more digits (0-9) following file.
+        \.docx: Matches .docx. (The . is escaped because it is a special character.)
+
+
+        ~ Code Example
+
+        string pattern = @"file[0-9]*\.docx";
+        string pattern2 = @"file\d*\.docx";
+
+        Console.WriteLine(Regex.Match("file123.docx", pattern2).Success); // True
+        Console.WriteLine(Regex.Match("file.docx", pattern2).Success);   // True
+        Console.WriteLine(Regex.Match("file.txt", pattern2).Success);    // False
+
+
+        2. Matching Usernames
+        Usernames must be alphanumeric, allowing underscores, and be 5–10 characters long.
+
+        string pattern = @"^\w{5,10}$";
+
+        ~ Pattern Explanation
+        
+        ^: Ensures the match starts at the beginning.
+        \w: Matches word characters (letters, digits, underscore).
+        {5,10}: Requires between 5 and 10 repetitions.
+        $: Ensures the match ends at the end.
+
+        ~ Code Example
+
+        Console.WriteLine(Regex.IsMatch("JohnDoe", @"^\w{5,10}$"));     // True
+        Console.WriteLine(Regex.IsMatch("User_1234", @"^\w{5,10}$"));   // True
+        Console.WriteLine(Regex.IsMatch("TooLongUsername", @"^\w{5,10}$")); // False
+
+
+        3. Blood Pressure Readings
+        Match blood pressure values like 120/80 or 160/110.
+
+        string pattern = @"\d{2,3}/\d{2,3}";
+
+        ~ Pattern Explanation
+        
+        \d{2,3}: Matches 2 or 3 digits for systolic/diastolic pressure.
+        /: Matches the / separator.
+
+        ~ Code Example
+
+        Regex bp = new Regex(@"\d{2,3}/\d{2,3}");
+        Console.WriteLine(bp.Match("It used to be 160/110").Value); // 160/110
+        Console.WriteLine(bp.Match("Now it's 115/75").Value);       // 115/75
+
+
+
+        4. Matching Repeated Words
+        Detect duplicate words like "the the" in a sentence.
+
+        string pattern = @"\b(\w+)\s+\1\b";
+
+        ~ 1. Understanding \b (Word Boundary)
+        \b asserts a word boundary, ensuring the match occurs at the start or end of a word.
+
+        Input String	            Pattern	            Match	                    Explanation
+        ------------------------------------------------------------------------------------------------------------------------------
+        "word"	                    \bword\b	        word	                    Matches the whole word "word".
+        "word,"	                    \bword\b	        No	                        Does not match because of the comma.
+        "word word"	                \bword	            word	                    Matches both "word" occurrences.
+        "sword"	                    \bword	            No	                        Does not match because "word" is part of "sword".
+
+        It ensures that the match happens only at whole words, avoiding partial matches (like "word" inside "sword").
+
+
+        ~ 2. Understanding \1 (Backreference)
+        \1 refers to the first capturing group in the pattern.
+
+        Input String	            Pattern	            Match	                    Explanation
+        ------------------------------------------------------------------------------------------------------------------------------
+        "the the"	                (\w+)\s+\1	        the                         the	Matches two identical words.
+        "the quick the"	            (\w+)\s+\1	        No	                        The words are not identical.
+        "123 123"	                (\d+)\s+\1	        123                         123	Matches the same sequence of digits.
+
+
+        ~ Combining \b and \1
+
+        string input = "the the quick brown fox is is not lazy";
+        string pattern = @"\b(\w+)\s+\1\b";
+
+        MatchCollection matches = Regex.Matches(input, pattern);
+
+        foreach (Match match in matches)
+        {
+            Console.WriteLine($"Duplicate word found: {match.Value}");
+        }
+
+        ~ Output
+        
+        Duplicate word found: the the
+        Duplicate word found: is is
+
+        */
+
+        string input = "the the quick brown fox is is not lazy";
+        string pattern = @"\b(\w+)\s+\1\b";
+
+        MatchCollection matches = Regex.Matches(input, pattern);
+
+        foreach (Match match in matches)
+        {
+            Console.WriteLine($"Duplicate word found: {match.Value}");
+        }
     }
 }
