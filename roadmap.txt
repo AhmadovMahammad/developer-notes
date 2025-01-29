@@ -1,6 +1,6 @@
-====================================
-         C# Learning Path
-====================================
+=================================================================================================
+                                     C# Learning Path
+=================================================================================================
 This document outlines a comprehensive learning path for C# programming and related technologies. 
 The topics are categorized into six main sections: 
 
@@ -62,19 +62,38 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 4. Data and SQL Management (Based on mainly interview questions)
 
-	4.1. ACID Principles  
-	4.2. BASE Principles  
-	4.3. SQL and NoSQL  
-	4.4. SQL Committed and Uncommitted Messages  
-	4.5. Materialized View  
-	4.6. SQL Indexing Types and BTree  
-	4.7. SQL Pessimistic and Optimistic Locking  
-	4.8. Isolation Layers  
-	4.9. Clustered and Non-clustered Index  
-	4.10. Normalization and Denormalization  
-	4.11. Database Migration Best Practices  
-	4.12. Database Sharding vs Database Partitioning  
-	4.13. Database Replication  
+    4.1. Database Fundamentals
+        4.1.1. Introduction to Databases
+            What is a database?
+            Relational vs. Non-relational databases
+            Basic database architecture (tables, rows, columns, keys)
+
+        4.1.2. SQL Fundamentals
+            SELECT, FROM, WHERE
+            GROUP BY, HAVING, ORDER BY
+            DISTINCT, LIMIT, OFFSET
+            Joins (INNER, LEFT, RIGHT, FULL, CROSS, SELF)
+            Subqueries and Common Table Expressions (CTEs)
+            INSERT, UPDATE, DELETE, MERGE (UPSERT)
+            Transactions (BEGIN TRANSACTION, COMMIT, ROLLBACK, Savepoints)
+            Indexing (Clustered vs. Non-clustered, B-Tree structure, execution plans)
+            Stored Procedures, Functions, and Triggers
+            Views and Materialized Views
+            Cursors and Loops (performance considerations)
+
+	4.2. ACID Principles  
+	4.3. BASE Principles  
+	4.4. SQL and NoSQL  
+	4.5. SQL Committed and Uncommitted Messages  
+	4.6. Materialized View  
+	4.7. SQL Indexing Types and BTree  
+	4.8. SQL Pessimistic and Optimistic Locking  
+	4.9. Isolation Layers  
+	4.10. Clustered and Non-clustered Index  
+	4.11. Normalization and Denormalization  
+	4.12. Database Migration Best Practices  
+	4.13. Database Sharding vs Database Partitioning  
+	4.14. Database Replication  
 
 5. Advanced Topics and Tools
 

@@ -716,14 +716,74 @@ internal class Program
 
         */
 
-        string input = "the the quick brown fox is is not lazy";
-        string pattern = @"\b(\w+)\s+\1\b";
+        /* Greedy Versus Lazy Quantifiers
+        
+        Regular expressions use quantifiers to determine how many times a pattern should be repeated.
+        By default, quantifiers are greedy, meaning they match as much as possible.
+        meaning they try to match as much as possible before allowing the rest of the pattern to continue.
 
-        MatchCollection matches = Regex.Matches(input, pattern);
+        However, we can make them lazy (also called non-greedy) by adding ?, 
+        which forces them to match as little as possible.
 
+
+
+        ~ 1. Greedy Quantifiers (Default Behaviors)
+        A greedy quantifier tries to match as much text as possible while still allowing the full pattern to match.
+
+        Example: Matching HTML Tags with a Greedy Quantifier
+        Consider this HTML string:
+
+        string pattern = "<i>.*</i>";
+        string html = "<i>By default</i> quantifiers are <i>greedy</i> creatures";
+
+        MatchCollection matches = Regex.Matches(html, pattern);
         foreach (Match match in matches)
         {
-            Console.WriteLine($"Duplicate word found: {match.Value}");
+            Console.WriteLine(match.Value);
         }
+
+        ~ Pattern Explanation
+        <i> → Matches the opening <i> tag.
+        .* → Greedily matches everything until the last possible </i>.
+        </i> → Matches the last closing </i> tag in the input.
+
+        ~ What Happens
+        The greedy .* quantifier matches the longest possible substring between the first <i> and the last </i> tag,
+
+        ~ Output
+        <i>By default</i> quantifiers are <i>greedy</i>
+
+
+
+        ~ 2. Lazy Quantifiers (Non-Greedy) (*?, +?, ??, {n,m}?)
+        A lazy quantifier stops as soon as it finds a match for the rest of the pattern, instead of consuming everything.
+
+        Example: Fixing the Greedy Match
+        To make the quantifier lazy, add a ? after it:
+
+
+        string pattern = "<i>.*?</i>";
+        string html = "<i>By default</i> quantifiers are <i>greedy</i> creatures";
+
+        MatchCollection matches = Regex.Matches(html, pattern);
+        foreach (Match match in matches)
+        {
+            Console.WriteLine(match.Value);
+        }
+
+        ~ Pattern Explanation
+        <i> → Matches the opening <i> tag.
+        .*? → Lazily matches everything until the first possible </i>.
+        </i> → Matches the first closing </i> tag in the input.
+
+        ~ What Happens
+        The lazy .*? quantifier matches the shortest possible substring between the first <i> and the first </i> tag.
+
+        ~ Output
+        <i>By default</i>
+        <i>greedy</i>
+
+        */
+
     }
 }
