@@ -785,5 +785,146 @@ internal class Program
 
         */
 
+        /* Lookahead and Lookbehind
+        Lookahead and lookbehind are types of zero-width assertions in regular expressions. 
+        These assertions allow you to match text based on what comes before or comes after the target pattern, 
+        without including that part in the final match result.
+
+
+
+        ~ 1. Positive Lookahead (=?expr)
+        A positive lookahead checks whether a specific pattern exists ahead of the current position in the string, 
+        but does not consume any characters from the string itself. 
+
+        Example: Positive Lookahead
+        We want to match a number only if it's followed by the word "miles", 
+        but we do not want to include "miles" in the match result:
+
+        string input = "say 25 miles more";
+        string pattern = @"\d+\s+(?=miles)";
+
+        Console.WriteLine($"input: {input}. is matched: {Regex.IsMatch(input, pattern)}");
+
+        ~ Pattern Explanation
+        \d+ → Matches one or more digits.
+        \s+ → Matches one or more whitespace characters.
+        (?=miles) → Positive lookahead for the word "miles".
+
+        This is a positive lookahead: it confirms that "miles" follows the number, 
+        but doesn't include it in the match.
+
+        ~ NOTES:
+        If we append .* to the pattern: \d+\s+(?=miles).*,
+        Output would be: 25 miles more
+
+        After the lookahead successfully checks for "miles", 
+        it continues matching the rest of the string after "miles", giving us the full "25 miles more".
+
+
+
+        ~ 2. Negative Lookahead (?!expr)
+        A negative lookahead asserts that a certain pattern does not follow the current position. 
+        It is used to ensure that a specific string or pattern is not present after the match.
+        
+        Example: Negative Lookahead
+        We want to match the word "good" only if it's not followed by "however" or "but":
+
+        List<string> inputs = ["good", "good however", "good but", "good however but", "Good work!", "Good work, Thanks!"];
+        string pattern = @"(?i)good(?!.*(however|but|although))";
+
+        inputs.ForEach(input =>
+        {
+            Console.WriteLine($"input: {input}. is matched: {Regex.IsMatch(input, pattern)}");
+        });
+
+        ~ Pattern Explanation
+        
+        (?i) → Case-insensitive matching. (Keep in Mind!)
+        good → Matches the word "good".
+        (?!.*(however|but)) → ensures that "good" is not followed by "however" or "but" or "although"
+        anywhere later in the string.
+
+        ~ Output
+
+        input: good. is matched: True
+        input: good however. is matched: False
+        input: good but. is matched: False
+        input: good however but. is matched: False
+        input: Good work!. is matched: True
+        input: Good work, Thanks!. is matched: True
+
+
+
+        ~ 3. Positive Lookbehind (?<=expr)
+        A positive lookbehind asserts that the match must be preceded by a specific pattern. 
+        It checks if the specified pattern occurs just before the current position, but does not consume those characters.
+
+        Example: Positive Lookbehind
+        We want to match "good" only if it's preceded by "however":
+
+        string pattern = @"(?i)(?<=however.*)good";
+        Console.WriteLine(Regex.IsMatch("However good, we...", pattern)); // True
+        Console.WriteLine(Regex.IsMatch("Very good, thanks!", pattern)); // False
+
+        ~ Pattern Explanation
+        (?i) → Case-insensitive matching.
+        (?<=however.*) → Positive lookbehind for "however" followed by any characters.
+        good → Matches the word "good".
+
+
+
+        ~ 4. Negative Lookbehind (?<!expr)
+        A negative lookbehind asserts that the match must not be preceded by a specific pattern.
+        It ensures that the specified pattern is absent before the current position.
+
+        Example: Negative Lookbehind
+        We want to match "good" only if it's not preceded by "however":
+
+        string pattern = @"(?i)(?<!however.*)good";
+        Console.WriteLine(Regex.IsMatch("However good, we...", pattern)); // False
+        Console.WriteLine(Regex.IsMatch("Very good, thanks!", pattern)); // True
+
+        ~ Pattern Explanation
+        (?i) → Case-insensitive matching.
+        (?<!however.*) → Negative lookbehind for "however" followed by any characters.
+        good → Matches the word "good".
+
+        */
+
+        // Code Examples
+
+        // Positive Lookahead
+        {
+            string input = "say 25 miles more";
+            string pattern = @"\d+\s+(?=miles)";
+
+            Console.WriteLine($"input: {input}. is matched: {Regex.IsMatch(input, pattern)}");
+        }
+
+        // Negative Lookahead
+        {
+            List<string> inputs = ["good", "good however", "good but", "good however but", "Good work!", "Good work, Thanks!"];
+            string pattern = @"(?i)good(?!.*(however|but|although))";
+
+            inputs.ForEach(input =>
+            {
+                Match match = Regex.Match(input, pattern);
+                Console.WriteLine($"input: {input}. match value: {match.Value}. is matched: {Regex.IsMatch(input, pattern)}");
+            });
+        }
+
+        // Positive Lookbehind
+        {
+            string pattern = @"(?i)(?<=however.*)good";
+            Console.WriteLine(Regex.IsMatch("However good, we...", pattern)); // True
+            Console.WriteLine(Regex.IsMatch("Very good, thanks!", pattern)); // False
+        }
+
+        // Negative Lookbehind
+        {
+            string pattern = @"(?i)(?<!however.*)good";
+            Console.WriteLine(Regex.IsMatch("However good, we...", pattern)); // False
+            Console.WriteLine(Regex.IsMatch("Very good, thanks!", pattern)); // True
+        }
     }
 }
