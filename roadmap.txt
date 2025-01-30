@@ -63,10 +63,9 @@ Date: 09/12/2024 (MM/DD/YYYY)
 4. Data and SQL Management (Based on mainly interview questions)
 
     4.1. Database Fundamentals
-        4.1.1. Introduction to Databases
-            What is a database?
-            Relational vs. Non-relational databases
-            Basic database architecture (tables, rows, columns, keys)
+        4.1.1. Introduction to Databases                        +
+            What is a database?                                 +
+            Relational vs. Non-relational databases             +
 
         4.1.2. SQL Fundamentals
             SELECT, FROM, WHERE
