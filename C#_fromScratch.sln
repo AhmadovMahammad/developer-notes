@@ -29,7 +29,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiDevelopment", "ApiDevelo
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataAndSqlManagement", "DataAndSqlManagement", "{43BCC41E-6362-435A-9F37-8A96289D0C96}"
 	ProjectSection(SolutionItems) = preProject
-		..\..\..\..\Documents\DatabaseFundamentals.sql = ..\..\..\..\Documents\DatabaseFundamentals.sql
+		DatabaseFundamentals.sql = DatabaseFundamentals.sql
+		SqlFundamentals_ch1.sql = SqlFundamentals_ch1.sql
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AdvancedTopics", "AdvancedTopics", "{C0FA8EE9-5FAC-4270-AACA-85E32DF00A3C}"

@@ -41,7 +41,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	1.22. Parallel Programming                      +
 	1.23. Span<T> and Memory<T>                     +
 	1.24. Native and COM Interoperability  
-	1.25. Regular Expressions                       +
+	1.25. Regular Expressions                       + (not completed fully...)
 
 2. API Development
 	
@@ -68,8 +68,8 @@ Date: 09/12/2024 (MM/DD/YYYY)
             Relational vs. Non-relational databases             +
 
         4.1.2. SQL Fundamentals
-            SELECT, FROM, WHERE
-            GROUP BY, HAVING, ORDER BY
+            SELECT, FROM, WHERE                                                             +
+            GROUP BY, HAVING, ORDER BY                                                  
             DISTINCT, LIMIT, OFFSET
             Joins (INNER, LEFT, RIGHT, FULL, CROSS, SELF)
             Subqueries and Common Table Expressions (CTEs)
