@@ -114,7 +114,111 @@ Station C		4.90
 
 */
 
-SELECT * FROM StationData;
+/* Ordering Records
+The ORDER BY clause is used to sort the result set of a query based on one or more columns. 
+You can sort in:
+
+- Ascending order (default, using ASC).
+- Descending order (using DESC).
+
+
+-- How ORDER BY Works
+Sorting: Rows are sorted based on the columns specified in the ORDER BY clause.
+Direction: You can specify ASC (ascending) or DESC (descending) for each column.
+Multiple Columns: You can sort by multiple columns, separated by commas.
+
+Syntax:
+
+SELECT 
+	column1, column2, ...
+FROM table_name
+ORDER BY column1 [ASC|DESC], column2 [ASC|DESC], ...;
+
+
+Examples Using Your StationData Table
+
+Example 1: Sort by Temperature in Ascending Order
+Let’s say you want to list all records sorted by Temperature from lowest to highest:
+
+SELECT 
+	StationName, Temperature 
+FROM StationData
+ORDER BY Temperature ASC;
+
+Result:
+
+    Station C, 2023-10-03, 16.5°C (Lowest temperature)
+    Station C, 2023-10-02, 17.2°C
+    Station C, 2023-10-01, 18.7°C
+    Station B, 2023-10-03, 19.8°C
+    Station B, 2023-10-02, 20.5°C
+    Station B, 2023-10-01, 22.1°C
+    Station A, 2023-10-02, 24.8°C
+    Station A, 2023-10-01, 25.3°C
+    Station A, 2023-10-03, 26.0°C (Highest temperature)
+
+
+Example 2: Sort by RecordDate in Descending Order
+Let’s say you want to list all records sorted by RecordDate from most recent to oldest:
+
+SELECT 
+	StationName, RecordDate	
+FROM StationData
+ORDER BY RecordDate DESC;
+
+Result:
+
+    Station A, 2023-10-03, 26.0°C (Most recent)
+    Station B, 2023-10-03, 19.8°C
+    Station C, 2023-10-03, 16.5°C
+    Station A, 2023-10-02, 24.8°C
+    Station B, 2023-10-02, 20.5°C
+    Station C, 2023-10-02, 17.2°C
+    Station A, 2023-10-01, 25.3°C
+    Station B, 2023-10-01, 22.1°C
+    Station C, 2023-10-01, 18.7°C (Oldest)
+
+
+Example 3: Sort by StationName and Temperature
+Let’s say you want to list all records sorted first by StationName in ascending order and 
+then by Temperature in descending order:
+
+SELECT
+    StationName, Temperature
+FROM StationData
+ORDER BY StationName ASC, Temperature DESC;
+
+Result:
+
+    Station A, 2023-10-03, 26.0°C (Highest temperature for Station A)
+    Station A, 2023-10-01, 25.3°C
+    Station A, 2023-10-02, 24.8°C
+
+    Station B, 2023-10-01, 22.1°C (Highest temperature for Station B)
+    Station B, 2023-10-02, 20.5°C
+    Station B, 2023-10-03, 19.8°C
+
+    Station C, 2023-10-01, 18.7°C (Highest temperature for Station C)
+    Station C, 2023-10-02, 17.2°C
+    Station C, 2023-10-03, 16.5°C
+
+*/
+
+SELECT
+    StationName, Temperature
+FROM StationData
+ORDER BY StationName ASC, Temperature DESC;
+
+SELECT 
+	StationName, RecordDate	
+FROM StationData
+ORDER BY RecordDate DESC;
+
+SELECT 
+	StationName, Temperature 
+FROM StationData
+ORDER BY Temperature ASC;
+
 
 SELECT
 	WeatherCondition, COUNT(*) AS RecordCount 
