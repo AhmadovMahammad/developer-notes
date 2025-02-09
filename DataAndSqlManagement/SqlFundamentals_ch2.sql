@@ -36,11 +36,11 @@ FROM StationData
 GROUP BY WeatherCondition;
 
 WeatherCondition	RecordCount
-Cloudy	1
-Foggy	1
-Rainy	3
-Stormy	1
-Sunny	3
+Cloudy	            1
+Foggy	            1
+Rainy	            3
+Stormy	            1
+Sunny	            3
 
 ~ Explanation ~
 
