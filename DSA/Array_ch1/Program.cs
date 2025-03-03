@@ -4,6 +4,8 @@ internal class Program
 {
     private static void Main(string[] args)
     {
+        #region Basics
+
         /* Array Basics
          
         Arrays are one of the simplest data structures, 
@@ -598,5 +600,12 @@ internal class Program
         // 12. SubArray Sum equals to K
         //Console.WriteLine(solution.SubarraySum(new int[] { 1, -1, 0 }, 0));
         #endregion
+
+        #endregion
+
+        new List<int>() { 123, 12345, 1234567 }.ForEach(num =>
+        {
+            Console.WriteLine(solution.NumberToWords(num));
+        });
     }
 }

@@ -5,6 +5,120 @@ namespace Array_ch1;
 //These explanations and code examples should give you a comprehensive foundation in each array algorithm.
 public class Solution
 {
+    private readonly Dictionary<int, string> _odds = new Dictionary<int, string>()
+    {
+        { 1, "One" }, { 2, "Two" }, { 3, "Three" }, { 4, "Four" }, { 5, "Five" },
+        { 6, "Six" }, { 7, "Seven" }, { 8, "Eight" }, { 9, "Nine" }
+
+    };
+
+    private readonly Dictionary<int, string> _teens = new Dictionary<int, string>()
+    {
+        { 10, "Ten" }, { 11, "Eleven" }, { 12, "Twelve" }, { 13, "Thirteen" }, { 14, "Fourteen" },
+        { 15, "Fiveteen" }, { 16, "Sixteen" }, { 17, "Seventeen" }, { 18, "Eighteen" }, { 19, "Nineteen" }
+    };
+
+    private readonly Dictionary<int, string> _tens = new Dictionary<int, string>()
+    {
+        { 20, "Twenty" }, { 30, "Thirty" }, { 40, "Fourty" }, { 50, "Fifty" },
+        { 60, "Sixty" }, { 70, "Seventy" }, { 80, "Seventy" }, { 90, "Ninety" },
+    };
+
+    public string NumberToWords(int num)
+    {
+        StringBuilder sb = new StringBuilder();
+        string[] units = new string[] { "", "Thousand", "Million", "Billion" }; // empty one for the first section
+        int i = 0;
+
+        while (num > 0)
+        {
+            if (num % 1000 != 0)
+            {
+                string unit = units[i];
+                string section = HandleSection(num % 1000).Trim();
+
+                if (sb.Length > 0) sb.Insert(0, " ");
+                sb.Insert(0, section + (unit != "" ? $" {unit}" : ""));
+            }
+
+            i++;
+            num /= 1000;
+        }
+
+        return num == 0 ? "Zero" : sb.ToString();
+    }
+
+    private string HandleSection(int num)
+    {
+        StringBuilder sb = new StringBuilder();
+
+        if (num >= 100)
+        {
+            sb.Append(_odds[num / 100] + " Hundred");
+            num %= 100;
+        }
+
+        (int odd, int ten) = (num % 10, num / 10);
+        switch (ten)
+        {
+            case int _ when odd == 0 && ten == 0: break;
+            case 0: sb.Append($" {_odds[odd]}"); break;
+            case 1: sb.Append($" {_teens[num]}"); break;
+            case int _ when ten > 1:
+                sb.Append($" {_tens[ten * 10]}");
+                if (odd != 0) // we do not need to add the last digit if it is zero
+                {
+                    sb.Append($" {_odds[odd]}");
+                }
+                break;
+        }
+
+        return sb.ToString();
+    }
+
+    public int MaxSumSlidingWindow(int[] nums, int k)
+    {
+        int n = nums.Length;
+        if (k > nums.Length) return -1; // edge case: if array size is less than k, just stop code;
+
+        int initialWindowSum = 0;
+        for (int i = 0; i < k; i++)
+        {
+            initialWindowSum += nums[i];
+        }
+
+        int maxSum = initialWindowSum;
+
+        for (int i = k; i < n; i++)
+        {
+            initialWindowSum += (nums[i] - nums[i - k]);
+            maxSum = Math.Max(maxSum, initialWindowSum);
+        }
+
+        return maxSum;
+    }
+
+    public int[] PlusOne(int[] digits)
+    {
+        int n = digits.Length;
+
+        for (int i = n - 1; i >= 0; i--)
+        {
+            if (digits[i] < 9)
+            {
+                digits[i]++;
+                return digits;
+            }
+
+            digits[i] = 0;
+        }
+
+        int[] res = new int[n + 1];
+        res[0] = 1;
+
+        return res;
+    }
+
     public bool HasPairWithSum(int[] nums, int target)
     {
         // Problem:
@@ -97,28 +211,6 @@ public class Solution
             }
 
             maxSum = Math.Max(maxSum, sum);
-        }
-
-        return maxSum;
-    }
-
-    public int MaxSumSlidingWindow(int[] nums, int k)
-    {
-        int n = nums.Length;
-        if (k > nums.Length) return -1; // edge case: if array size is less than k, just stop code;
-
-        int initialWindowSum = 0;
-        for (int i = 0; i < k; i++)
-        {
-            initialWindowSum += nums[i];
-        }
-
-        int maxSum = initialWindowSum;
-
-        for (int i = k; i < n; i++)
-        {
-            initialWindowSum += (nums[i] - nums[i - k]);
-            maxSum = Math.Max(maxSum, initialWindowSum);
         }
 
         return maxSum;
@@ -356,27 +448,6 @@ public class Solution
         }
 
         return left;
-    }
-
-    public int[] PlusOne(int[] digits)
-    {
-        int n = digits.Length;
-
-        for (int i = n - 1; i >= 0; i--)
-        {
-            if (digits[i] < 9)
-            {
-                digits[i]++;
-                return digits;
-            }
-
-            digits[i] = 0;
-        }
-
-        int[] res = new int[n + 1];
-        res[0] = 1;
-
-        return res;
     }
 
     public int[] PlusOne2(int[] digits)

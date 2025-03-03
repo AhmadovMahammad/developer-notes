@@ -204,6 +204,25 @@ Result:
 
 */
 
+/* Using the LIMIT Clause
+
+Structured Query Language (SQL) is a powerful tool for managing and extracting data from databases. 
+In this article, we'll explore an essential aspect of SQL that can help you control the volume of data you retrieve — the "LIMIT" clause. 
+
+When working with databases, it's crucial to strike a balance between obtaining enough information and not overwhelming yourself with excessive data. 
+We'll walk you through various ways to use the LIMIT clause effectively, 
+helping you fine-tune your SQL queries to get exactly the information you need.
+
+
+--- Understanding the Default Limit
+
+In SQL, when you run a query, there is often a default limit on the number of rows displayed in the result set. 
+This default limit is usually set to 1,000 rows. 
+This can be convenient in some cases, as it prevents accidentally retrieving massive datasets, 
+but it can also be restrictive when you need more extensive information.
+
+*/
+
 SELECT
     StationName, Temperature
 FROM StationData
@@ -218,7 +237,6 @@ SELECT
 	StationName, Temperature 
 FROM StationData
 ORDER BY Temperature ASC;
-
 
 SELECT
 	WeatherCondition, COUNT(*) AS RecordCount 
