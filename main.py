@@ -400,3 +400,238 @@ import math
 
 
 # print(sum(1, 2, 3, 4))
+
+
+# list = [1, "i", "am", 21.5, "years", "old", "true"]
+# for item in list:
+#     print(item)
+
+# for index in range(len(list)):
+#     print(list[index])
+
+# list.append("calling append...")
+# list.extend(range(5))
+
+# for item in list:
+#     print(item)
+
+# while list:
+#     popped = list.pop()
+#     print(f"popped: {popped}")
+
+
+# Python's ternary syntax follows this structure:
+# value_if_true if condition else value_if_false
+
+# For multiple conditions:
+# value1 if condition1 else value2 if condition2 else value3
+
+
+# Walrus Operator (:=) in Python
+# The walrus operator (:=) is called the "assignment expression" in Python.
+# It allows you to assign a value to a variable inside an expression
+# (like in an if or while statement).
+
+
+# Syntax & Meaning
+# variable := expression
+
+# := assigns the value of expression to variable.
+# The whole expression evaluates to the assigned value.
+
+
+# Example: Without Walrus
+# Let's say we want to read user input and check if it's not "exit" before printing it.
+
+# user_input = input("Enter something: ")
+# while user_input != "exit":
+#     print("You entered:", user_input)
+#     user_input = input("Enter something: ")  # Repeating assignment
+
+# We repeat input() twice.
+
+
+# Example: With Walrus
+# Now, let's remove repetition using :=:'
+
+# while (user_input := input("Enter something: ")) != "exit":
+#     print(f"you entered: {user_input}")
+
+# list = [1, "i", "am", 21.5, "years", "old", "true"]
+# list.append("calling append...")
+# list.extend(range(5))
+
+# while (popped := list.pop() if list else None) != None:
+#     print(f"popped element: {popped}")
+
+
+# some important list operations
+# numbers = [10, 20, 30, 40, 50, 10]
+
+# ---
+
+# 1. List Slicing (Getting Subsets of a List)
+
+# print(numbers[1:4])  # [20, 30, 40] (start index 1, end index 4 - 1)
+# print(numbers[:3])  # [10, 20, 30] (start from 0, end at 3-1)
+# print(numbers[2:])  # [30, 40, 50] (start from 2, go till end)
+# print(numbers[-2:])  # [40, 50] (last 2 elements)
+
+# Slicing helps extract parts of a list.
+
+# ---
+
+# 2. Inserting Elements (insert)
+
+# numbers.insert(2, 25)  # Insert 25 at index 2
+# print(numbers)  # [10, 20, 25, 30, 40, 50]
+
+# ---
+
+# 3. Extending a List (extend)
+
+# list1 = [1, 2, 3]
+# list2 = [4, 5, 6]
+# list1.extend(list2)  # Adds elements of list2 to list1
+# numbers.extend(list1)
+
+# print(numbers)  # [10, 20, 30, 40, 50, 1, 2, 3, 4, 5, 6]
+# Use extend() instead of append() when adding multiple items.
+
+# ---
+
+# 4. Removing Elements
+
+# print(numbers)
+
+# num_to_remove = 10
+# if num_to_remove in numbers:
+#     numbers.remove(num_to_remove)  # Removes first occurrence of 10
+#     print(f"deleted. list: {numbers}")
+# else:
+#     print(f"{num_to_remove} not found")
+
+# -
+
+# del numbers[1]  # Deletes item at index 1
+# print(numbers)  # [10, 30, 40, 50, 10]
+
+# ---
+
+# 5. Sorting & Reversing
+
+# numbers.sort()  # Sorts in ascending order
+# print(numbers)  # [10, 10, 20, 30, 40, 50]
+#
+# numbers.sort(reverse=True)  # Sorts in descending order
+# print(numbers)  # [50, 40, 30, 20, 10, 10]
+#
+# numbers.reverse()  # Reverses the list
+# print(numbers)  # [10, 10, 20, 30, 40, 50]
+
+# ---
+
+# 6. Checking for an Item (in Operator)
+
+# nums = [1, 2, 3, 4]
+# print(3 in nums)  # True
+# print(5 in nums)  # False
+
+# ---
+
+# 7. Getting Index of an Item (index)
+
+# fruits = ["apple", "banana", "cherry"]
+
+# print(fruits.index("apple"))  # 0
+# print(fruits.index("not known fruit"))  # throws exception if item does not exists
+# in string find method, if char does not exists, it returns just -1
+
+# ---
+
+# 8️. Counting Occurrences (count)
+
+# nums = [1, 2, 2, 3, 2]
+# print(nums.count(2))  # 3 (2 appears 3 times)
+
+# ---
+
+# 9. Clearing a List (clear)
+
+# nums.clear()
+# print(nums)  # []
+
+
+# nums = [1, 2, 3, 4, 5]
+
+# for num in nums:
+#     print(num)
+
+# The enumerate() function in Python is used to loop over a list (or any iterable)
+# and get both the index and the value of each item.
+# This is especially useful when you need both the index (position) and the item itself
+# while iterating over the list.
+
+# What does enumerate() return?
+# enumerate() returns an iterator that produces pairs of the form (index, value).
+
+# Each time you iterate over the enumerate object, it yields a tuple containing:
+# The index (starting from 0 by default).
+# The value from the iterable.
+
+# Syntax of enumerate()
+# enumerate(iterable, start=0)
+
+# iterable: The iterable you want to loop over (e.g., a list, string, etc.).
+# start: The starting index (optional). By default, it starts at 0,
+# but you can specify a different value if needed.
+
+# my_list = ["apple", "banana", "cherry"]
+
+# Using enumerate in a for loop
+# for index, value in enumerate(my_list):
+#     print(f"Index {index}: {value}")
+
+# Index 0: apple
+# Index 1: banana
+# Index 2: cherry
+
+# Starting the Index from a Different Value
+# You can specify a different starting index by passing the start parameter to enumerate().
+
+# Starting index from 1
+# for index, value in enumerate(my_list, start=1):
+#     print(f"Index {index}: {value}")
+
+# Index 1: apple
+# Index 2: banana
+# Index 3: cherry
+
+
+# Why use enumerate()?
+
+# Avoid manually tracking the index:
+# When you need both the index and the value of the items in the iterable,
+# enumerate() makes it easier without manually managing an index variable.
+
+# Cleaner and more Pythonic code:
+# It makes your code more concise and easier to read,
+# avoiding the need for a separate index counter.
+
+
+# Using enumerate() with a List and Modifying Items
+# You can also use enumerate() if you want to modify elements of the list using the index:
+
+# my_list = ["apple", "banana", "cherry"]
+
+# for index, value in enumerate(my_list):
+#     my_list[index] = value.upper()
+
+# print(my_list)  # ['APPLE', 'BANANA', 'CHERRY']
+
+# print(my_list[2:0:-1])
+# print(my_list[2:-1:-1])
+
+# print(my_list[-1::-1])
+
+# print(my_list[::-2])
