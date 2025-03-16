@@ -635,3 +635,343 @@ import math
 # print(my_list[-1::-1])
 
 # print(my_list[::-2])
+
+# --------------------
+
+# What is a Set?
+
+# A set is a collection data type in Python that is unordered and does not allow duplicates.
+# It is similar to a mathematical set, where you only store unique items.
+
+# Key Characteristics of Sets:
+
+#  1. Unordered: The elements in a set are not stored in any specific order,
+#     meaning you can't rely on their position.
+
+#  2. Unique elements: A set automatically removes duplicate values, so every element in a set is unique.
+#  3. Mutable: You can add and remove elements from a set after it's created.
+#  4. No indexing: Since sets are unordered, you cannot access elements using an index like you would with lists.
+
+
+# Creating a Set
+# You can create a set using curly braces {} or the set() function.
+
+# Using curly braces
+# my_set = {1, 2, 3, 4}
+
+# Using set() function
+# another_set = set([1, 2, 3, 4])
+
+# Both methods create a set with the elements 1, 2, 3, 4.
+# If there are any duplicates in the input, only one instance of each element will remain.
+
+
+# Set Operations
+# Here are some common operations you can perform with sets:
+# my_set = {1, 2, 3}
+
+
+# 1. Adding elements
+# You can add elements to a set using the add() method.
+
+# my_set.add(4)  # Adds 4 to the set
+# my_set.add(1)  # Ignores adding 1 to the set
+# print(my_set)  # Output: {1, 2, 3, 4}
+
+
+# 2. Removing elements
+# You can remove elements using the remove() method,
+# which will raise an error if the element does not exist.
+
+# my_set.remove(3)  # Removes 3 from the set
+# print(my_set)  # Output: {1, 2}
+
+# --- If you want to remove an element without raising an error, you can use discard():
+
+# my_set.discard(5)  # Does nothing since 5 is not in the set
+# print(my_set)  # Output: {1, 2, 3}
+
+
+# 3. Set Union
+# The union of two sets combines all the elements from both sets, removing duplicates.
+# You can do this using the | operator or the union() method.
+
+# set_a = {1, 2, 3}
+# set_b = {3, 4, 5}
+
+# union_set = set_a | set_b  # Union using operator
+# print(union_set)  # Output: {1, 2, 3, 4, 5}
+#
+# union_set_method = set_a.union(set_b)  # Union using method
+# print(union_set_method)  # Output: {1, 2, 3, 4, 5}
+
+
+# 4. Set Intersection
+# The intersection of two sets gives you a new set with only the elements that are present in both sets.
+# You can use the & operator or the intersection() method.
+
+# intersection_set = set_a & set_b  # Intersection using operator
+# print(intersection_set)  # Output: {3}
+#
+# intersection_set_method = set_a.intersection(set_b)  # Intersection using method
+# print(intersection_set_method)  # Output: {3}
+
+
+# 5. Set Difference
+# The difference of two sets returns a new set with elements that are in the first set but not in the second.
+# You can use the - operator or the difference() method.
+
+# difference_set = set_a - set_b  # Difference using operator
+# print(difference_set)  # Output: {1, 2}
+#
+# difference_set_method = set_a.difference(set_b)  # Difference using method
+# print(difference_set_method)  # Output: {1, 2}
+
+
+# 6. Set Symmetric Difference
+# The symmetric difference of two sets gives you a new set with elements that are in either of the sets,
+# but not in both.
+# You can use the ^ operator or the symmetric_difference() method.
+
+# symmetric_difference_set = set_a ^ set_b  # Symmetric Difference using operator
+# print(symmetric_difference_set)  # Output: {1, 2, 4, 5}
+#
+# symmetric_difference_set_method = set_a.symmetric_difference(set_b)  # Symmetric Difference using method
+# print(symmetric_difference_set_method)  # Output: {1, 2, 4, 5}
+
+
+# Set Properties
+#
+# Sets are unordered: This means the elements inside the set don’t have a guaranteed order.
+# Sets do not allow duplicates: If you try to add an item that already exists in the set,
+# it will not be added again.
+
+# my_set = {1, 2, 3, 1, 2}
+# print(my_set)  # Output: {1, 2, 3}
+
+# --------------------
+
+# What is a Dictionary?
+# A dictionary is an unordered collection of items in Python, where each item consists of a key-value pair.
+# It is similar to a real-world dictionary where you have a word (the key) and its definition (the value).
+
+# Key Characteristics of Dictionaries:
+#  1. Unordered: The items are stored in no particular order.
+#     However, starting from Python 3.7, dictionaries maintain the insertion order
+#     (the order in which items were added).
+#  2. Key-Value Pairs: Each item in a dictionary is a pair where the key is unique,
+#     and the value can be any data type.
+#  3. Mutable: You can change, add, or remove items from a dictionary after it’s created.
+#  4. Keys are Unique: You cannot have duplicate keys in a dictionary.
+#     If you try to insert a new value for an existing key, the old value will be overwritten.
+#  5. Unhashable Keys: Keys must be of a type that is immutable and hashable (e.g., strings, integers, tuples).
+#     You cannot use mutable types like lists as dictionary keys.
+
+
+# Creating a Dictionary
+# You can create a dictionary using curly braces {} with key-value pairs, separated by a colon :.
+# Alternatively, you can use the dict() constructor.
+
+# Using curly braces
+my_dict = {
+    "name": "mahammad",
+    "surname": "ahmadov",
+    "age": 21,
+}
+
+# Using dict() function
+# another_dict = dict(name="mahammad", surname="ahmadov", age=21)
+
+
+# Accessing Items in a Dictionary
+# You can access dictionary values by referring to the key inside square brackets [] or using the get() method.
+
+# Using square brackets
+# print(my_dict["name"])  # Output: mahammad
+
+# Using get() method
+# print(my_dict.get("age"))  # Output: 21
+
+
+# NOTE:
+# The get() method is useful because it returns None (or a default value you provide) if the key doesn’t exist,
+# instead of raising an error.
+
+# print(my_dict.get("salary", "not found"))
+
+
+# Adding Items to a Dictionary
+# You can add a new key-value pair to a dictionary by simply assigning a value to a new key.
+
+# my_dict["salary"] = 10_000
+# print(my_dict)
+# Output: {'name': 'mahammad', 'surname': 'ahmadov', 'age': 21, 'salary': 10000}
+
+
+# Modifying Items in a Dictionary
+# You can modify an existing value by using its key.
+
+# my_dict["age"] = 20 + 1
+
+
+# Removing Items from a Dictionary
+# There are several ways to remove items from a dictionary:
+
+# 1. Using del: This will remove a key-value pair by key.
+# del my_dict["age"]
+# print(my_dict)  # {'name': 'mahammad', 'surname': 'ahmadov'}
+
+# 2. Using pop(): This method removes the key-value pair by key and returns the value.
+# value = my_dict.pop("age")
+# print(value)  # Output: 21
+# print(my_dict)  # Output: {'name': 'mahammad', 'surname': ahmadov}
+
+# 3. Using popitem(): This removes the last inserted key-value pair (from Python 3.7+) and returns it.
+# item = my_dict.popitem()
+# print(item)  # Output: ('age', 21)
+
+
+# Checking for Keys or Values
+# You can check if a key or value exists in a dictionary using the in keyword.
+
+# Checking if a key exists
+# print("name" in my_dict)  # Output: True
+# print("address" in my_dict)  # Output: False
+#
+# Checking if a value exists
+# print(30 in my_dict.values())  # Output: False
+# print("mahammad" in my_dict.values())  # Output: True
+
+
+# Dictionary Methods
+# Here are some commonly used dictionary methods:
+
+# print(my_dict.keys())  # Output: dict_keys(['name', 'salary'])
+# print(my_dict.values())  # Output: dict_values(['Alice', 50000])
+# print(my_dict.items())  # Output: dict_items([('name', 'Alice'), ('salary', 50000)])
+# another_dict = {"age": 32, "city": "Los Angeles"}
+# my_dict.update(another_dict)
+# print(
+#     my_dict
+# )  # Output: {'name': 'mahammad', 'surname': 'ahmadov', 'age': 32, 'city': 'Los Angeles'}
+
+
+# for key, value in my_dict.items():
+#     print(f"Key: {key}, Value: {value}")
+
+# --------------------------------
+# 1. Understanding List Comprehensions
+# A list comprehension is a more concise way to create lists compared to using loops.
+
+# Basic Structure:
+# [expression for item in iterable]
+
+
+# Example 1: Creating a List of Squares
+# squares = [square**2 for square in range(10)]
+# print(squares)  # [0, 1, 4, 9, 16, 25, 36, 49, 64, 81]
+
+# Equivalent loop:
+# squares = []
+# for x in range(10):
+#     squares.append(x**2)
+
+
+# 2. Adding Conditions (Filtering)
+# You can add an if condition inside a list comprehension.
+
+# Example 2: Even Numbers from 0 to 20
+# even_nums = [num for num in range(21) if num % 2 == 0]
+# print(even_nums)  # [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20]
+
+# Equivalent loop:
+# evens = []
+# for x in range(21):
+#     if x % 2 == 0:
+#         evens.append(x)
+
+
+# 3. Nested Loops in Comprehensions
+# You can use multiple loops inside a list comprehension.
+
+# Example 3: Generating (x, y) pairs
+# pairs = [(x, y) for x in range(3) for y in range(3)]
+# print(pairs)
+
+# for index, value in pairs:
+# print(f"Index: {index} = {value}")  # list of tuples
+
+# [(0, 0), (0, 1), (0, 2), (1, 0), (1, 1), (1, 2), (2, 0), (2, 1), (2, 2)]
+# Index: 0 = 0
+# Index: 0 = 1
+# Index: 0 = 2
+# Index: 1 = 0
+# Index: 1 = 1
+# Index: 1 = 2
+# Index: 2 = 0
+# Index: 2 = 1
+# Index: 2 = 2
+
+
+# 4. Using if-else in List Comprehensions
+# You can include if-else statements inside list comprehensions.
+
+# labels = ["even" if x % 2 == 0 else "odd" for x in range(20)]
+# print(labels)
+
+# ['even', 'odd', 'even', 'odd', 'even', 'odd', 'even', 'odd', 'even', 'odd', 'even', 'odd', 'even', 'odd', 'even', 'odd', 'even', 'odd', 'even', 'odd']
+
+
+# Equivalent loop:
+# labels = []
+# for x in range(10):
+#     if x % 2 == 0:
+#         labels.append("Even")
+#     else:
+#         labels.append("Odd")
+
+
+# Python question from LeetCode
+# nums = [2,7,11,15], target = 9
+# class Solution:
+#     def twoSum(self, nums: List[int], target: int) -> List[int]:
+#         dict = {}
+#         for index, val in enumerate(nums):
+#             subtraction = target - val
+#             if subtraction in dict:
+#                 return [index, dict[subtraction]]
+#             dict[val] = index
+#         return [-1, -1]
+
+
+# 5. Multi-Dimensional Lists (Nested List Comprehensions)
+# You can generate 2D lists using comprehensions.
+
+# Example 5: Creating a 3×3 Matrix Filled with Zeros
+# matrix = [[0 for _ in range(3)] for _ in range(3)]
+# print(matrix)
+
+# matrix[1][2] = 31
+# print(matrix[1][2])  # Accessing row index 1, column index 2
+
+# Equivalent loop:
+# matrix = []
+# for _ in range(3):
+#     row = []
+#     for _ in range(3):
+#         row.append(0)
+#     matrix.append(row)
+
+
+# 6. Dictionary Comprehensions
+# You can create dictionaries using comprehensions.
+
+# squares_dict = {x: x**2 for x in range(5)}
+# print(squares_dict)
+
+# Equivalent loop:
+# squares_dict = {}
+# for x in range(5):
+#     squares_dict[x] = x**2
+
+# Output: {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
