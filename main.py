@@ -773,11 +773,11 @@ import math
 # Alternatively, you can use the dict() constructor.
 
 # Using curly braces
-my_dict = {
-    "name": "mahammad",
-    "surname": "ahmadov",
-    "age": 21,
-}
+# my_dict = {
+#     "name": "mahammad",
+#     "surname": "ahmadov",
+#     "age": 21,
+# }
 
 # Using dict() function
 # another_dict = dict(name="mahammad", surname="ahmadov", age=21)
@@ -1301,3 +1301,24 @@ my_dict = {
 # my_list = MyList([10, 20, 30])
 # my_list[1] = 50
 # print(my_list.data)  # Output: [10, 50, 30]
+
+
+class ListNode:
+    def __init__(self, x):
+        self.val = x
+        self.next = None
+
+
+# Input: head = [3,2,0,-4], pos = 1
+class Solution:
+    def hasCycle(self, head: ListNode) -> bool:
+        memo = set()
+
+        while head != None:
+            if head in memo:
+                return True
+            else:
+                memo.add(head)
+                head = head.next
+
+        return False
