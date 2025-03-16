@@ -975,3 +975,222 @@ my_dict = {
 #     squares_dict[x] = x**2
 
 # Output: {0: 0, 1: 1, 2: 4, 3: 9, 4: 16}
+
+# -------------------------------------------------------
+
+# Understanding *args and **kwargs in Python
+# In Python, *args and **kwargs allow you to pass a variable number of arguments to a function.
+
+
+# 1. *args (Non-Keyword Arguments)
+#
+# *args allows you to send any number of positional arguments to the function.
+# Inside the function, args is treated as a tuple.
+
+
+# def add_numbers(*args):
+#     print(args)  # tuple containing all the arguments
+#     return sum(args)  # sum all numbers
+
+
+# print(add_numbers(1, 2, 3, 4, 5))  # Output: 15
+
+# (1, 2, 3, 4, 5)
+# 15
+
+
+# Iterating Over *args
+
+# def print_names(*args):
+#     for name in args:
+#         print(name)
+
+
+# print_names("mahammad", "ahmadov")
+# Here, 'mahammad' and 'ahmadov' are stored in names as a tuple.
+
+
+# 2. **kwargs (Keyword Arguments)
+#
+# **kwargs allows you to send any number of keyword arguments (key=value) to the function.
+# Inside the function, kwargs is treated as a dictionary.
+
+# def print_info(**kwargs):
+#     print(kwargs)
+#     for key, value in kwargs.items():
+#         print(f"{key}: {value}")
+
+
+# print_info(name="mahammad", age=21)
+
+# Output:
+# {'name': 'mahammad', 'age': 21}
+# name: mahammad
+# age: 21
+
+
+# 3. Unpacking With * and **
+# * and ** can also unpack lists and dictionaries when calling a function.
+
+# 3.1. Unpacking Lists into *args
+
+# def add_numbers(a, b, c):
+#     return a + b + c
+
+
+# numbers = [1, 2, 3]
+# print(add_numbers(*numbers))  # Output: 6
+
+
+# 3.2. Unpacking Dictionaries into **kwargs
+
+# def show_info(name, age, city):
+#     print(f"{name} is {age} years old and lives in {city}")
+
+
+# person = {"name": "mahammad", "age": 21, "city": "sumgait"}
+# show_info(**person)
+
+# ------------------------------------------------------------
+
+# In Python, exceptions are a mechanism for handling errors and other exceptional situations
+# that can occur during the execution of a program.
+# Exceptions allow you to catch and handle errors in a controlled way,
+# preventing your program from crashing abruptly.
+
+
+# Basic Structure of Exceptions
+# Python uses a try...except block to handle exceptions. Here's a simple structure:
+
+# try:
+#     # Code that might raise an exception
+#     x = 1 / 0  # This will raise a ZeroDivisionError
+# # except Exception as e:
+# except ZeroDivisionError as e:
+#     # Code that runs if the exception occurs
+#     print(f"Error: {e}")
+
+
+# Components of Exception Handling
+
+# try block: The code inside the try block is executed. If an error (exception) occurs,
+# the rest of the code in the try block is skipped, and Python moves to the except block.
+
+# except block: If an error occurs in the try block,
+# the program will jump to the corresponding except block to handle the error.
+
+# else block: (Optional) Code inside the else block is executed if no exceptions are raised in the try block.
+
+# finally block: (Optional) Code in the finally block runs no matter what,
+# whether an exception was raised or not.
+# It's typically used for cleanup, like closing files or releasing resources.
+
+# try:
+#     num = int(input("enter a number: "))
+#     result = num / 0
+# except ValueError as ve:
+#     print(f"you should enter a valid number: {ve}")
+# except ZeroDivisionError as ze:
+#     print(f"you can't divide to zero: {ze}")
+# else:
+#     print("code finished without error.")
+# finally:
+#     print("execution complete")
+
+
+# Catching Multiple Exceptions
+# You can catch multiple exceptions in the same try block:
+
+# try:
+#     # Some code that may raise different exceptions
+#     num = int(input("Enter a number: "))
+#     result = 10 / num
+# except (ValueError, ZeroDivisionError) as e:
+#     print(f"Error: {e}")
+# else:
+#     print(f"Result: {round(result, 2)}")
+
+
+# Raising Exceptions
+# You can also raise exceptions manually using the raise keyword.
+# This is useful for custom error handling.
+
+# def divide(x, y):
+#     if y == 0:
+#         raise ZeroDivisionError("you can't divide by zero!")
+#     return x / y
+
+
+# try:
+#     print(divide(10, 0))
+# except ZeroDivisionError as e:
+#     print(f"Error: {e}")
+
+# ---------------------------------------
+
+# 1. Classes in Python
+# A class is a blueprint for creating objects (instances).
+# It defines the properties (variables) and behaviors (methods) that the objects created from the class will have.
+# You can think of a class as a template, and each object is an instance of that class.
+
+
+# Basic Syntax of a Class:
+# class MyClass:
+#     # Constructor method (optional)
+#     def __init__(self, param1, param2):
+#         self.param1 = param1  # Instance variable
+#         self.param2 = param2  # Instance variable
+
+#     # Method (function defined inside a class)
+#     def some_method(self):
+#         print(f"Values are: {self.param1} and {self.param2}")
+
+
+# self: In every method within a class, the first parameter is typically self.
+# It refers to the instance of the object itself.
+# When you call a method on an object,
+# Python automatically passes the object as the first argument to the method.
+
+
+# Creating an Object (Instance) of the Class:
+# class Person:
+#     def __init__(self, name, age):
+#         self.name = name
+#         self.age = age
+
+#     def introduce(self):
+#         print(f"Hi, I am {self.name} and I am {self.age} years old.")
+
+
+# me = Person("mahammad", 21)
+# me.introduce()
+
+
+# Accessing and Modifying Object Attributes:
+
+
+# class Car:
+#     def __init__(self, make, model, year):
+#         self.make = make
+#         self.model = model
+#         self.year = year
+
+#     def display_info(self):
+#         print(f"Car info: {self.year} {self.make} {self.model}")
+
+
+# car1 = Car("Toyota", "Camry", 2021)
+# car1.display_info()  # Output: Car info: 2021 Toyota Camry
+# print(car1.make)  # Output: Toyota
+
+# # Modifying an attribute
+# car1.year = 2022
+# print(car1.year)  # Output: 2022
+
+
+# 2. Dunder Methods (Special Methods)
+# Now that you understand the basic concept of classes, let's discuss the dunder methods
+# (methods that begin and end with double underscores).
+
+# These are special methods that Python automatically calls under specific circumstances,
+# and they allow you to define the behavior of your objects in certain situations.
