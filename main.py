@@ -1,5 +1,9 @@
 import re
 import math
+from leetcode import Solution
+
+# from leetcode import ListNode
+
 
 # firstName = "mahammad"
 # print(f"hello, {firstName}")
@@ -931,19 +935,6 @@ import math
 #         labels.append("Odd")
 
 
-# Python question from LeetCode
-# nums = [2,7,11,15], target = 9
-# class Solution:
-#     def twoSum(self, nums: List[int], target: int) -> List[int]:
-#         dict = {}
-#         for index, val in enumerate(nums):
-#             subtraction = target - val
-#             if subtraction in dict:
-#                 return [index, dict[subtraction]]
-#             dict[val] = index
-#         return [-1, -1]
-
-
 # 5. Multi-Dimensional Lists (Nested List Comprehensions)
 # You can generate 2D lists using comprehensions.
 
@@ -1302,23 +1293,10 @@ import math
 # my_list[1] = 50
 # print(my_list.data)  # Output: [10, 50, 30]
 
+solution = Solution()
 
-class ListNode:
-    def __init__(self, x):
-        self.val = x
-        self.next = None
+num1 = [1, 2, 3, 0, 0, 0]
+solution.merge(num1, 3, [2, 5, 6], 3)
 
-
-# Input: head = [3,2,0,-4], pos = 1
-class Solution:
-    def hasCycle(self, head: ListNode) -> bool:
-        memo = set()
-
-        while head != None:
-            if head in memo:
-                return True
-            else:
-                memo.add(head)
-                head = head.next
-
-        return False
+for num in num1:
+    print(num)
