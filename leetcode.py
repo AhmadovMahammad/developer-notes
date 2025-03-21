@@ -54,7 +54,7 @@ class Solution:
     # Input: nums = [0,0,1,1,1,2,2,3,3,4]
     # Output: 5, nums = [0,1,2,3,4,_,_,_,_,_]
     def removeDuplicates(self, nums: List[int]) -> int:
-        my_set = set([])
+        my_set = set()
         left = 0
 
         for index, value in enumerate(nums):
@@ -64,3 +64,33 @@ class Solution:
                 my_set.add(value)
 
         return left
+
+    def removeDuplicates_II(self, nums: List[int]) -> int:
+        my_dict = dict()
+        left = 0
+
+        for index, value in enumerate(nums):
+            if value not in my_dict or (_ := my_dict.get(value)) == 1:
+                (nums[left], nums[index]) = (nums[index], nums[left])
+                left += 1
+
+                my_dict.setdefault(value, 0)
+                my_dict[value] += 1
+
+        return left
+
+    def majorityElement(self, nums: List[int]) -> int:
+        my_dict = dict()
+
+        for num in nums:
+            my_dict.setdefault(num, 0)
+            my_dict[num] += 1
+
+        return max(my_dict, key=my_dict.get)
+
+    # list1 = nums[-3:]
+    # list2 = nums[: len(nums) - k]
+    def rotate(self, nums: List[int], k: int) -> None:
+        length = len(nums)
+        k %= length
+        nums[::] = nums[-k:] + nums[:-k]

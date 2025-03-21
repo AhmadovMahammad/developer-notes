@@ -1292,3 +1292,24 @@ from leetcode import Solution
 # my_list = MyList([10, 20, 30])
 # my_list[1] = 50
 # print(my_list.data)  # Output: [10, 50, 30]
+
+solution = Solution()
+
+nums = [1, 2, 3, 4, 5, 6, 7]
+# max_key = max(nums, key=lambda p: p - 10)
+# print(max_key)
+
+# response = solution.removeDuplicates_II(nums)
+# print(f"response: {response}")
+
+# words = ["apple", "banana", "cherry", "date"]
+# longest_word = max(words, key=len)
+# print(longest_word)  # Output: 'banana'
+
+
+# list1 = nums[-3:]
+# list2 = nums[: len(nums) - k]
+# list3 = [list1.extend(list2)]
+
+# nums[::] = nums[-k:] + nums[:-k]
+# print(nums)
