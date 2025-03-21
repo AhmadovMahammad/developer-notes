@@ -50,3 +50,17 @@ class Solution:
             nums1[end] = nums2[n - 1]
             end -= 1
             n -= 1
+
+    # Input: nums = [0,0,1,1,1,2,2,3,3,4]
+    # Output: 5, nums = [0,1,2,3,4,_,_,_,_,_]
+    def removeDuplicates(self, nums: List[int]) -> int:
+        my_set = set([])
+        left = 0
+
+        for index, value in enumerate(nums):
+            if value not in my_set:
+                (nums[left], nums[index]) = (nums[index], nums[left])
+                left += 1
+                my_set.add(value)
+
+        return left

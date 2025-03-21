@@ -1292,11 +1292,3 @@ from leetcode import Solution
 # my_list = MyList([10, 20, 30])
 # my_list[1] = 50
 # print(my_list.data)  # Output: [10, 50, 30]
-
-solution = Solution()
-
-num1 = [1, 2, 3, 0, 0, 0]
-solution.merge(num1, 3, [2, 5, 6], 3)
-
-for num in num1:
-    print(num)
