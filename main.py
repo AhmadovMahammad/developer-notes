@@ -1294,8 +1294,18 @@ from leetcode import Solution
 # print(my_list.data)  # Output: [10, 50, 30]
 
 solution = Solution()
+prices = [7, 6, 4, 3, 1]
+n = len(prices)
 
-nums = [1, 2, 3, 4, 5, 6, 7]
+for i in range(n):
+    for j in range(i + 1, n):
+        print(f"[{i}:{j}]")
+    print(end="\n")
+
+print(solution.maxProfit(prices))
+
+
+# nums = [1, 2, 3, 4, 5, 6, 7]
 # max_key = max(nums, key=lambda p: p - 10)
 # print(max_key)
 

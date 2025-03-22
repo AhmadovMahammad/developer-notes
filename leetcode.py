@@ -94,3 +94,31 @@ class Solution:
         length = len(nums)
         k %= length
         nums[::] = nums[-k:] + nums[:-k]
+
+    # [7, 6, 4, 3, 1] - time limit exceed exception
+    # [7, 1, 5, 3, 6, 4]
+    def maxProfit(self, prices: List[int]) -> int:
+        (min_price, max_price) = (float("inf"), 0)
+        max_profit = 0
+        n = len(prices)
+
+        for i in range(n):
+            min_price = min(min_price, prices[i])
+            max_price = 0
+
+            for j in range(i + 1, n):
+                max_price = max(max_price, prices[j])
+
+            max_profit = max(max_profit, max_price - min_price)
+
+        return max_profit
+
+    def maxProfit_II(self, prices: List[int]) -> int:
+        min_price = float("inf")
+        max_profit = 0
+
+        for price in prices:
+            min_price = min(min_price, price)
+            max_profit = max(max_profit, price - min_price)
+
+        return max_profit
