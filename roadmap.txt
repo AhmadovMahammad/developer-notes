@@ -70,11 +70,11 @@ Date: 09/12/2024 (MM/DD/YYYY)
         4.1.2. SQL Fundamentals
             SELECT, FROM, WHERE                                                             +
             GROUP BY, HAVING, ORDER BY, DISTINCT                                            +
-            Joins (INNER, LEFT, RIGHT, FULL, CROSS, SELF)
+            Joins (INNER, LEFT, RIGHT, FULL, CROSS, SELF)                                   +
             Subqueries and Common Table Expressions (CTEs)
             INSERT, UPDATE, DELETE, MERGE (UPSERT)
             Transactions (BEGIN TRANSACTION, COMMIT, ROLLBACK, Savepoints)
-            Indexing (Clustered vs. Non-clustered, B-Tree structure, execution plans)
+            Indexing (Clustered vs. Non-clustered, B-Tree structure, execution plans)       +
             Stored Procedures, Functions, and Triggers
             Views and Materialized Views
             Cursors and Loops (performance considerations)
@@ -95,7 +95,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 5. Advanced Topics and Tools
 
-	5.1. Containers & Docker (Junior Level)                                                         +
+	5.1. Containers & Docker (Junior Level)
 	5.2. CI/CD Pipeline (Junior to Mid-Level) 
 	5.3. Monitoring / Alerting / Logging (Junior to Mid-Level)  
 	5.4. Microservices (Mid-Level)  

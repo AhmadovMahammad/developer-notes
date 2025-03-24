@@ -1,162 +1,302 @@
--- Create CUSTOMER table
-CREATE TABLE CUSTOMER (
-    CUSTOMER_ID INT PRIMARY KEY,
-    CUSTOMER_NAME VARCHAR(100),
-    CONTACT_NAME VARCHAR(100),
-    EMAIL VARCHAR(100),
-    PHONE VARCHAR(20),
-    ADDRESS VARCHAR(200)
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    FirstName VARCHAR(100),
+    LastName VARCHAR(100),
+    DepartmentID INT,
+    Salary DECIMAL
 );
 
--- Create CUSTOMER_ORDER table
-CREATE TABLE CUSTOMER_ORDER (
-    ORDER_ID INT PRIMARY KEY,
-    CUSTOMER_ID INT,
-    ORDER_DATE DATE,
-    TOTAL_AMOUNT DECIMAL(10,2),
-    STATUS VARCHAR(20),
-    SHIPPING_ADDRESS VARCHAR(200),
-    FOREIGN KEY (CUSTOMER_ID) REFERENCES CUSTOMER(CUSTOMER_ID)
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY,
+    DepartmentName VARCHAR(100)
 );
 
--- Insert data into CUSTOMER table
-INSERT INTO CUSTOMER (CUSTOMER_ID, CUSTOMER_NAME, CONTACT_NAME, EMAIL, PHONE, ADDRESS)
-VALUES 
-(1, 'Acme Corporation', 'John Smith', 'john@acme.com', '555-1234', '123 Main St'),
-(2, 'TechSolutions Inc', 'Sarah Johnson', 'sarah@techsolutions.com', '555-5678', '456 Tech Blvd'),
-(3, 'Re-Barre Construction', 'Robert Brown', 'robert@rebarre.com', '555-9012', '789 Builder Ave'),
-(4, 'Global Traders', 'Emma Wilson', 'emma@globaltraders.com', '555-3456', '101 Trade Center'),
-(5, 'Fresh Foods Market', 'Michael Davis', 'michael@freshfoods.com', '555-7890', '202 Grocery Lane');
+DELETE FROM Employees
+DELETE FROM Departments
 
--- Insert data into CUSTOMER_ORDER table
-INSERT INTO CUSTOMER_ORDER (ORDER_ID, CUSTOMER_ID, ORDER_DATE, TOTAL_AMOUNT, STATUS, SHIPPING_ADDRESS)
-VALUES 
-(101, 1, '2023-01-15', 1250.99, 'Delivered', '123 Main St'),
-(102, 2, '2023-01-20', 876.50, 'Shipped', '456 Tech Blvd'),
-(103, 3, '2023-01-25', 2340.00, 'Processing', '789 Builder Ave'),
-(104, 3, '2023-02-05', 1875.25, 'Shipped', '789 Builder Ave'),
-(105, 3, '2023-02-12', 945.75, 'Delivered', '789 Builder Ave'),
-(106, 4, '2023-02-18', 1568.30, 'Processing', '101 Trade Center'),
-(107, 1, '2023-02-22', 2250.00, 'Processing', '123 Main St'),
-(108, 5, '2023-03-01', 780.40, 'Shipped', '202 Grocery Lane'),
-(109, 2, '2023-03-05', 1340.60, 'Processing', '456 Tech Blvd'),
-(110, 4, '2023-03-10', 2680.15, 'Pending', '101 Trade Center');
+INSERT INTO Employees (EmployeeID, FirstName, LastName, DepartmentID, Salary)
+VALUES
+(1, 'Mahammad', 'Ahmadov', 1, 50000),
+(2, 'Aysel', 'Mammadova', 2, 60000),
+(3, 'Ramin', 'Isayev', 1, 45000),
+(4, 'Leyla', 'Aliyeva', 3, 70000),
+(5, 'Nigar', 'Guliyeva', 2, 55000),
+(6, 'Wrong', 'Data', 12, 80000);
+
+INSERT INTO Departments (DepartmentID, DepartmentName)
+VALUES
+(1, 'HR'),
+(2, 'Finance'),
+(3, 'Engineering'),
+(4, 'None');
 
 
-SELECT
-    SUM(TOTAL_AMOUNT) AS [Total Amount Per Date]
-FROM CUSTOMER_ORDER
-GROUP BY ORDER_DATE;
 
-/* What is a Join?
-A join in SQL allows you to combine rows from two or more tables based on a related column between them. 
-In our example, the CUSTOMER_ID is the column that relates the CUSTOMER and CUSTOMER_ORDER tables.
+/* 1. Creating Tables and Inserting Data
 
+Let's start by creating two tables, Employees and Departments, and inserting some data into them. 
+This will help us demonstrate the joins.
 
--- Parent-Child Relationship
-In our example:
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    FirstName VARCHAR(100),
+    LastName VARCHAR(100),
+    DepartmentID INT,
+    Salary DECIMAL
+);
 
-CUSTOMER is the parent table
-CUSTOMER_ORDER is the child table
+CREATE TABLE Departments (
+    DepartmentID INT PRIMARY KEY,
+    DepartmentName VARCHAR(100)
+);
 
-This is because CUSTOMER_ORDER depends on CUSTOMER for information - it uses the CUSTOMER_ID to reference customer details. 
-The parent table doesn't depend on the child table for any information.
+INSERT INTO Employees (EmployeeID, FirstName, LastName, DepartmentID, Salary)
+VALUES
+(1, 'Mahammad', 'Ahmadov', 1, 50000),
+(2, 'Aysel', 'Mammadova', 2, 60000),
+(3, 'Ramin', 'Isayev', 1, 45000),
+(4, 'Leyla', 'Aliyeva', 3, 70000),
+(5, 'Nigar', 'Guliyeva', 2, 55000),
+(6, 'Wrong', 'Data', 12, 80000);
 
-
--- One-to-Many Relationship
-The example illustrates a one-to-many relationship:
-
-One customer can have multiple orders
-Each order belongs to exactly one customer
-
-In our data, customer "Re-Barre Construction" (CUSTOMER_ID 3) has three orders (ORDER_ID 103, 104, and 105).
-
-
--- Why Joins Matter
-Without joins, you would need to:
-
-- Query the CUSTOMER_ORDER table to get order information
-- For each order, make a separate query to the CUSTOMER table to get customer details
-- Manually combine this information
-
-Here's a simple explanation of how you would retrieve and combine information from `CUSTOMER_ORDER` and `CUSTOMER` tables without using a JOIN:
-### Step 1: Query the CUSTOMER_ORDER table
-
-First, you would retrieve order information:
-SELECT * FROM CUSTOMER_ORDER WHERE ORDER_ID = 103;
-
-This returns a row with order details:
-```
-ORDER_ID: 103
-CUSTOMER_ID: 3
-ORDER_DATE: 2023-01-25
-TOTAL_AMOUNT: 2340.00
-STATUS: Processing
-SHIPPING_ADDRESS: 789 Builder Ave
-```
-
-### Step 2: Make a separate query to the CUSTOMER table
-Now you need to look up the customer information using the CUSTOMER_ID (3) from the first query:
-SELECT * FROM CUSTOMER WHERE CUSTOMER_ID = 3;
-
-This returns:
-```
-CUSTOMER_ID: 3
-CUSTOMER_NAME: Re-Barre Construction
-CONTACT_NAME: Robert Brown
-EMAIL: robert@rebarre.com
-PHONE: 555-9012
-ADDRESS: 789 Builder Ave
-```
-
-### Step 3: Manually combine the information
-Finally, you'd combine these results, either in your application code or in a report:
-
-```
-ORDER_ID: 103
-ORDER_DATE: 2023-01-25
-TOTAL_AMOUNT: 2340.00
-STATUS: Processing
-SHIPPING_ADDRESS: 789 Builder Ave
-CUSTOMER_NAME: Re-Barre Construction
-CONTACT_NAME: Robert Brown
-EMAIL: robert@rebarre.com
-PHONE: 555-9012
-```
-
-This manual process is inefficient because:
-1. It requires multiple database queries
-2. The application needs to handle the data combination logic
-3. It becomes extremely cumbersome when dealing with multiple orders
-
-This is exactly why JOINs were created - to handle this relationship in a single query rather than through multiple separate queries.
-Joins allow you to retrieve all this related information in a single query, making data retrieval much more efficient.
-
-
--- Basic JOIN Syntax
-Here's how you would join these two tables:
-
-SELECT *
-FROM CUSTOMER
-JOIN CUSTOMER_ORDER ON CUSTOMER_ORDER.CUSTOMER_ID = CUSTOMER.CUSTOMER_ID
-
-This query will return all columns from both tables where the CUSTOMER_ID matches, 
-effectively giving you a complete picture of each order with its associated customer information.
-
-CUSTOMER_ID	CUSTOMER_NAME	CONTACT_NAME	EMAIL	PHONE	ADDRESS	ORDER_ID	CUSTOMER_ID	ORDER_DATE	TOTAL_AMOUNT	STATUS	SHIPPING_ADDRESS
-1	Acme Corporation	John Smith	john@acme.com	555-1234	123 Main St	101	1	2023-01-15	1250.99	Delivered	123 Main St
-2	TechSolutions Inc	Sarah Johnson	sarah@techsolutions.com	555-5678	456 Tech Blvd	102	2	2023-01-20	876.50	Shipped	456 Tech Blvd
-3	Re-Barre Construction	Robert Brown	robert@rebarre.com	555-9012	789 Builder Ave	103	3	2023-01-25	2340.00	Processing	789 Builder Ave
-3	Re-Barre Construction	Robert Brown	robert@rebarre.com	555-9012	789 Builder Ave	104	3	2023-02-05	1875.25	Shipped	789 Builder Ave
-3	Re-Barre Construction	Robert Brown	robert@rebarre.com	555-9012	789 Builder Ave	105	3	2023-02-12	945.75	Delivered	789 Builder Ave
-4	Global Traders	Emma Wilson	emma@globaltraders.com	555-3456	101 Trade Center	106	4	2023-02-18	1568.30	Processing	101 Trade Center
-1	Acme Corporation	John Smith	john@acme.com	555-1234	123 Main St	107	1	2023-02-22	2250.00	Processing	123 Main St
-5	Fresh Foods Market	Michael Davis	michael@freshfoods.com	555-7890	202 Grocery Lane	108	5	2023-03-01	780.40	Shipped	202 Grocery Lane
-2	TechSolutions Inc	Sarah Johnson	sarah@techsolutions.com	555-5678	456 Tech Blvd	109	2	2023-03-05	1340.60	Processing	456 Tech Blvd
-4	Global Traders	Emma Wilson	emma@globaltraders.com	555-3456	101 Trade Center	110	4	2023-03-10	2680.15	Pending	101 Trade Center
+INSERT INTO Departments (DepartmentID, DepartmentName)
+VALUES
+(1, 'HR'),
+(2, 'Finance'),
+(3, 'Engineering'),
+(4, 'None');
 
 */
 
-SELECT *
-FROM CUSTOMER
-JOIN CUSTOMER_ORDER ON CUSTOMER_ORDER.CUSTOMER_ID = CUSTOMER.CUSTOMER_ID
+/* 2. Joins: Explanation
+Now that we have our data, let's go over the types of SQL Joins and explain them in simple terms.
+
+
+
+2.1. INNER JOIN
+
+Definition: An INNER JOIN returns only the rows where there is a match in both tables.
+Example: We want to find the employees and the departments they work in, 
+but we only want employees that are assigned to a department.
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+INNER JOIN Departments d
+ON e.DepartmentID = d.DepartmentID
+
+SELECT Employees.FirstName, Employees.LastName, Employees.Salary, Departments.DepartmentName
+FROM Employees
+INNER JOIN Departments
+ON Employees.DepartmentID = Departments.DepartmentID
+
+FirstName	LastName	Salary	DepartmentName
+Mahammad	Ahmadov	    50000	HR
+Aysel	    Mammadova	60000	Finance
+Ramin	    Isayev	    45000	HR
+Leyla	    Aliyeva	    70000	Engineering
+Nigar	    Guliyeva	55000	Finance
+
+Explanation: This query will return the employees along with their department names, 
+but only for those employees who have a valid DepartmentID (i.e., those who belong to a department). 
+Employees who don't belong to a department will be excluded.
+
+
+
+2.2. LEFT JOIN (or LEFT OUTER JOIN)
+
+Definition: A LEFT JOIN returns all rows from the left table and the matching rows from the right table. 
+If there is no match, the result is NULL for columns from the right table.
+
+Example: We want to list all employees and their departments, including those who are not assigned to a department.
+
+SELECT Employees.FirstName, Employees.LastName, Employees.Salary, Departments.DepartmentName
+FROM Employees
+LEFT JOIN Departments
+ON Employees.DepartmentID = Departments.DepartmentID
+
+
+FirstName	LastName	Salary	DepartmentName
+Mahammad	Ahmadov	    50000	HR
+Aysel	    Mammadova	60000	Finance
+Ramin	    Isayev	    45000	HR
+Leyla	    Aliyeva	    70000	Engineering
+Nigar	    Guliyeva	55000	Finance
+Wrong	    Data	    80000	NULL ---------------> this employee is not belong to any of departmens, 
+                                                      so department name is null
+
+Explanation: This will return all employees. 
+If an employee does not belong to a department, the DepartmentName will show as NULL.
+
+
+
+2.3. RIGHT JOIN (or RIGHT OUTER JOIN)
+
+Definition: A RIGHT JOIN returns all rows from the right table and the matching rows from the left table. 
+If there is no match, the result is NULL for columns from the left table.
+
+Example: We want to list all departments and the employees in those departments, including departments that do not have any employees.
+
+SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
+FROM Employees
+RIGHT JOIN Departments
+ON Employees.DepartmentID = Departments.DepartmentID;
+
+FirstName	LastName	Salary	DepartmentName
+Mahammad	Ahmadov	    50000	HR
+Ramin	    Isayev	    45000	HR
+Aysel	    Mammadova	60000	Finance
+Nigar	    Guliyeva	55000	Finance
+Leyla	    Aliyeva	    70000	Engineering
+NULL	    NULL	    NULL	None
+
+Explanation: This will return all departments. 
+If a department has no employees, the FirstName, LastName and Salary will be NULL.
+
+
+
+2.4. FULL JOIN (or FULL OUTER JOIN)
+
+Definition: A FULL JOIN returns all rows when there is a match in either the left or the right table. If there is no match, the result is NULL from the side that has no match.
+Example: We want to list all employees and all departments, including employees who don't belong to any department and departments with no employees.
+
+SELECT Employees.FirstName, Employees.LastName, Departments.DepartmentName
+FROM Employees
+FULL JOIN Departments
+ON Employees.DepartmentID = Departments.DepartmentID;
+
+Explanation: This will return all employees and all departments. 
+If an employee does not belong to a department, the DepartmentName will be NULL. 
+Similarly, if a department has no employees, the FirstName and LastName will be NULL.
+
+How FULL JOIN Works Internally
+
+2.4.1. Start with LEFT JOIN rows
+
+Includes all rows from the left table (Employees), with matched values from the right table (Departments).
+If no match is found, NULL is placed in the right table's columns.
+
+2.4.2. Add RIGHT JOIN rows that were missing
+
+Includes all rows from the right table (Departments) that were not already included from the LEFT JOIN.
+If no match is found, NULL is placed in the left table's columns.
+
+
+
+2.5. CROSS JOIN
+
+Definition: A CROSS JOIN returns the Cartesian product of two tables, i.e., 
+it returns all possible combinations of rows from the two tables. 
+Be careful with this one because it can return a huge number of results.
+
+Example: Let's combine every employee with every department.
+
+SELECT Employees.FirstName, Employees.LastName, Employees.Salary, Departments.DepartmentName
+FROM Employees
+CROSS JOIN Departments;
+
+FirstName	LastName	Salary	DepartmentName
+Mahammad	Ahmadov	    50000	HR
+Aysel	    Mammadova	60000	HR
+Ramin	    Isayev	    45000	HR
+Leyla	    Aliyeva	    70000	HR
+Nigar	    Guliyeva	55000	HR
+Wrong	    Data	    80000	HR
+Mahammad	Ahmadov	    50000	Finance
+Aysel	    Mammadova	60000	Finance
+Ramin	    Isayev	    45000	Finance
+Leyla	    Aliyeva	    70000	Finance
+Nigar	    Guliyeva	55000	Finance
+Wrong	    Data	    80000	Finance
+Mahammad	Ahmadov	    50000	Engineering
+Aysel	    Mammadova	60000	Engineering
+Ramin	    Isayev	    45000	Engineering
+Leyla	    Aliyeva	    70000	Engineering
+Nigar	    Guliyeva	55000	Engineering
+Wrong	    Data	    80000	Engineering
+Mahammad	Ahmadov	    50000	None
+Aysel	    Mammadova	60000	None
+Ramin	    Isayev	    45000	None
+Leyla	    Aliyeva	    70000	None
+Nigar	    Guliyeva	55000	None
+Wrong	    Data	    80000	None
+
+Explanation: This will return every combination of employees and departments. 
+For example, if there are 5 employees and 3 departments, this query will return 15 rows (5 * 3).
+
+
+2.5.1. Why Use CROSS JOIN?
+At first glance, CROSS JOIN might seem useless because it does not use a joining condition and returns a Cartesian product 
+(every row from the first table is combined with every row from the second table). 
+However, it has real-world use cases.
+
+2.5.2. When CROSS JOIN Is Useful?
+
+- Generating All Possible Combinations (Cartesian Product)
+Example: If you want to pair every employee with every department, regardless of their actual assignment.
+Useful in scenario modeling or testing combinations.
+
+- Combinations in Scheduling or Assignments
+Example: Pairing all students with all available courses.
+Example: Generating all possible shifts for employees in different departments.
+
+
+
+2.6. SELF JOIN
+
+Definition: A SELF JOIN is when a table is joined with itself. 
+This is useful when a table has hierarchical data, such as employees who have managers.
+
+Example: Suppose we add a column ManagerID to the Employees table that refers to another EmployeeID, representing their manager.
+
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY,
+    FirstName VARCHAR(100),
+    LastName VARCHAR(100),
+    DepartmentID INT,
+    Salary DECIMAL,
+    ManagerID INT
+);
+
+-- Insert data with manager relationships
+INSERT INTO Employees (EmployeeID, FirstName, LastName, DepartmentID, Salary, ManagerID)
+VALUES
+(1, 'Mahammad', 'Ahmadov', 1, 50000, NULL),
+(2, 'Aysel', 'Mammadova', 2, 60000, 1),
+(3, 'Ramin', 'Isayev', 1, 45000, 1),
+(4, 'Leyla', 'Aliyeva', 3, 70000, NULL),
+(5, 'Nigar', 'Guliyeva', 2, 55000, 2);
+
+-- Self Join Example
+SELECT E1.FirstName AS Employee, E2.FirstName AS Manager
+FROM Employees E1
+LEFT JOIN Employees E2
+ON E1.ManagerID = E2.EmployeeID;
+
+Explanation: This query returns a list of employees and their managers. 
+If an employee doesn’t have a manager (e.g., John or Alice), the Manager column will be NULL.
+
+*/
+
+SELECT Employees.FirstName, Employees.LastName, Employees.Salary, Departments.DepartmentName
+FROM Employees
+INNER JOIN Departments
+ON Employees.DepartmentID = Departments.DepartmentID
+
+SELECT Employees.FirstName, Employees.LastName, Employees.Salary, Departments.DepartmentName
+FROM Employees
+LEFT JOIN Departments
+ON Employees.DepartmentID = Departments.DepartmentID
+
+SELECT Employees.FirstName, Employees.LastName, Employees.Salary, Departments.DepartmentName
+FROM Employees
+RIGHT JOIN Departments
+ON Employees.DepartmentID = Departments.DepartmentID
+
+SELECT Employees.FirstName, Employees.LastName, Employees.Salary, Departments.DepartmentName
+FROM Employees
+FULL JOIN Departments
+ON Employees.DepartmentID = Departments.DepartmentID;
+
+SELECT Employees.FirstName, Employees.LastName, Employees.Salary, Departments.DepartmentName
+FROM Employees
+CROSS JOIN Departments;
