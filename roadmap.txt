@@ -71,7 +71,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
             SELECT, FROM, WHERE                                                             +
             GROUP BY, HAVING, ORDER BY, DISTINCT                                            +
             Joins (INNER, LEFT, RIGHT, FULL, CROSS, SELF)                                   +
-            Subqueries and Common Table Expressions (CTEs)
+            Subqueries and Common Table Expressions (CTEs)                                  +
             INSERT, UPDATE, DELETE, MERGE (UPSERT)
             Transactions (BEGIN TRANSACTION, COMMIT, ROLLBACK, Savepoints)
             Indexing (Clustered vs. Non-clustered, B-Tree structure, execution plans)       +
