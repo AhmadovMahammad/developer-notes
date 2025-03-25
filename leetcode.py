@@ -122,3 +122,13 @@ class Solution:
             max_profit = max(max_profit, price - min_price)
 
         return max_profit
+
+    def maxProfit_Medium(self, prices: List[int]) -> int:
+        max_profit = 0
+        n = len(prices)
+
+        for day_index in range(1, n):
+            if prices[day_index] > prices[day_index - 1]:
+                max_profit += prices[day_index] - prices[day_index - 1]
+
+        return max_profit
