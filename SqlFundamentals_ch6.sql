@@ -89,8 +89,9 @@ The outer query then filters to show only departments with more than 1 employees
 
 SELECT Employees.FirstName, Employees.LastName, Employees.Salary
 FROM Employees
-WHERE Employees.DepartmentID = (
-SELECT DepartmentID FROM Departments WHERE Departments.DepartmentName = 'Engineering'
+WHERE Employees.DepartmentID = 
+(
+	SELECT DepartmentID FROM Departments WHERE Departments.DepartmentName = 'Engineering'
 )
 
 
@@ -259,19 +260,6 @@ INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES
 INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (3, 'Rauf', 'Aliyev', 1);
 INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (4, 'Nigar', 'Mammadova', 2);
 INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (5, 'Elvin', 'Mammadov', 2);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (6, 'Nijat', 'Ismailov', 2);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (7, 'Lala', 'Zeynalova', 3);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (8, 'Tural', 'Novruzov', 3);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (9, 'Gunel', 'Mahmudova', 3);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (10, 'Javid', 'Rzayev', 4);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (11, 'Fidan', 'Sultanova', 4);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (12, 'Samir', 'Abbasov', 4);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (13, 'Elvira', 'Guliyeva', 5);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (14, 'Rashad', 'Huseynov', 5);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (15, 'Kamran', 'Jafarov', 5);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (16, 'Zeynab', 'Mammadova', 6);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (17, 'Fikrat', 'Yusifov', 6);
-INSERT INTO SpecialEmployees (EmployeeID, FirstName, LastName, ManagerID) VALUES (18, 'Amina', 'Aliyeva', 6);
 
 WITH RecursiveCTE AS 
 (
@@ -289,3 +277,121 @@ WITH RecursiveCTE AS
 	ON e.ManagerID = r.EmployeeID
 )
 SELECT * FROM RecursiveCTE;
+
+/* Union and Union All
+
+When working with databases, sometimes we need to merge the results of multiple queries into a single result set. 
+This is where UNION and UNION ALL come into play. 
+They allow combining the outputs of multiple SELECT statements into one dataset. 
+However, they behave differently, which makes understanding them crucial for performance and accuracy.
+
+Let's start with UNION. When two SELECT queries are joined using UNION, SQL ensures that the final result contains only distinct rows. 
+This means that even if the same row appears in both queries, it will only be included once in the final output. 
+SQL automatically removes duplicates, just like applying DISTINCT.
+
+On the other hand, UNION ALL does not perform this duplicate removal. 
+It simply stacks the results of multiple SELECT statements, keeping every row, even if there are duplicates. 
+This makes UNION ALL faster because SQL does not need to check for and remove duplicate rows.
+
+---
+
+To understand this better, consider a simple table named Employees. 
+Suppose we have two different queries—one that selects employees from the IT department 
+and another that selects employees from the HR department.
+
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'Finance'
+
+UNION
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'HR'
+
+
+FirstName	LastName	Salary	DepartmentName
+Aysel		Mammadova	60000	Finance
+Mahammad	Ahmadov		50000	HR
+Nigar		Guliyeva	55000	Finance
+Ramin		Isayev		45000	HR
+
+With UNION, if the same employee exists in both departments (which could happen in a system that allows multiple assignments), 
+that employee will appear only once in the final output.
+
+Now, if we use UNION ALL, SQL will not check for duplicates. 
+It will return every row from both queries, even if they are identical.
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'Finance'
+
+UNION ALL
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'HR'
+
+This version will include all employees from both departments without removing duplicates.
+
+---
+
+To dive deeper into how this works internally, SQL processes UNION by first executing both SELECT statements separately. 
+Then, before returning the result, it sorts and removes duplicates. 
+This extra step of sorting and filtering requires additional computational effort, 
+which is why UNION can be slower.
+
+With UNION ALL, the process is much simpler. 
+SQL executes both SELECT queries and immediately returns all rows without any further processing. 
+Because of this, UNION ALL is more efficient in scenarios where duplicates do not need to be removed.
+
+Imagine a case where a company maintains multiple employee records for different job contracts. 
+If someone works in both IT and HR under different contracts, 
+using UNION would hide this fact, while UNION ALL would preserve the complete data.
+
+When deciding between the two, the key question is whether duplicate rows matter. 
+If they do, UNION is necessary. 
+If they do not and performance is a concern, UNION ALL is the better choice.
+
+
+NOTE: UNION and UNION ALL work on queries that return the same number of columns, 
+and those columns must have compatible data types. 
+The order of execution follows a structured approach.
+
+1. If there are two queries in the UNION, they each execute independently.
+2. Each query's result is sorted to identify duplicate rows within itself before merging.
+3. After sorting, the queries are combined into a single result set.
+4. Once merged, SQL ensures that the final result contains only distinct rows, 
+   removing any duplicates that exist across queries.
+
+*/
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'Finance'
+
+UNION
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'HR'
+
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'Finance'
+
+UNION ALL
+
+SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName 
+FROM Employees e
+LEFT JOIN Departments d ON e.DepartmentID = d.DepartmentID 
+WHERE d.DepartmentName = 'HR'

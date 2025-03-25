@@ -71,6 +71,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
             SELECT, FROM, WHERE                                                             +
             GROUP BY, HAVING, ORDER BY, DISTINCT                                            +
             Joins (INNER, LEFT, RIGHT, FULL, CROSS, SELF)                                   +
+            UNION and UNION ALL                                                             +
             Subqueries and Common Table Expressions (CTEs)                                  +
             INSERT, UPDATE, DELETE, MERGE (UPSERT)
             Transactions (BEGIN TRANSACTION, COMMIT, ROLLBACK, Savepoints)
