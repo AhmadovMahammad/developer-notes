@@ -268,3 +268,181 @@ CREATE TABLE Presentation_Attendance (
 )
 
 
+
+/* What is the MERGE Statement?
+
+The MERGE statement in SQL is used to perform 
+1. insert, 2. update, and 3. delete operations on a target table based on a source table's data. 
+The idea is to merge the data from the source table into the target table in a single operation. 
+
+This can be really useful when you're dealing with two tables that should be synchronized, 
+but you don't want to write separate INSERT, UPDATE, and DELETE queries.
+
+
+
+--- Why Would Someone Need MERGE?
+
+Imagine you are dealing with two tables: 
+1. one that holds the current state of data, and 2. another that holds updates or new data.
+
+The common scenario where you'd use MERGE is when you're importing new data
+or updating an existing table based on changes or additions made in another table.
+
+Here’s an example of when you might need to use MERGE:
+
+1. Synchronizing Data: 
+
+You might have an existing table (say, Employees) and a new table (say, UpdatedEmployees) 
+that has updated or new information about the employees. 
+You want to update the existing employee records with the new data 
+or insert new employee records from the second table. 
+
+2. ETL Processes (Extract, Transform, Load): 
+
+ETL stands for Extract, Transform, Load. 
+It’s a process used primarily in data warehousing to collect data from various sources, 
+transform it into a format that’s useful for analysis, 
+and then load it into a database or data warehouse for storage and querying.
+
+Here’s a simple breakdown of each part of ETL:
+
+2.1. Extract (E)
+In this step, data is extracted from different sources. 
+These sources can be databases, APIs, flat files (like CSVs or Excel files), or even data streams. 
+The goal is to get the raw data that needs to be analyzed or processed.
+
+For example, you might extract data from:
+
+    A sales database
+    Social media APIs
+    A customer relationship management (CRM) system
+    Log files or other forms of data storage
+
+2.2. Transform (T)
+Once the data is extracted, it often needs to be transformed. 
+This step involves cleaning, changing the format, 
+or processing the data so it’s consistent and ready for analysis. This could include:
+
+- Removing duplicates
+- Changing data types (e.g., converting date formats)
+- Joining data from multiple sources
+- Filtering unnecessary data
+- Aggregating data (like summing sales totals)
+- Calculating new values based on existing data
+
+For example, you might take sales data from two different regions, clean it up, 
+and calculate a "total sales" field that combines the two regions' data.
+
+2.3. Load (L)
+In the final step, the transformed data is loaded into the destination system, 
+usually a data warehouse or a database. 
+The data can then be queried and analyzed to generate reports or insights. 
+The process of loading data can involve:
+
+- Appending new data to existing data tables.
+- Replacing or updating existing data (in some cases, you might want to use MERGE here to synchronize the data).
+- Deleting outdated or irrelevant data.
+
+
+Why Is MERGE Used in ETL?
+In ETL processes, you might use the MERGE statement when you're loading data into a destination table 
+(such as a data warehouse) and need to:
+
+- Update existing records if the data in the source table is more recent or has changed.
+- Insert new records if the source table has data that doesn't exist in the destination table.
+- Delete outdated records that no longer exist in the source table.
+
+
+--------------
+
+What Does MERGE Do?
+The MERGE statement allows you to:
+
+1. Update records that already exist in the target table (based on matching data between the source and target).
+2. Insert new records into the target table that do not exist.
+3. Delete records from the target table that no longer exist in the source.
+
+
+The Basic Syntax of MERGE
+
+MERGE INTO target_table AS target
+USING source_table AS source
+ON target.match_column = source.match_column
+WHEN MATCHED THEN
+    -- Action to take if rows match (e.g., UPDATE)
+WHEN NOT MATCHED THEN
+    -- Action to take if rows do not match (e.g., INSERT)
+WHEN MATCHED AND condition THEN
+    -- Action to take if rows match and a condition is met (e.g., DELETE)
+
+
+MERGE INTO target_table AS target: 
+This part tells SQL which table you're going to modify (this is the "target" table). 
+The "AS target" part is just an alias for the table name, which makes it easier to refer to it in the query.
+
+USING source_table AS source: 
+This tells SQL which table you're comparing the target table with (the "source" table). 
+The source table contains the new or updated data you want to apply to the target table.
+
+ON target.match_column = source.match_column: 
+This is the condition used to compare rows between the target and source tables. 
+Typically, you compare a key column, such as an ID. 
+If a record in the target table has the same value as a record in the source table, 
+the row is considered a "match."
+
+
+Example with All Operations: Insert, Update, and Delete
+Let’s go step by step with a practical example. Imagine we have two tables:
+
+1. Employees Table (Target Table)
+
+EmployeeID	Name	    Salary
+------------------------------
+1	        John	    50000
+2	        Alice	    60000
+3	        Bob	        70000
+
+2. UpdatedEmployees Table (Source Table)
+
+EmployeeID	Name	    Salary
+------------------------------
+2	        Alice	    65000
+4	        Charlie	    55000
+
+
+We want to:
+
+Update Alice's salary because the UpdatedEmployees table has a higher salary for her.
+Insert Charlie because he's not in the Employees table.
+Delete Bob from the Employees table because he no longer exists in the UpdatedEmployees table. (OPTIONAL)
+
+
+MERGE INTO Employees AS target
+USING Employees AS source
+ON target.EmployeeID = source.EmployeeID
+WHEN MATCHED AND target.Salary != source.Salary THEN
+    UPDATE SET target.Salary = source.Salary
+WHEN NOT MATCHED THEN
+    INSERT (EmployeeID, Name, Salary)
+    VALUES (source.EmployeeID, source.Name, source.Salary)
+WHEN MATCHED AND source.EmployeeID NOT IN (SELECT EmployeeID FROM Employees) THEN
+    DELETE;
+
+After running this query, the Employees table will look like this:
+
+EmployeeID	Name	    Salary
+------------------------------
+1	        John	    50000
+2	        Alice	    65000
+4	        Charlie	    55000
+
+
+Conclusion
+
+In summary, MERGE is a powerful SQL feature for merging data from two tables by performing 
+insert, update, or delete operations based on certain conditions. 
+It is especially useful in situations like data synchronization, ETL processes, 
+or when you're working with a source of data that may have new, updated, or missing records.
+
+*/
+
