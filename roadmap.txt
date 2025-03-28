@@ -74,7 +74,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
             UNION and UNION ALL                                                             +
             Subqueries and Common Table Expressions (CTEs)                                  +
             Database Design AND INSERT, UPDATE, DELETE, MERGE (UPSERT)                      +
-            Transactions (BEGIN TRANSACTION, COMMIT, ROLLBACK, Savepoints)
+            Transactions (BEGIN TRANSACTION, COMMIT, ROLLBACK, Savepoints)                  +
             Indexing (Clustered vs. Non-clustered, B-Tree structure, execution plans)       +
             Stored Procedures, Functions, and Triggers
             Views and Materialized Views

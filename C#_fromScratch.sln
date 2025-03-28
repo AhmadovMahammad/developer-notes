@@ -37,6 +37,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataAndSqlManagement", "Dat
 		DataAndSqlManagement\SqlFundamentals_ch5.sql = DataAndSqlManagement\SqlFundamentals_ch5.sql
 		DataAndSqlManagement\SqlFundamentals_ch6.sql = DataAndSqlManagement\SqlFundamentals_ch6.sql
 		DataAndSqlManagement\SqlFundamentals_ch7.sql = DataAndSqlManagement\SqlFundamentals_ch7.sql
+		DataAndSqlManagement\SqlFundamentals_ch8.sql = DataAndSqlManagement\SqlFundamentals_ch8.sql
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AdvancedTopics", "AdvancedTopics", "{C0FA8EE9-5FAC-4270-AACA-85E32DF00A3C}"
