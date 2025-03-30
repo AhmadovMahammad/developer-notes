@@ -80,8 +80,8 @@ Date: 09/12/2024 (MM/DD/YYYY)
             Views and Materialized Views
             Cursors and Loops (performance considerations)
 
-	4.2. ACID Principles  
-	4.3. BASE Principles  
+	4.2. ACID Principles                                        +
+	4.3. BASE Principles
 	4.4. SQL and NoSQL  
 	4.5. SQL Committed and Uncommitted Messages  
 	4.6. Materialized View  
