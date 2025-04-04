@@ -608,80 +608,123 @@ internal class Program
 
         List<int[]> unsortedArrays = new()
         {
-            new int[] { 4, 2, 2, 8, 3, 3, 1 },
-            //new int[] { 5, 4, 3, 2, 1 }, new int[] { 1, 2, 3, 4, 5 }, new int[] { 5, 1 },
-            //new int[] { 1, 2, 10, 7, 3, 6, 9, 0 }, new int[] { 9, 3, 7, 6, 2, 5 },
+            //new int[] { 237, 146, 259, 348, 152, 163, 235, 48, 36, 62 },
+            //new int[] { 8, 3, 7, 4 },
+            //new int[] { 9, 3, 7, 5, 6, 4, 8, 2 },
+            //new int[] { 4, 2, 2, 8, 3, 3, 1 },
+            //new int[] { 5, 4, 3, 2, 1 },
+            //new int[] { 1, 2, 3, 4, 5 },
+            //new int[] { 5, 1 },
+            //new int[] { 1, 2, 10, 7, 3, 6, 9, 0 },
+            //new int[] { 9, 3, 7, 6, 2, 5 },
         };
 
+        Console.WriteLine("==== Sorting Algorithms Visualization ====");
+
         //{
-        //    Console.WriteLine("Bubble Sort:\n");
+        //    Console.WriteLine("\n--- Bubble Sort ---");
         //    foreach (int[] array in unsortedArrays)
         //    {
-        //        Console.Write($"before: {string.Join(',', array)}\t");
-        //        sorting.BubbleSort(array);
-        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //        int[] arrayCopy = (int[])array.Clone();
+
+        //        Console.WriteLine($"Before sorting: {string.Join(", ", arrayCopy)}");
+        //        sorting.BubbleSort(arrayCopy);
+        //        Console.WriteLine($"After sorting: {string.Join(", ", arrayCopy)}");
         //    }
-        //    Console.WriteLine("\nEnd Bubble Sort:\n");
         //}
 
 
         //{
-        //    Console.WriteLine("\nSelection Sort:\n");
+        //    Console.WriteLine("\n--- Selection Sort ---");
         //    foreach (int[] array in unsortedArrays)
         //    {
-        //        Console.Write($"before: {string.Join(',', array)}\t");
-        //        sorting.BubbleSort(array);
-        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //        int[] arrayCopy = (int[])array.Clone();
+
+        //        Console.WriteLine($"Before sorting: {string.Join(", ", arrayCopy)}");
+        //        sorting.SelectionSort(arrayCopy);
+        //        Console.WriteLine($"After sorting: {string.Join(", ", arrayCopy)}");
         //    }
-        //    Console.WriteLine("\nEnd Selection Sort:\n");
         //}
 
 
         //{
-        //    Console.WriteLine("\nInsertion Sort:\n");
+        //    Console.WriteLine("\n--- Insertion Sort ---");
         //    foreach (int[] array in unsortedArrays)
         //    {
-        //        Console.Write($"before: {string.Join(',', array)}\t");
-        //        sorting.BubbleSort(array);
-        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //        int[] arrayCopy = (int[])array.Clone();
+
+        //        Console.WriteLine($"Before sorting: {string.Join(", ", arrayCopy)}");
+        //        sorting.InsertionSort(arrayCopy);
+        //        Console.WriteLine($"After sorting: {string.Join(", ", arrayCopy)}");
         //    }
-        //    Console.WriteLine("\nEnd Insertion Sort:\n");
         //}
 
 
         //{
-        //    Console.WriteLine("\nMerge Sort:\n");
+        //    Console.WriteLine("\n--- Merge Sort ---");
         //    foreach (int[] array in unsortedArrays)
         //    {
-        //        Console.Write($"before: {string.Join(',', array)}\t");
-        //        sorting.BubbleSort(array);
-        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //        int[] arrayCopy = (int[])array.Clone();
+
+        //        Console.WriteLine($"Before sorting: {string.Join(", ", arrayCopy)}");
+        //        sorting.MergeSort(arrayCopy);
+        //        Console.WriteLine($"After sorting: {string.Join(", ", arrayCopy)}");
         //    }
-        //    Console.WriteLine("\nEnd Merge Sort:\n");
         //}
 
 
         //{
-        //    Console.WriteLine("\nQuick Sort:\n");
+        //    Console.WriteLine("\n--- Quick Sort ---");
         //    foreach (int[] array in unsortedArrays)
         //    {
-        //        Console.Write($"before: {string.Join(',', array)}\t");
-        //        sorting.BubbleSort(array);
-        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //        int[] arrayCopy = (int[])array.Clone();
+
+        //        Console.WriteLine($"Before sorting: {string.Join(", ", arrayCopy)}");
+        //        sorting.QuickSort(arrayCopy);
+        //        Console.WriteLine($"After sorting: {string.Join(", ", arrayCopy)}");
         //    }
-        //    Console.WriteLine("\nEnd Quick Sort:\n");
+        //}
+
+
+        //{
+        //    Console.WriteLine("\n--- Counting Sort ---");
+        //    foreach (int[] array in unsortedArrays)
+        //    {
+        //        int[] arrayCopy = (int[])array.Clone();
+
+        //        Console.WriteLine($"Before sorting: {string.Join(", ", arrayCopy)}");
+        //        sorting_2.CountingSort(arrayCopy);
+        //        Console.WriteLine($"After sorting: {string.Join(", ", arrayCopy)}");
+        //    }
+        //}
+
+
+        //{
+        //    Console.WriteLine("\n--- Radix Sort ---");
+        //    foreach (int[] array in unsortedArrays)
+        //    {
+        //        int[] arrayCopy = (int[])array.Clone();
+
+        //        Console.WriteLine($"Before sorting: {string.Join(", ", arrayCopy)}");
+        //        sorting_2.RadixSort(arrayCopy);
+        //        Console.WriteLine($"After sorting: {string.Join(", ", arrayCopy)}");
+        //    }
         //}
 
 
         {
-            Console.WriteLine("\nCounting Sort:\n");
-            foreach (int[] array in unsortedArrays)
+            Console.WriteLine("\n--- Bucket Sort ---");
+            foreach (double[] array in new List<double[]>
             {
-                Console.Write($"before: {string.Join(',', array)}\t");
-                sorting_2.CountingSort(array);
-                Console.WriteLine($"after: {string.Join(',', array)}");
+                new double[]{0.13, 0.25, 0.36, 0.58, 0.41, 0.29, 0.22, 0.45}
+            })
+            {
+                Console.WriteLine($"Before sorting: {string.Join(", ", array)}");
+                sorting_2.BucketSort(array);
+                Console.WriteLine($"After sorting: {string.Join(", ", array)}");
             }
-            Console.WriteLine("\nEnd Counting Sort:\n");
         }
+
+        Console.WriteLine("\n=== End of Sorting Algorithms Visualization ===");
     }
 }
