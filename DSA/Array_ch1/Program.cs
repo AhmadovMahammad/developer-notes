@@ -603,9 +603,85 @@ internal class Program
 
         #endregion
 
-        new List<int>() { 123, 12345, 1234567 }.ForEach(num =>
+        ComparisonBasedSorting sorting = new ComparisonBasedSorting();
+        NonComparisonBasedSorting sorting_2 = new NonComparisonBasedSorting();
+
+        List<int[]> unsortedArrays = new()
         {
-            Console.WriteLine(solution.NumberToWords(num));
-        });
+            new int[] { 4, 2, 2, 8, 3, 3, 1 },
+            //new int[] { 5, 4, 3, 2, 1 }, new int[] { 1, 2, 3, 4, 5 }, new int[] { 5, 1 },
+            //new int[] { 1, 2, 10, 7, 3, 6, 9, 0 }, new int[] { 9, 3, 7, 6, 2, 5 },
+        };
+
+        //{
+        //    Console.WriteLine("Bubble Sort:\n");
+        //    foreach (int[] array in unsortedArrays)
+        //    {
+        //        Console.Write($"before: {string.Join(',', array)}\t");
+        //        sorting.BubbleSort(array);
+        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //    }
+        //    Console.WriteLine("\nEnd Bubble Sort:\n");
+        //}
+
+
+        //{
+        //    Console.WriteLine("\nSelection Sort:\n");
+        //    foreach (int[] array in unsortedArrays)
+        //    {
+        //        Console.Write($"before: {string.Join(',', array)}\t");
+        //        sorting.BubbleSort(array);
+        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //    }
+        //    Console.WriteLine("\nEnd Selection Sort:\n");
+        //}
+
+
+        //{
+        //    Console.WriteLine("\nInsertion Sort:\n");
+        //    foreach (int[] array in unsortedArrays)
+        //    {
+        //        Console.Write($"before: {string.Join(',', array)}\t");
+        //        sorting.BubbleSort(array);
+        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //    }
+        //    Console.WriteLine("\nEnd Insertion Sort:\n");
+        //}
+
+
+        //{
+        //    Console.WriteLine("\nMerge Sort:\n");
+        //    foreach (int[] array in unsortedArrays)
+        //    {
+        //        Console.Write($"before: {string.Join(',', array)}\t");
+        //        sorting.BubbleSort(array);
+        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //    }
+        //    Console.WriteLine("\nEnd Merge Sort:\n");
+        //}
+
+
+        //{
+        //    Console.WriteLine("\nQuick Sort:\n");
+        //    foreach (int[] array in unsortedArrays)
+        //    {
+        //        Console.Write($"before: {string.Join(',', array)}\t");
+        //        sorting.BubbleSort(array);
+        //        Console.WriteLine($"after: {string.Join(',', array)}");
+        //    }
+        //    Console.WriteLine("\nEnd Quick Sort:\n");
+        //}
+
+
+        {
+            Console.WriteLine("\nCounting Sort:\n");
+            foreach (int[] array in unsortedArrays)
+            {
+                Console.Write($"before: {string.Join(',', array)}\t");
+                sorting_2.CountingSort(array);
+                Console.WriteLine($"after: {string.Join(',', array)}");
+            }
+            Console.WriteLine("\nEnd Counting Sort:\n");
+        }
     }
 }
