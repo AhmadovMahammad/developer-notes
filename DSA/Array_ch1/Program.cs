@@ -712,18 +712,18 @@ internal class Program
         //}
 
 
-        {
-            Console.WriteLine("\n--- Bucket Sort ---");
-            foreach (double[] array in new List<double[]>
-            {
-                new double[]{0.13, 0.25, 0.36, 0.58, 0.41, 0.29, 0.22, 0.45}
-            })
-            {
-                Console.WriteLine($"Before sorting: {string.Join(", ", array)}");
-                sorting_2.BucketSort(array);
-                Console.WriteLine($"After sorting: {string.Join(", ", array)}");
-            }
-        }
+        //{
+        //    Console.WriteLine("\n--- Bucket Sort ---");
+        //    foreach (double[] array in new List<double[]>
+        //    {
+        //        new double[]{0.13, 0.25, 0.36, 0.58, 0.41, 0.29, 0.22, 0.45}
+        //    })
+        //    {
+        //        Console.WriteLine($"Before sorting: {string.Join(", ", array)}");
+        //        sorting_2.BucketSort(array);
+        //        Console.WriteLine($"After sorting: {string.Join(", ", array)}");
+        //    }
+        //}
 
         Console.WriteLine("\n=== End of Sorting Algorithms Visualization ===");
     }
