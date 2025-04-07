@@ -619,7 +619,7 @@ internal class Program
             //new int[] { 9, 3, 7, 6, 2, 5 },
         };
 
-        Console.WriteLine("==== Sorting Algorithms Visualization ====");
+        //Console.WriteLine("==== Sorting Algorithms Visualization ====");
 
         //{
         //    Console.WriteLine("\n--- Bubble Sort ---");
@@ -725,6 +725,12 @@ internal class Program
         //    }
         //}
 
-        Console.WriteLine("\n=== End of Sorting Algorithms Visualization ===");
+        //Console.WriteLine("\n=== End of Sorting Algorithms Visualization ===");
+
+        Console.WriteLine("==== Searching Algorithms Visualization ====");
+
+
+
+        Console.WriteLine("\n=== End of Searching Algorithms Visualization ===");
     }
 }

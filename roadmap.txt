@@ -110,7 +110,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
 6. Algorithms and Data Structures
 
     Arrays and Strings                      +
-    Sorting and Searching
+    Sorting and Searching                   +
     Linked Lists
     Stacks and Queues
     Recursion and Backtracking
