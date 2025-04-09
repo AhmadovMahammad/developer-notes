@@ -533,7 +533,7 @@ internal class Program
         */
 
         #region Solutions
-        Solution solution = new Solution();
+        //Solution solution = new Solution();
 
         // 1. HasPairWithSum Solution
 
@@ -727,10 +727,7 @@ internal class Program
 
         //Console.WriteLine("\n=== End of Sorting Algorithms Visualization ===");
 
-        Console.WriteLine("==== Searching Algorithms Visualization ====");
-
-
-
-        Console.WriteLine("\n=== End of Searching Algorithms Visualization ===");
+        //sorting_2.Permutation("abc");
+        //sorting_2.Permutation_Iterative("abc");
     }
 }

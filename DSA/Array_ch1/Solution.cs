@@ -519,4 +519,45 @@ public class Solution
 
         return string.Join("", builder.SelectMany(list => list));
     }
+
+    public void Permutation(string str)
+    {
+        Permute(str, string.Empty);
+    }
+
+    private void Permute(string remains, string prefix)
+    {
+        if (string.IsNullOrEmpty(remains)) Console.WriteLine(prefix);
+        else
+        {
+            for (int i = 0; i < remains.Length; i++)
+            {
+                string nextRemains = string.Concat(remains[..i], remains[(i + 1)..]);
+                string nextPrefix = string.Concat(prefix, remains[i]);
+
+                Permute(nextRemains, nextPrefix);
+            }
+        }
+    }
+
+    public void Permutation_Iterative(string str)
+    {
+        Queue<(string prefix, string remains)> queue = new();
+        queue.Enqueue(("", str));
+
+        while (queue.Count > 0)
+        {
+            var (prefix, remains) = queue.Dequeue();
+            if (string.IsNullOrEmpty(remains)) Console.WriteLine(prefix);
+            else
+            {
+                for (int i = 0; i < remains.Length; i++)
+                {
+                    string nextPrefix = prefix + remains[i];
+                    string nextRemains = remains[..i] + remains[(i + 1)..];
+                    queue.Enqueue((nextPrefix, nextRemains));
+                }
+            }
+        }
+    }
 }
