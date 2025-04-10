@@ -38,6 +38,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DataAndSqlManagement", "Dat
 		DataAndSqlManagement\SqlFundamentals_ch6.sql = DataAndSqlManagement\SqlFundamentals_ch6.sql
 		DataAndSqlManagement\SqlFundamentals_ch7.sql = DataAndSqlManagement\SqlFundamentals_ch7.sql
 		DataAndSqlManagement\SqlFundamentals_ch8.sql = DataAndSqlManagement\SqlFundamentals_ch8.sql
+		DataAndSqlManagement\SqlFundamentals_ch9.sql = DataAndSqlManagement\SqlFundamentals_ch9.sql
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AdvancedTopics", "AdvancedTopics", "{C0FA8EE9-5FAC-4270-AACA-85E32DF00A3C}"
@@ -84,6 +85,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpanTMemoryT_ch23", "CoreProgramming\SpanTMemoryT_ch23\SpanTMemoryT_ch23.csproj", "{04168DFC-1E09-4F55-8E6D-AA24B5C6EA5D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RegularExpressions_ch25", "CoreProgramming\RegularExpressions_ch25\RegularExpressions_ch25.csproj", "{702937D2-E5D1-4E62-AAD7-8C78B9EE1B6D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdoNet", "DataAndSqlManagement\AdoNet\AdoNet.csproj", "{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -407,6 +410,18 @@ Global
 		{702937D2-E5D1-4E62-AAD7-8C78B9EE1B6D}.Release|x64.Build.0 = Release|Any CPU
 		{702937D2-E5D1-4E62-AAD7-8C78B9EE1B6D}.Release|x86.ActiveCfg = Release|Any CPU
 		{702937D2-E5D1-4E62-AAD7-8C78B9EE1B6D}.Release|x86.Build.0 = Release|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Debug|x64.Build.0 = Debug|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Debug|x86.Build.0 = Debug|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Release|x64.ActiveCfg = Release|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Release|x64.Build.0 = Release|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Release|x86.ActiveCfg = Release|Any CPU
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -438,6 +453,7 @@ Global
 		{AF6E30D6-2194-4AAD-8467-759F26517B38} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
 		{04168DFC-1E09-4F55-8E6D-AA24B5C6EA5D} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
 		{702937D2-E5D1-4E62-AAD7-8C78B9EE1B6D} = {8DAB395A-3E6D-4ABC-A867-F3B8C0C5A235}
+		{A2361AC9-95DC-4B28-AF32-7E0C67907FEF} = {43BCC41E-6362-435A-9F37-8A96289D0C96}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {95F99A9C-DD20-4D0D-94B9-C783BD9B162B}
