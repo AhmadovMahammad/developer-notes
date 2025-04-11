@@ -290,9 +290,11 @@ and with different Username: User registered successfully.
 */
 
 CREATE PROCEDURE RegisterUser
+(
 	@Name VARCHAR(100),
 	@Email NVARCHAR(100),
     @ResultMessage NVARCHAR(200) OUTPUT
+)
 AS
 BEGIN
 	SET NOCOUNT ON;
@@ -335,5 +337,357 @@ This is called the row count message.
 ---  What does SET NOCOUNT ON do?
 It turns off that message, so SQL Server doesn't send "X rows affected" after every command.
 It makes procedures faster by reducing unnecessary messages.
+
+*/
+
+
+
+/* What Is a UDF? And When Should You Use One?
+A User Defined Function (UDF) in SQL is something developers create to perform an action and return a result. 
+SQL already has many Built-in Functions that can do common tasks like work with strings, numbers, dates, and more. 
+
+
+------------------------------
+Built-in SQL Functions
+Built-in functions (also called native functions) are ready-made tools that come with SQL. 
+
+
+--- String Functions
+
+- `UPPER()`: Changes text to uppercase
+  SELECT UPPER('hello') -- Returns 'HELLO'
+  
+- `LOWER()`: Changes text to lowercase
+  SELECT LOWER('HELLO') -- Returns 'hello'
+  
+- `LENGTH()` or `LEN()`: Counts characters in text
+  SELECT LEN('hello world') -- Returns 11
+  
+- `SUBSTRING()`: Gets part of a text string
+  SELECT SUBSTRING('hello world', 1, 5) -- Returns 'hello'
+  
+
+--- Numeric Functions
+
+- `ROUND()`: Rounds a number to specified decimal places
+  SELECT ROUND(5.678, 1) -- Returns 5.7
+  
+- `ABS()`: Gets absolute value (removes negative sign)
+  SELECT ABS(-10) -- Returns 10
+  
+- `CEILING()`: Rounds up to nearest whole number
+  SELECT CEILING(5.1) -- Returns 6
+  
+- `FLOOR()`: Rounds down to nearest whole number
+  SELECT FLOOR(5.9) -- Returns 5
+  
+
+--- Date Functions
+
+- `GETDATE()` or `NOW()`: Gets current date and time
+  SELECT GETDATE() -- Returns current date and time
+  
+- `YEAR()`: Gets just the year from a date
+  SELECT YEAR('2023-05-15') -- Returns 2023
+  
+- `MONTH()`: Gets just the month from a date
+  SELECT MONTH('2023-05-15') -- Returns 5
+  
+- `DATEDIFF()`: Calculates difference between dates
+  SELECT DATEDIFF(day, '2023-01-01', '2023-01-10') -- Returns 9
+
+  
+------------------------------
+
+But when developers need to do complex calculations or transform data in special ways not covered by these built-in functions, 
+they can create their own functions and save them in the database for future use. 
+
+UDFs offer several benefits:
+
+1. Making queries simpler: UDFs organize complex calculations and repeated operations into one place,
+making your main query easier to read and maintain.
+
+2. Reusing code: UDFs package logic and calculations into a single function that you can use in different queries, 
+views, or procedures, reducing duplicate code.
+
+3. Improving security: UDFs can limit direct access to certain data or operations. 
+Sensitive information can be protected this way.
+
+4. Better performance: UDFs are compiled and stored in the database, helping SQL queries run faster. 
+They can also prevent unnecessary data transfers between the database and applications.
+
+
+*/
+
+
+/* Types of SQL UDFs
+In SQL Server, there are three main types of UDFs:
+
+1. Scalar UDFs: These work on a single row and return a single value.
+2. Aggregate UDFs: These process multiple rows and return one aggregated value. 
+   Creating these requires knowledge of programming languages like C# or VB.NET.
+3. Table UDFs: These return a table that can be used like a regular table in queries.
+
+Note: MySQL doesn't directly support Table UDFs, though similar results can be achieved using Stored Procedures or Views.
+
+---
+Basic Structure of a SQL UDF
+Here's a general structure that works for creating most SQL UDFs:
+
+CREATE FUNCTION [schema_name.]function_name
+(
+    @parameter_name1 datatype [= default_value],
+    @parameter_name2 datatype [= default_value],
+    ...
+)
+RETURNS return_type
+[WITH <function_options>]
+AS
+BEGIN
+    -- Function body: the logic of the function
+    RETURN [value or table_expression];
+END;
+GO
+
+*/
+
+
+/* Example of a Scalar UDF
+A scalar UDF produces a single value from one row of data. Here's a simple example that multiplies two numbers:
+
+CREATE FUNCTION dbo.func_multiply
+(
+    @num_1 FLOAT,
+    @num_2 FLOAT
+)
+RETURNS FLOAT
+AS
+BEGIN
+    RETURN @num_1 * @num_2
+END;
+
+SELECT dbo.func_multiply(10.5, 2) AS MULTIPLY
+and it returns 21
+
+*/
+
+
+/* Table UDFs Examples
+Table UDFs return a table instead of a single value. There are two types:
+
+In my other article, "The Most Useful Advanced SQL Techniques to Succeed in the Tech Industry," 
+I used the mock sales data from a promotion at Star Department Store to introduce some advanced SQL techniques.
+
+CREATE TABLE promo_sales
+(
+  Sale_Person_ID VARCHAR(40) PRIMARY KEY,
+  Department VARCHAR(40),
+  Sales_Amount INT
+);
+
+INSERT INTO promo_sales VALUES ('001', 'Cosmetics', 500);
+INSERT INTO promo_sales VALUES ('002', 'Cosmetics', 700);
+INSERT INTO promo_sales VALUES ('003', 'Fashion', 1000);
+INSERT INTO promo_sales VALUES ('004', 'Jewellery', 800);
+INSERT INTO promo_sales VALUES ('005', 'Fashion', 850);
+INSERT INTO promo_sales VALUES ('006', 'Kid', 500);
+INSERT INTO promo_sales VALUES ('007', 'Cosmetics', 900);
+INSERT INTO promo_sales VALUES ('008', 'Fashion', 600);
+INSERT INTO promo_sales VALUES ('009', 'Fashion', 1200);
+INSERT INTO promo_sales VALUES ('010', 'Jewellery', 900);
+INSERT INTO promo_sales VALUES ('011', 'Kid', 700);
+INSERT INTO promo_sales VALUES ('012', 'Fashion', 1500);
+INSERT INTO promo_sales VALUES ('013', 'Cosmetics', 850);
+INSERT INTO promo_sales VALUES ('014', 'Kid', 750);
+INSERT INTO promo_sales VALUES ('015', 'Jewellery', 950);
+
+1. Inline Table-Valued UDFs
+These contain a single SELECT statement and don't need a BEGIN...END block:
+
+Sale_Person_ID	Department	    Sales_Amount
+001	            Cosmetics	    500
+002	            Cosmetics	    700
+003	            Fashion	        1000
+004	            Jewellery	    800
+005	            Fashion	        850
+006	            Kid	            500
+007	            Cosmetics	    900
+008	            Fashion	        600
+009	            Fashion	        1200
+010	            Jewellery	    900
+011	            Kid	            700
+012	            Fashion	        1500
+013	            Cosmetics	    850
+014	            Kid	            750
+015	            Jewellery	    950
+
+The first task is to obtain the summary of all departments, 
+including the number of sales persons and the total sales in each department. 
+Similar to Scalar UDFs, we can use the universal structure by replacing the following parts and get the syntax.
+
+[schema_name.]function_name -> `dbo.GetDepartmentSummary` 
+Parameters -> None 
+Return Type ->`TABLE` 
+Function Body-> Returns a table showing the department summary
+
+
+CREATE FUNCTION dbo.GetDepartmentSummary()
+RETURNS TABLE
+AS
+RETURN 
+SELECT
+    Department,
+    COUNT(Sale_Person_ID) AS Number_of_Sales_Person,
+    SUM(Sales_Amount) as Total_Revenue
+FROM promo_sales
+GROUP BY Department
+
+Now we can call this function:
+SELECT * FROM dbo.GetDepartmentSummary();
+SELECT * FROM dbo.GetDepartmentSummary() WHERE Department = 'Cosmetics';
+SELECT * FROM dbo.GetDepartmentSummary() WHERE Total_Revenue > 2000;
+SELECT TOP 1 * FROM dbo.GetDepartmentSummary()
+
+The table UDF can be called to retrieve the department summary, filter by specific criteria, or perform some other actions.
+
+
+
+The second task is also to obtain the department summary, but this time, 
+the summary involves the average sales per person and a bonus for each department. 
+Later, the company management decided to change the bonus rule — 
+departments with sales over 2000K USD would have their bonus rate increased by 10%. 
+Unlike the first task which was completed with an Inline Table-Valued UDF, 
+this task will be conducted with a Multistatement Table-Valued UDF.
+
+The key differences between Inline Table-Valued UDFs and Multistatement Table-Valued UDFs can be observed from the two main areas:
+
+1. Complexity of logic: Inline Table-Valued UDFs contain a single query and don't require BEGIN…ENDblock, 
+which is ideal for simple logic while 
+Multistatement Table-Valued UDFs employ BEGIN…END block to accommodate multiple SQL statements and more complex logic.
+
+2. Performance: SQL server's query optimizer treats Inline Table-Valued UDFs as part of the calling query, 
+which generally leads to faster performance. On the other hand, 
+Multistatement Table-Valued UDFs must build the entire table in memory before returning it, which can impact performance.
+
+---
+For the second task, the following elements can be filled into the universal structure 
+to create the Multistatement Table-Valued UDF:
+
+[schema_name.]function_name -> `dbo.MultiStmt_GetDepartmentSummary` 
+Parameters -> None 
+Return Type ->`TABLE` 
+Function Body-> Returns the final table showing department summary
+
+
+CREATE FUNCTION dbo.GetDepartmentSummary_Multi()
+RETURNS @DeptSummary TABLE 
+(
+    Department VARCHAR(40),
+    Number_of_Sales_Person INT,
+    Total_Revenue INT,
+    Avg_Sales_Per_Person DECIMAL(10, 2),
+    Bonus DECIMAL(10, 2) 
+)
+AS
+BEGIN
+    INSERT INTO @DeptSummary
+    SELECT
+        Department,
+        COUNT(Sale_Person_ID) AS Number_of_Sales_Person,
+        SUM(Sales_Amount) as Total_Revenue,
+        AVG(Sales_Amount) AS Avg_Sales_Per_Person,
+        SUM(Sales_Amount) * 0.2 as Bonus
+    FROM promo_sales
+    GROUP BY Department
+
+    UPDATE @DeptSummary
+    SET Bonus = Bonus * 1.1
+    WHERE Total_Revenue > 2000
+
+    RETURN
+END
+
+Department	    Number_of_Sales_Person	Total_Revenue	Avg_Sales_Per_Person	Bonus
+Cosmetics	    4	                    2950	        737.00	                649.00
+Fashion	        5	                    5150	        1030.00	                1133.00
+Jewellery	    3	                    2650	        883.00	                583.00
+Kid	            3	                    1950	        650.00	                390.00
+
+*/
+
+-- Scalar UDF
+CREATE FUNCTION dbo.func_multiply
+(
+    @num_1 FLOAT,
+    @num_2 FLOAT
+)
+RETURNS FLOAT
+AS
+BEGIN
+    RETURN @num_1 * @num_2
+END;
+
+SELECT dbo.func_multiply(10.5, 2) AS MULTIPLY
+
+-- Inline Table-Valued UDF
+CREATE FUNCTION dbo.GetDepartmentSummary()
+RETURNS TABLE
+AS
+RETURN 
+SELECT
+    Department,
+    COUNT(Sale_Person_ID) AS Number_of_Sales_Person,
+    SUM(Sales_Amount) as Total_Revenue
+FROM promo_sales
+GROUP BY Department;
+
+SELECT * FROM dbo.GetDepartmentSummary();
+SELECT * FROM dbo.GetDepartmentSummary() WHERE Department = 'Cosmetics';
+SELECT * FROM dbo.GetDepartmentSummary() WHERE Total_Revenue > 2000;
+SELECT TOP 1 * FROM dbo.GetDepartmentSummary()
+
+-- Multistatement Table-Valued UDF
+CREATE FUNCTION dbo.GetDepartmentSummary_Multi()
+RETURNS @DeptSummary TABLE 
+(
+    Department VARCHAR(40),
+    Number_of_Sales_Person INT,
+    Total_Revenue INT,
+    Avg_Sales_Per_Person DECIMAL(10, 2),
+    Bonus DECIMAL(10, 2) 
+)
+AS
+BEGIN
+    INSERT INTO @DeptSummary
+    SELECT
+        Department,
+        COUNT(Sale_Person_ID) AS Number_of_Sales_Person,
+        SUM(Sales_Amount) as Total_Revenue,
+        AVG(Sales_Amount) AS Avg_Sales_Per_Person,
+        SUM(Sales_Amount) * 0.2 as Bonus
+    FROM promo_sales
+    GROUP BY Department
+
+    UPDATE @DeptSummary
+    SET Bonus = Bonus * 1.1
+    WHERE Total_Revenue > 2000
+
+    RETURN
+END
+
+SELECT * FROM dbo.GetDepartmentSummary_Multi()
+
+
+/* Differences Between Table UDFs and Stored Procedures
+
+It's common that people who are new to SQL UDFs often confuse Table UDFs with Stored Procedures 
+because they often appear similar and can sometimes conduct the same functionalities. 
+A Stored Procedure is a precompiled collection of SQL statement(s) which can be executed as a single unit and generate result sets.
+
+The key differences between Table Functions and Stored Procedures are:
+
+1. Return Type: Table UDFs always return a table but Stored Procedures return result sets.
+2. Flexibility: Stored Procedures are more flexible than Table UDFs because they allow a wider range of SQL statements and operations.
+3. Parameters: Table UDFs only allow input parameters but Stored Procedures accept both input and output parameters.
 
 */
