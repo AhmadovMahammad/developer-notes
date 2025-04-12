@@ -691,3 +691,52 @@ The key differences between Table Functions and Stored Procedures are:
 3. Parameters: Table UDFs only allow input parameters but Stored Procedures accept both input and output parameters.
 
 */
+
+
+/* What Are SQL Triggers?
+
+A trigger in SQL is a special type of stored procedure that runs automatically when specific events happen in a database.
+Think of it like an automatic response - 
+when something happens to your data, the trigger "fires" and performs actions that you've defined before.
+
+
+Classification of Triggers
+Triggers can be categorized based on various criteria:
+
+1. Timing of Execution
+
+    BEFORE Triggers: Execute prior to the triggering event, allowing for validation or modification of data 
+                     before it is committed to the database.
+    AFTER Triggers: Execute subsequent to the triggering event, typically used for logging or cascading changes to related tables.
+
+2. Scope of Application
+
+    Row-Level Triggers: Fire once for each row affected by the triggering event, providing granular control over data modifications.
+    Statement-Level Triggers: Fire once per triggering SQL statement, regardless of the number of rows affected, suitable for broad-scope operations.
+
+3. Type of Triggering Event
+
+    Data Manipulation Language (DML) Triggers: Respond to data changes such as INSERT, UPDATE, or DELETE operations.
+    Data Definition Language (DDL) Triggers: Respond to schema changes like CREATE, ALTER, or DROP statements.
+    Logon Triggers: Execute in response to user login events, often used for session initialization or security enforcement.
+
+CREATE TRIGGER trg_AuditOrders
+ON Orders
+AFTER INSERT, UPDATE, DELETE
+AS
+BEGIN
+    DECLARE @Action VARCHAR(10)
+    IF EXISTS (SELECT * FROM INSERTED) AND EXISTS (SELECT * FROM DELETED)
+        SET @Action = 'UPDATE'
+    ELSE IF EXISTS (SELECT * FROM INSERTED)
+        SET @Action = 'INSERT'
+    ELSE
+        SET @Action = 'DELETE'
+
+    INSERT INTO AuditLog (Action, TableName, ChangeDate)
+    VALUES (@Action, 'Orders', GETDATE())
+END
+
+In this example, the trigger determines the type of DML operation performed and logs it accordingly.
+
+*/
