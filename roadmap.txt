@@ -45,10 +45,10 @@ Date: 09/12/2024 (MM/DD/YYYY)
 
 2. API Development
 	
-	2.1. RESTful Services with ASP.NET Core
+	2.1. RESTful Services with ASP.NET Core                             +
 	2.2. Web API Design Principles (versioning, security, etc.)  
-	2.3. Authentication and Authorization (JWT, OAuth)  
-	2.4. gRPC and WebSockets
+	2.3. Authentication and Authorization (JWT, OAuth)                  +
+	2.4. gRPC and WebSockets                                            +
 
 3. Testing and Debugging
 
@@ -84,15 +84,13 @@ Date: 09/12/2024 (MM/DD/YYYY)
 	4.3. BASE Principles
 	4.4. SQL and NoSQL  
 	4.5. SQL Committed and Uncommitted Messages  
-	4.6. Materialized View  
-	4.7. SQL Indexing Types and BTree  
-	4.8. SQL Pessimistic and Optimistic Locking  
-	4.9. Isolation Layers  
-	4.10. Clustered and Non-clustered Index  
-	4.11. Normalization and Denormalization  
-	4.12. Database Migration Best Practices  
-	4.13. Database Sharding vs Database Partitioning  
-	4.14. Database Replication  
+	4.6. SQL Indexing Types and BTree  
+	4.7. SQL Pessimistic and Optimistic Locking  
+	4.8. Clustered and Non-clustered Index  
+	4.9. Normalization and Denormalization  
+	4.10. Database Migration Best Practices  
+	4.11. Database Sharding vs Database Partitioning  
+	4.12. Database Replication  
 
 5. Advanced Topics and Tools
 
@@ -172,7 +170,7 @@ Date: 09/12/2024 (MM/DD/YYYY)
             Basic Operations: Creation, insertion, deletion, and traversal.
             Advanced Algorithms:
                 Linked List Reversal.
-                Cycle Detection: Using Floyd�s Cycle-Finding Algorithm.
+                Cycle Detection: Using Floyd's Cycle-Finding Algorithm.
                 Merging Linked Lists: Merging sorted lists efficiently.
                 Node Removal: Removing the N-th node from the end with a two-pointer technique.
     

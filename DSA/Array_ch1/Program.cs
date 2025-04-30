@@ -729,5 +729,8 @@ internal class Program
 
         //sorting_2.Permutation("abc");
         //sorting_2.Permutation_Iterative("abc");
+
+        //Solution solution = new Solution();
+        //Console.WriteLine(solution.CheckInclusion("ab", "eidbaooo"));
     }
 }

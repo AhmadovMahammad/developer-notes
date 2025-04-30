@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 
 namespace Array_ch1;
 
@@ -559,5 +560,62 @@ public class Solution
                 }
             }
         }
+    }
+
+    public void FindDuplicates(int[] arr)
+    {
+        int bitmask = 0;
+
+        foreach (int num in arr)
+        {
+            int bit = 1 << num;
+
+            if ((bitmask & bit) != 0)
+            {
+                Console.WriteLine("Duplicate found: " + num);
+            }
+            else
+            {
+                bitmask |= bit;
+            }
+        }
+    }
+
+    private readonly HashSet<int> _set = new HashSet<int>();
+    public bool hasDuplicate(int[] nums)
+    {
+        foreach (int num in nums)
+        {
+            if (_set.Contains(num)) return true;
+            _set.Add(num);
+        }
+
+        return false;
+    }
+
+    public bool CheckInclusion(string s1, string s2)
+    {
+        if (s1.Length > s2.Length) return false;
+
+        int[] s1Freq = new int[26];
+        int[] winFreq = new int[26];
+
+        for (int i = 0; i < s1.Length; i++)
+        {
+            s1Freq[s1[i] - 'a']++;
+            winFreq[s2[i] - 'a']++;
+        }
+
+        if (s1Freq.SequenceEqual(winFreq)) return true;
+
+        for (int i = s1.Length; i < s2.Length; i++)
+        {
+            winFreq[s2[i] - 'a']++;
+            winFreq[s2[i - s1.Length] - 'a']--;
+
+            if (s1Freq.SequenceEqual(winFreq)) return true;
+        }
+
+        return false;
     }
 }
