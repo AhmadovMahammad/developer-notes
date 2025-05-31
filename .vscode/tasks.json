@@ -2,19 +2,31 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build and Run C++",
+            "label": "Build Debug",
             "type": "shell",
             "command": "bash",
             "args": [
                 "-c",
-                "g++ -std=c++20 main.cpp -o main && ./main"
+                "g++ -std=c++20 -ggdb -O0 main.cpp -o main && ./main"
             ],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "problemMatcher": [],
-            "detail": "C++ compile and run"
+            "detail": "C++ Debug build with debug info"
+        },
+        {
+            "label": "Build Release",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "g++ -std=c++20 -DNDEBUG -O2 main.cpp -o main && ./main"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "C++ Release build with optimizations"
         }
     ]
 }
