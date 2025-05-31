@@ -16,9 +16,9 @@ Step 4: Compiling your source code
 This step happens after you finish writing your C++ code in your code editor. You have your `.cpp` file, for example `main.cpp`. It’s now time to turn this text into something your computer can understand and use.
 
 So how do we make your code ready for the computer?
-We need to use something called a compiler. Think of the compiler like a translator. It reads your `.cpp` file and translates your C++ code into machine instructions — something your computer understands.
+We need to use something called a compiler. Think of the compiler like a translator. It reads your `.cpp` file and translates your C++ code into machine instructions - something your computer understands.
 
-But before it does this, the compiler does something very important first. It checks your code for mistakes. These mistakes are called errors. If there is a problem — like a missing semicolon, a wrong spelling, or bad structure — the compiler will stop and tell you exactly where the error is. It will show the line number and a message to help you fix the problem. If there is even one error, the compiler will not continue. It will not create anything. You must fix all the errors first.
+But before it does this, the compiler does something very important first. It checks your code for mistakes. These mistakes are called errors. If there is a problem - like a missing semicolon, a wrong spelling, or bad structure - the compiler will stop and tell you exactly where the error is. It will show the line number and a message to help you fix the problem. If there is even one error, the compiler will not continue. It will not create anything. You must fix all the errors first.
 
 If the compiler finds no errors, then it will start translating your code. It will not create a program you can run yet. Instead, it creates something called an object file. This is a file that contains machine-level instructions, but it’s not finished. It’s just a piece of the final program. Think of it like a puzzle piece, not the full puzzle.
 
@@ -141,6 +141,41 @@ Now everything works together in the final file.
 Without this step, you would get a linker error saying something like:
 “undefined reference to `std::cout`.”
 
-Finally, when all the pieces are joined and all the needed code from libraries is added, the linker creates one output file. Most of the time this is an executable file — a .exe on Windows, or a file with no extension on Linux. This is the file you can run to see your program work.
+Finally, when all the pieces are joined and all the needed code from libraries is added, the linker creates one output file. Most of the time this is an executable file - a .exe on Windows, or a file with no extension on Linux. This is the file you can run to see your program work.
 
 https://www.learncpp.com/images/CppTutorial/Chapter0/LinkingObjects-min.png
+
+
+
+
+-- The standard library
+
+C++ gives you something called the Standard Library. Think of this like a big toolbox full of useful tools. 
+You can use these tools in your programs without writing everything from scratch.
+
+One of the most popular tools in that toolbox is for input and output. This means printing to the screen and reading from the keyboard. That tool is called `iostream`. It lets you use things like `std::cout` to show messages on the screen, or `std::cin` to read what the user types.
+
+Here’s a quick example:
+
+```cpp
+#include <iostream>
+
+int main() {
+    std::cout << "Hello, world!";
+    return 0;
+}
+```
+
+In this example, `std::cout` is part of the standard library. It’s like saying, “Hey, use this standard tool to print text.”
+
+Almost every C++ program uses the standard library. Because it’s used so often, most compilers are already set up to include it automatically when you compile and link your code. 
+So you don’t have to do anything special to get access to it.
+
+Now, once your program has compiled and linked successfully, you get a final output file - usually an executable - that you can run.
+Running the program means the computer follows your instructions and shows what your code does.
+This takes us to testing. Testing means trying your program with different inputs to check if it works correctly. 
+For example, if you made a calculator, you should test adding, subtracting, and maybe giving it a wrong input to see how it reacts.
+
+If something goes wrong or the output is not what you expected, then you need to do debugging. 
+Debugging is the process of looking at your code, finding where the problem is, and fixing it.
+You will make mistakes - that’s normal. Everyone does. But debugging is how you learn what’s happening inside your program and how to fix issues.
