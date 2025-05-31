@@ -1,4 +1,4 @@
-0.2 — Introduction to programs and programming languages
+0.2 - Introduction to programs and programming languages
 
 Computers today are very fast. They can do many things quickly. But they also have a big problem. They cannot think. They cannot guess. A computer does not know what to do unless we tell it step by step. A computer only understands a few special commands. It cannot understand English, or any normal human language. It only understands machine instructions, and only if we say them in the right way.
 
@@ -22,7 +22,7 @@ Now let’s talk about something called software. Software means the programs th
 
 Today, programs do more than just talk to the hardware. They also talk to other software. For example, your game might ask the operating system (like Windows or Linux) to save a file or play a sound. So, the program asks the operating system, and the operating system talks to the hardware for you. The program does not need to know how the hardware works. It just asks the OS to do things.
 
-All of this—hardware and software together—is sometimes called a platform. A platform is a full system where programs can run. For example, a Windows computer with an Intel CPU is one platform. A phone with Android is another platform. A platform gives services to programs. For example, it can give them memory, let them save a file, or show a picture.
+All of this-hardware and software together-is sometimes called a platform. A platform is a full system where programs can run. For example, a Windows computer with an Intel CPU is one platform. A phone with Android is another platform. A platform gives services to programs. For example, it can give them memory, let them save a file, or show a picture.
 
 But here is one important thing. If your program uses the platform’s features, it may only work on that one platform. If you want to run the program on a different platform (like from Windows to Linux), it may not work. You may have to change the program to make it work. We call that process porting. If a program works on many platforms without big changes, we say the program is portable.
 
@@ -32,7 +32,7 @@ Machine language
 
 When we write a program in C++, the computer cannot understand it directly. The computer's main brain, which is called the CPU, does not know what C++ is. The CPU only understands a special kind of language called machine language, or also called machine code.
 
-Machine language is the true language of computers. It is the only thing the CPU can read and understand. Everything else—C++, Python, JavaScript—is for humans to read and write easily. But in the end, the CPU only wants one thing: machine language.
+Machine language is the true language of computers. It is the only thing the CPU can read and understand. Everything else-C++, Python, JavaScript-is for humans to read and write easily. But in the end, the CPU only wants one thing: machine language.
 
 Machine language is made of 1s and 0s only. Just like turning a light on or off, 1 means “on” and 0 means “off”. Every machine instruction is a group of 1s and 0s. These 1s and 0s are called bits. Bit is short for "binary digit".
 
@@ -44,7 +44,7 @@ For example, here is a small instruction written in machine code:
 
 This is not random. This small line of bits tells the CPU to do something very exact, like "take this number and move it into memory" or "compare two numbers". Every such instruction has a very precise job. The CPU reads these bits and does what they say.
 
-Now imagine writing an entire program using only these 1s and 0s. You would have to know exactly what each bit does, which numbers mean what, and where everything is stored. That’s what programmers had to do long ago, when computers were very new. It was slow and very hard. That’s why programming languages like C and C++ were created—to make life easier. But still, in the end, your C++ code must be translated into machine language before the computer can run it.
+Now imagine writing an entire program using only these 1s and 0s. You would have to know exactly what each bit does, which numbers mean what, and where everything is stored. That’s what programmers had to do long ago, when computers were very new. It was slow and very hard. That’s why programming languages like C and C++ were created-to make life easier. But still, in the end, your C++ code must be translated into machine language before the computer can run it.
 
 ---
 
@@ -52,7 +52,7 @@ At its core, the CPU is the brain of the computer. It’s the physical chip (or 
 
 ---
 
-1. First, not all machine instructions are the same size. Some CPUs always use instructions that are the same number of bits—like 32 bits. So every instruction is 32 bits long. But some CPUs, like the x86 family (which is common in many computers), allow instructions of different sizes. One instruction may be short, another may be long, depending on the job.
+1. First, not all machine instructions are the same size. Some CPUs always use instructions that are the same number of bits-like 32 bits. So every instruction is 32 bits long. But some CPUs, like the x86 family (which is common in many computers), allow instructions of different sizes. One instruction may be short, another may be long, depending on the job.
 
 When we say machine instructions are not always the same size, we are talking about how many bits (1s and 0s) make up one instruction.
 
@@ -60,7 +60,7 @@ Let’s imagine a CPU that always uses 32-bit instructions. That means every sin
 
 Think of it like a box factory that makes only boxes that are 32 cm long. Every object must fit in that size. If the object is small, there will be empty space inside. If the object is too big, it won’t fit. But the factory doesn’t care. It always makes only 32 cm boxes.
 
-Now, some CPUs are more flexible. They don’t use a fixed box size. One instruction might be short—maybe 8 bits. Another might be long—maybe 64 bits. It depends on what the instruction needs to do.
+Now, some CPUs are more flexible. They don’t use a fixed box size. One instruction might be short-maybe 8 bits. Another might be long-maybe 64 bits. It depends on what the instruction needs to do.
 
 This is what happens with CPUs in the x86 family (used in many desktop and laptop computers). These CPUs allow variable-length instructions. Some can be small, some can be big. The CPU knows how to handle this.
 
@@ -74,7 +74,7 @@ Not all CPUs are built in the same way. Think of different CPU families like dif
 For example, x86 is one CPU family. These are used in most Windows computers, many Linux computers, and many older Macs.
 Another CPU family is ARM64. These are used in most smartphones, tablets, and now even some modern Macs (Apple Silicon).
 
-Each CPU family has its own machine language. That means, their way of writing machine instructions—the 1s and 0s—is different.
+Each CPU family has its own machine language. That means, their way of writing machine instructions-the 1s and 0s-is different.
 
 This is exactly like how English and Chinese are different. If you write something in English, someone who only speaks Chinese cannot understand it. Same with CPUs: an x86 CPU understands x86 machine code, but not ARM machine code.
 
@@ -96,7 +96,7 @@ This saves a lot of time, avoids many mistakes, and lets us focus on the logic o
 
 Assembly Languages - Why assembly was invented
 
-Machine language—binary like 10110000 01100001—is perfect for the CPU, but it's extremely hard for humans to read, write, and debug. You have no idea what 10110000 does unless you memorize the binary representation of every operation the CPU supports. That’s not practical for human programmers.
+Machine language-binary like 10110000 01100001-is perfect for the CPU, but it's extremely hard for humans to read, write, and debug. You have no idea what 10110000 does unless you memorize the binary representation of every operation the CPU supports. That’s not practical for human programmers.
 
 To solve this, assembly languages were created. Assembly doesn’t abstract things like modern programming languages (such as C++, Python). It’s still very low-level, but instead of working directly with 1s and 0s, you write short, meaningful mnemonics that correspond one-to-one with machine instructions.
 
@@ -120,7 +120,7 @@ mov al, 0x61 is an x86 instruction. Let’s decode it:
 
 So this instruction copies the value 0x61 (or 'a') into the al register.
 
-Assembly doesn’t hide anything from you—it’s still one-to-one with the machine code. Every assembly instruction has a direct mapping to a binary instruction. But it gives you a readable and writable form, and humans now can edit programs more reasonably.
+Assembly doesn’t hide anything from you-it’s still one-to-one with the machine code. Every assembly instruction has a direct mapping to a binary instruction. But it gives you a readable and writable form, and humans now can edit programs more reasonably.
 
 --- 
 
@@ -140,7 +140,7 @@ Introduction to low-level languages
 
 Low-level languages, like machine language and assembly language, are called "low-level" because they are very close to the actual hardware of the computer. This means they work directly with the specific instructions the CPU understands. There is little or no extra help or simplification provided by the language itself. It’s like talking directly to the computer’s brain in its own language, with almost no translation or shortcuts.
 
-Writing programs in low-level languages requires a lot of detailed knowledge about the CPU and how it works. For example, in assembly, you might see an instruction like `mov al, 0x61`. To understand this, you need to know what `al` means—it is the name of a small, very fast storage area inside the CPU called a register. Other CPUs might have different registers or might not have that register at all, so you need to be very familiar with the specific CPU to write or understand these instructions.
+Writing programs in low-level languages requires a lot of detailed knowledge about the CPU and how it works. For example, in assembly, you might see an instruction like `mov al, 0x61`. To understand this, you need to know what `al` means-it is the name of a small, very fast storage area inside the CPU called a register. Other CPUs might have different registers or might not have that register at all, so you need to be very familiar with the specific CPU to write or understand these instructions.
 
 Another challenge is that even though individual assembly instructions can be simple, understanding what a whole program does can be very hard. This is because a program written in assembly needs many instructions just to do simple things. So, assembly programs tend to be long and complex, making it hard for humans to read or maintain them.
 
@@ -158,7 +158,7 @@ Programs written in high-level languages cannot be directly understood by the CP
 
 ---
 
-1. Compiling involves a special program called a compiler. The compiler reads the entire high-level language program, then translates it into machine code—often producing an executable file that the operating system can run directly. This executable contains all the machine instructions the CPU needs, and it can be run on its own without requiring the compiler. Early compilers were simple and generated slow code, but modern compilers are highly advanced and can produce optimized machine code that sometimes runs even faster than hand-written assembly.
+1. Compiling involves a special program called a compiler. The compiler reads the entire high-level language program, then translates it into machine code-often producing an executable file that the operating system can run directly. This executable contains all the machine instructions the CPU needs, and it can be run on its own without requiring the compiler. Early compilers were simple and generated slow code, but modern compilers are highly advanced and can produce optimized machine code that sometimes runs even faster than hand-written assembly.
 
 Sometimes, a programmer may want to see the exact machine or assembly code generated by the compiler for learning or optimization purposes. Most compilers support this feature, showing the low-level instructions behind the high-level code.
 

@@ -1,0 +1,146 @@
+Continuing our discussion of this diagram from the previous lesson
+
+Step 1 - What is your problem?
+Step 2 - How will you solve the problem?
+Step 3 - Write your code
+---
+Step 4 - Compile the program
+Step 5 - Link object files
+Step 6 - Test program
+Step 7 - Debug
+
+
+
+Step 4: Compiling your source code
+
+This step happens after you finish writing your C++ code in your code editor. You have your `.cpp` file, for example `main.cpp`. It’s now time to turn this text into something your computer can understand and use.
+
+So how do we make your code ready for the computer?
+We need to use something called a compiler. Think of the compiler like a translator. It reads your `.cpp` file and translates your C++ code into machine instructions — something your computer understands.
+
+But before it does this, the compiler does something very important first. It checks your code for mistakes. These mistakes are called errors. If there is a problem — like a missing semicolon, a wrong spelling, or bad structure — the compiler will stop and tell you exactly where the error is. It will show the line number and a message to help you fix the problem. If there is even one error, the compiler will not continue. It will not create anything. You must fix all the errors first.
+
+If the compiler finds no errors, then it will start translating your code. It will not create a program you can run yet. Instead, it creates something called an object file. This is a file that contains machine-level instructions, but it’s not finished. It’s just a piece of the final program. Think of it like a puzzle piece, not the full puzzle.
+
+So for example, if you wrote your code in a file named `main.cpp`, the compiler might create an object file named `main.o` or `main.obj`. This is like a half-ready version of your program. If your project has more than one `.cpp` file, like `main.cpp`, `math.cpp`, and `utils.cpp`, the compiler will create three object files: `main.o`, `math.o`, and `utils.o`. Each one is created from its own source file. The compiler always works file by file, checking and translating each one.
+
+https://www.learncpp.com/images/CppTutorial/Chapter0/CompileSource-min.png
+
+---
+
+Step 5 - Linking object files and libraries.
+
+This step happens after the compiler finishes creating the object files from your .cpp files. 
+Remember, object files are like pieces of your final program. They are not ready to run yet. Now we need to join them together. 
+That’s the job of the linker.
+
+The linker is another tool. It is not the same as the compiler, but it works right after the compiler. Its job is to connect all the object files and turn them into one final file. This final file is usually an executable file, something you can double-click and run.
+
+Let’s say your program has three .cpp files: main.cpp, math.cpp, and utils.cpp. 
+The compiler gives you three object files: main.o, math.o, and utils.o. 
+Now the linker will look at these three files and combine them.
+
+The linker does a few important things.
+
+1) it reads each object file. It checks if everything inside is okay and ready to use.
+
+
+
+
+2)  When you write a program with more than one .cpp file, each file is compiled on its own, one by one. The
+compiler only looks at one file at a time.
+
+Let’s say you have these two files:
+
+math.cpp
+
+```cpp
+int add(int a, int b) {
+    return a + b;
+}
+```
+
+main.cpp
+
+```cpp
+#include <iostream>
+
+int add(int a, int b); // just a declaration
+
+int main() {
+    std::cout << add(2, 3);
+    return 0;
+}
+```
+
+Here’s what happens step by step:
+
+The compiler reads `main.cpp` and sees you are using `add(2, 3)`.
+You also wrote a declaration `int add(int a, int b);`, so the compiler says:
+
+“Okay, the function add() exists somewhere. I’ll assume that’s true.”
+
+So the compiler finishes without error. But it doesn’t know where the actual code for `add()` is. 
+It just hopes it will be found later.
+
+Then the compiler reads `math.cpp` and finds the real code for `add()`. It compiles that too. 
+Now you have two object files: one from `main.cpp` and one from `math.cpp`.
+
+Now comes the linker. The linker’s job is to connect these two. It sees that `main.cpp` is calling `add()`, and it checks if any object file has the actual code for it. It finds it in the object file from `math.cpp`. 
+Now it connects them together.
+
+So your final program will run fine.
+
+--- Note
+But imagine you forgot to add math.cpp to your project. Then the compiler still works fine, because the declaration is there. But the linker will complain:
+
+“I see you're using `add()`, but I can’t find the real code for it anywhere.”
+That’s a linker error. It means your function was never connected properly across files.
+
+So the job of the linker here is to take all object files, look for things that are used in one file and defined in another, and make the connections between them. If it cannot do that, it gives a clear error saying something is missing.
+
+
+
+
+3) The linker might also add code from libraries.
+Sometimes, your program needs to use code that you did not write yourself. This code is already written and ready to use. It is stored in something called a library. A library is like a toolbox of useful functions, already compiled, that you can use in your program.
+
+You don’t see the original C++ code inside the library. You just get the compiled version. This makes things faster, because the compiler and linker don’t need to rebuild those parts again.
+
+Now let’s take a very common example:
+When you write this in your code:
+
+```cpp
+#include <iostream>
+
+int main() {
+    std::cout << "Hello, world!";
+    return 0;
+}
+```
+
+Here, `std::cout` is used to print text to the screen. But you didn’t write the code for `std::cout`. Where does it come from?
+It comes from the C++ standard library. This is a big library that gives you many features, like input/output, strings, containers, and more.
+
+During compilation, the compiler sees `std::cout` and says:
+“Okay, the programmer wants to use std::cout, which is declared in the standard library. But I don’t have the full code here.”
+
+So, it leaves a mark in the object file:
+“I need std::cout from the library.”
+
+Then, when the linker runs, it reads your object file and sees this mark. The linker then looks inside the standard library (which is installed on your system) and finds the compiled code for std::cout. The linker adds that code into your final program. Now, your program knows how to actually run `std::cout` when it starts.
+
+
+So in short:
+
+You write code using `std::cout`.
+The compiler accepts it but doesn’t have the full code for it.
+The linker finds the real code inside the library and joins it with your program.
+Now everything works together in the final file.
+
+Without this step, you would get a linker error saying something like:
+“undefined reference to `std::cout`.”
+
+Finally, when all the pieces are joined and all the needed code from libraries is added, the linker creates one output file. Most of the time this is an executable file — a .exe on Windows, or a file with no extension on Linux. This is the file you can run to see your program work.
+
+https://www.learncpp.com/images/CppTutorial/Chapter0/LinkingObjects-min.png
