@@ -1,0 +1,89 @@
+1. What is the Terminal?
+
+The terminal is a program that shows you a text-based interface. 
+It's like a screen where you can type commands and see responses.
+
+But the terminal itself does not understand your commands.
+It is only a container - it accepts your keyboard input and displays output.
+
+Inside this terminal, it runs another program - the shell - and that shell is what understands the commands.
+
+Real-Life Analogy:
+
+* Think of the terminal like a TV screen.
+* The TV shows you what is happening.
+* But the TV itself is not doing the action. It is just showing it.
+* The “real work” is happening somewhere else - in this case, in the shell.
+
+---
+
+2. What is the Shell?
+
+The shell is a command interpreter.
+It reads what you type and sends it to the operating system.
+
+The shell is like a middleman between you and the computer’s kernel (the lowest layer of the operating system).
+
+
+You type: ls
+
+Shell says: “Okay, this is a request to list files. I’ll send it to the OS.”
+The OS does the action, returns the result to the shell, and the shell shows it on the screen.
+
+So the shell has two main jobs:
+
+1. Understand your command - like `cd`, `mkdir`, or more complex expressions
+2. Send the correct system-level instructions to the OS
+
+Why the name “shell”?
+
+Because it’s a wrapper around the operating system. The real OS is the kernel, which is very low-level and doesn’t talk directly to users. So the shell wraps that and makes it usable by humans.
+
+There are different types of shells. Bash is one of them. Others include:
+
+* `sh` – Bourne Shell (older)
+* `zsh` – Z shell (more modern)
+* `fish` – Friendly Interactive Shell
+* `csh`, `ksh`, etc.
+
+Each shell has its own syntax rules, features, and behavior.
+
+---
+
+3. What is Bash?
+
+Bash is a specific shell program.
+Its name comes from: Bourne Again SHell
+
+It is an improved version of the original `sh` (Bourne shell).
+Bash is very popular and is usually the default shell on most Linux systems.
+
+It is both:
+
+* A command-line interpreter, meaning it understands commands like `ls`, `cd`, etc.
+* A scripting language, meaning you can write `.sh` files with logic like `if`, `for`, variables, functions, and so on.
+
+Important:
+
+* Bash is not the terminal.
+* Bash runs inside the terminal.
+* When you open your terminal, it usually starts a Bash session automatically.
+* But you can choose to use other shells, too.
+
+---
+
+Summary with an Example
+
+Imagine you type: mkdir test-folder
+
+Here’s what happens:
+
+1. Terminal shows the prompt. You type the command.
+2. Shell (like Bash) reads the line: `mkdir test-folder`
+3. Bash understands: this is a command to make a directory
+4. Bash tells the operating system: “Please create a folder named test-folder in this location”
+5. The OS uses the file system to create the folder
+6. Bash gets success or error response
+7. Bash shows that to you inside the terminal
+
+-----------------------------------------------------------------------------------------------
