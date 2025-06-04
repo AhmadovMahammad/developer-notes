@@ -15,7 +15,7 @@ Real-Life Analogy:
 * But the TV itself is not doing the action. It is just showing it.
 * The “real work” is happening somewhere else - in this case, in the shell.
 
----
+-_-
 
 2. What is the Shell?
 
@@ -41,14 +41,14 @@ Because it’s a wrapper around the operating system. The real OS is the kernel,
 
 There are different types of shells. Bash is one of them. Others include:
 
-* `sh` – Bourne Shell (older)
-* `zsh` – Z shell (more modern)
-* `fish` – Friendly Interactive Shell
+* `sh` - Bourne Shell (older)
+* `zsh` - Z shell (more modern)
+* `fish` - Friendly Interactive Shell
 * `csh`, `ksh`, etc.
 
 Each shell has its own syntax rules, features, and behavior.
 
----
+-_-
 
 3. What is Bash?
 
@@ -70,7 +70,7 @@ Important:
 * When you open your terminal, it usually starts a Bash session automatically.
 * But you can choose to use other shells, too.
 
----
+-_-
 
 Summary with an Example
 
@@ -86,4 +86,495 @@ Here’s what happens:
 6. Bash gets success or error response
 7. Bash shows that to you inside the terminal
 
------------------------------------------------------------------------------------------------
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_---
+
+1. `cd` - Change Directory
+
+This command is used to move between folders (directories) in the file system.
+
+But let’s go deeper. The terminal session always has a concept of a current working directory - that’s the directory you're "inside" when you type a command.
+
+The `cd` command modifies this current directory.
+
+cd /home/mahammad/Downloads
+
+This changes your current path into the `Downloads` folder.
+So if you now run `pwd`, it will show: /home/mahammad/Downloads
+
+-_-
+
+You can use: cd ..
+
+This moves you up one level. If you're in `/home/mahammad/Downloads`, `cd ..` takes you to `/home/mahammad`.
+
+The `..` means “parent directory”.
+
+-_-
+
+You can also use: cd ~
+
+This will always take you to your home directory, such as `/home/mahammad`.
+
+And, cd with no arguments does exactly the same - go to your home directory.
+
+-_-
+
+Now, one very useful trick:
+
+cd -
+
+This goes to the previous directory. Think of it as an undo.
+
+Let’s say:
+
+```bash
+cd /etc
+cd /var/log
+cd -
+```
+
+You will be taken back to `/etc`.
+
+-_--_-
+
+2. `ls` - List Directory Contents
+
+This command is used to see what’s inside a directory.
+But there’s a lot more under the surface.
+
+Basic usage: ls
+lists the contents of the current directory.
+
+If you do: ls foldername => it lists what’s inside that folder.
+
+-_-
+
+But `ls` has very useful flags:
+
+```
+ls -l
+```
+
+This gives you a long format listing, showing:
+
+```
+drwxrwxr-x 5 mahammad-ahmadov mahammad-ahmadov 4096 Jun  4 18:33 phase1-fundamentals
+```
+
+This tells you the file is:
+
+[1]  drwxrwxr-x  
+[2]  5  
+[3]  mahammad-ahmadov  
+[4]  mahammad-ahmadov  
+[5]  4096  
+[6]  Jun  4 18:33  
+[7]  phase1-fundamentals
+
+
+[1] drwxrwxr-x
+This is file type + permissions - it has 10 characters.
+
+First character: d = directory. If it's -, it's a regular file.
+The next 9 characters are permissions, in 3 groups:
+
+rwx  rwx  r-x
+│     │     │
+│     │     └── others
+│     └──────── group
+└────────────── owner
+
+Owner: rwx = read, write, execute → 7
+Group: rwx = read, write, execute → 7
+Others: r-x = read, no write, execute → 5
+
+
+[2] 5 - What is this number?
+This is the link count - the number of hard links pointing to this directory.
+At the end, there is detailed information about LINKS
+
+-_-
+
+Another important flag:
+
+```
+ls -a
+```
+
+This shows all files, including hidden files (those starting with a dot `.` like `.bashrc` or `.git`).
+
+You can combine flags:
+
+```
+ls -la
+```
+
+or
+
+```
+ls -lh
+```
+
+Here `-h` gives “human-readable” file sizes like `5K`, `2M`, etc.
+
+To list directories only:
+
+```
+ls -d */
+```
+
+This is advanced, but very useful.
+Let’s look at how it works:
+
+This command looks short, but under the hood, it's a combination of two key things: 
+1. how globbing (`*`) works and 2. how `ls -d` behaves.
+
+Let’s break it fully:
+
+-_-
+
+What does `*` mean?
+
+In Bash, `*` is a glob pattern. 
+It expands to match any filename or folder name in the current directory. 
+For example, if you have:
+
+```
+file1.txt
+folder1/
+script.sh
+data/
+```
+
+Then `*` expands to:
+
+```
+file1.txt folder1 script.sh data and the children of subdirectories
+```
+
+-_-
+
+What does `*/` mean?
+
+This is also a glob, but with a trailing slash.
+
+This means:
+match anything (`*`) that is a directory (`/`).
+
+So `*/` matches:
+
+```
+folder1/
+data/
+```
+
+It will not match `file1.txt` or `script.sh`, because those are not directories.
+if we have written it like *.txt, it would show files with .txt extension.
+
+-_-
+
+What does `ls -d` do?
+Normally, when you run:
+
+```
+ls folder1
+```
+
+You get the contents inside `folder1`.
+
+But when you run:
+
+```
+ls -d folder1
+```
+
+You don’t get what's inside. You get the folder name itself.
+So `-d` means: don’t go inside the directory, just treat it like a file and show its name.
+
+-_-
+
+Putting it all together
+
+```
+ls -d */
+```
+
+Here's the full logic:
+
+1. `*/` is expanded by Bash into a list of directory names, like:
+
+   ```
+   folder1/ data/
+   ```
+
+2. `ls -d` receives this expanded list and says:
+   “Don’t go inside these directories. Just list their names.”
+
+So the output is a clean list of only directory names in the current folder, like:
+
+```
+folder1/  data/
+```
+
+No files are shown. No contents of folders are listed.
+
+-_-
+
+3. `pwd` - Print Working Directory
+This is a simple command that tells you your current location in the filesystem - the full absolute path.
+
+For example: pwd
+
+might return:
+
+```
+/home/mahammad/projects/bash-course
+```
+
+-_-
+
+4. `mkdir` - Make Directory
+This command creates folders.
+
+Basic usage: mkdir new_folder
+
+creates a folder in the current directory.
+
+But if the parent folder doesn’t exist, it will fail:
+
+```
+mkdir a/b/c
+```
+
+will fail if `a` or `a/b` doesn't exist.
+
+To fix that:
+
+```
+mkdir -p a/b/c
+```
+
+The `-p` flag tells it to create parent directories as needed.
+
+This is very useful in scripts.
+
+1. If the folder already exists:
+without `-p`, you’ll get an error:
+
+```
+mkdir: cannot create directory ‘a’: File exists
+```
+
+2. with `-p`, it will silently skip creating it again.
+
+So always use `-p` when you're not sure the folders exist or not.
+
+-_-
+
+Also:
+
+```
+mkdir -v foldername
+```
+
+prints what it creates:
+
+This is optional but useful for logging or scripts.
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_---
+
+: Detailed information about Links 
+
+What is a link in Linux?
+
+When you see a file or a folder name in Linux (like `file.txt` or `folder/`), that name is actually just a label. 
+Behind that label, there is a real thing that stores all the information and data. That real thing is called an inode.
+
+You can think of it like this:
+
+* The name you see in the folder is like a shortcut.
+* The inode is where Linux keeps the file’s real data and details (size, permissions, etc).
+
+So the filename is just a way to access that inode.
+
+-_-
+
+1. What is a hard link?
+A hard link is just another name for the same file.
+
+Let’s say you have a file:
+
+```
+echo "Hello" > original.txt
+```
+
+Now you make a hard link:
+
+```
+ln original.txt second.txt
+```
+
+Now both `original.txt` and `second.txt` point to the same file content. They are not copies.
+They are like two doors to the same room.
+
+You can even delete one of them, and the other will still work, because the real data is still there.
+You can check the file inode like this:
+
+```
+ls -li original.txt second.txt
+```
+
+If both show the same number at the start (inode), they are the same file.
+
+2237267 -rw-rw-r--  2 mahammad-ahmadov mahammad-ahmadov        6 Jun  4 22:32  original.txt
+2237267 -rw-rw-r--  2 mahammad-ahmadov mahammad-ahmadov        6 Jun  4 22:32  second.txt
+
+-_--_-
+
+2. What is a symbolic link?
+A symbolic link (also called symlink) is not a real copy. It’s like a shortcut or pointer to another file.
+
+Example:
+
+```
+ln -s original.txt shortcut.txt
+```
+
+This creates a special file called `shortcut.txt`, which points to `original.txt`.
+If you delete `original.txt`, the symlink will be broken (because the file it points to is gone).
+
+You can see this link by:
+
+```
+ls -l shortcut.txt
+```
+
+It will show something like:
+
+```
+lrwxrwxrwx 1 mahammad-ahmadov mahammad-ahmadov 12 Jun  4 22:54 shortcut.txt -> original.txt
+```
+
+-_--_-
+
+What is the link count you see in `ls -l`?
+
+When you run:
+
+```bash
+ls -l
+```
+
+You see something like:
+
+```
+drwxrwxr-x 5 mahammad-ahmadov mahammad-ahmadov 4096 Jun  4 18:33 phase1-fundamentals
+```
+
+Let’s break it: The number 5 is the link count
+
+This is the number of hard links to this folder.
+
+Every folder always has:
+
+1. a link to itself (`.`)
+2. a link from its parent folder (`..`)
+3. and every subfolder inside it adds 1 more link, because each subfolder has a `..` that points back to this folder
+
+So, the formula is:
+
+```
+link count = 2 + number of subdirectories
+```
+
+If `myfolder` shows a link count of `5`, then:
+
+* It has 2 links automatically (`.` and `..`)
+* And it must have 3 subfolders inside it
+
+-_-
+
+1. Why do `.` and `..` exist?
+
+These are special names built into every directory.
+They are used for navigation and structure in the filesystem.
+
+* `.` means “this directory”
+* `..` means “the parent directory”
+
+Linux filesystems are structured like a tree. You can go up and down between folders. 
+These two entries help with that.
+
+Example:
+
+```bash
+cd ..
+```
+
+This works because every folder has a `..` entry that tells the system where the parent is.
+
+-_-
+
+2. Are `.` and `..` hard links?
+
+Yes, technically, they are hard links.
+
+Here is how:
+
+* `.` is a hard link that points to the inode of the folder itself.
+* `..` is a hard link that points to the inode of the parent folder.
+
+That’s why they increase the link count.
+
+Let’s say we have this:
+
+```
+/home/mahammad/
+```
+
+Inside this folder:
+
+* `.` is `/home/mahammad` pointing to itself.
+* `..` is `/home`, the parent.
+
+Now imagine you make a subfolder:
+
+```bash
+mkdir /home/mahammad/projects
+```
+
+Inside `projects`:
+
+* `.` is `/home/mahammad/projects`
+* `..` is `/home/mahammad`
+
+So `/home/mahammad` now has one more hard link, because `projects/..` points back to it. 
+That’s why its link count grows by 1.
+
+-_-
+
+3. Why do filenames act like labels?
+
+In Linux, a file system is inode-based.
+An inode is like a box in memory or disk that stores:
+
+* file content location
+* metadata (size, owner, permissions, timestamps)
+* but not the filename
+
+That’s key:
+Filename is not inside the inode.
+It lives in a directory entry, which is like a mapping:
+
+```
+filename → inode number
+```
+
+You can think of it like this:
+
+* A folder is a table: it maps names to inode numbers.
+* Each file has an inode with its true identity.
+* Multiple names (hard links) can point to the same inode.
+
+That’s why filenames are just pointers. If you remove a filename but another name still points to the same inode, 
+the file still exists.
