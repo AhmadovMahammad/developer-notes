@@ -86,7 +86,7 @@ Here’s what happens:
 6. Bash gets success or error response
 7. Bash shows that to you inside the terminal
 
--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_---
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
 
 1. `cd` - Change Directory
 
@@ -135,7 +135,7 @@ cd -
 
 You will be taken back to `/etc`.
 
--_--_-
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
 
 2. `ls` - List Directory Contents
 
@@ -318,7 +318,7 @@ folder1/  data/
 
 No files are shown. No contents of folders are listed.
 
--_-
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
 
 3. `pwd` - Print Working Directory
 This is a simple command that tells you your current location in the filesystem - the full absolute path.
@@ -331,7 +331,7 @@ might return:
 /home/mahammad/projects/bash-course
 ```
 
--_-
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
 
 4. `mkdir` - Make Directory
 This command creates folders.
@@ -381,9 +381,151 @@ prints what it creates:
 
 This is optional but useful for logging or scripts.
 
--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_---
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
 
-: Detailed information about Links 
+5. What `rm` really does
+
+The real nature of files in Linux
+
+In Linux (and Unix systems), a file is not just its name. 
+The name is only a label stored in a directory entry - it maps to something deeper called an inode.
+
+An inode is a data structure that contains:
+
+* metadata: permissions, ownership, size, modification time
+* a list of blocks (disk locations) where the actual content (the file's data) lives
+
+The file name itself is not stored inside the inode. 
+The name only exists in the directory that contains the file. This is crucial to understand.
+
+So in reality, your file system works like this:
+
+```
+Directory entry: "file.txt" → inode #12345 → actual content
+```
+
+What does `rm` actually do?
+
+When you run:
+
+```
+rm file.txt
+```
+
+Linux looks up `file.txt` in the current directory. It finds that this name points to inode 12345 (for example). 
+Then, `rm` removes the name from the directory. That’s all.
+The inode 12345 is now no longer referenced by this name.
+
+Now comes the important part:
+When is the inode (and file content) deleted?
+
+Linux keeps a reference count inside the inode. This count tells: how many names (directory entries / hard links) point to me?
+If the count drops to zero - meaning no names point to the inode anymore, and no program is keeping the file open, 
+then the system knows the file is truly unreachable, and it frees the disk space.
+
+But if you had another hard link pointing to the same inode, like this:
+
+```
+ln file.txt second_name.txt
+```
+
+Then both `file.txt` and `second_name.txt` point to inode 12345. Deleting just one:
+
+```
+rm file.txt
+```
+
+doesn’t destroy the content. It only removes one label. The data lives on via the second name.
+Only when you remove all links to the inode, the system cleans it up.
+
+-_- Are files moved to trash?
+
+No. `rm` does not move files to trash or recycle bin. There is no built-in undo.
+
+Graphical interfaces (like GNOME or KDE) simulate trash by moving files to `~/.local/share/Trash`, but `rm` bypasses all that. 
+It talks directly to the file system. It unlinks the directory entry.
+
+So recovery is difficult unless:
+
+* You shut down the system quickly to prevent disk overwrite
+* You use specialized inode-recovery tools (low chance of success)
+* You had backups
+
+-_-
+
+`-i` (interactive)
+Before removing each file, ask for confirmation.
+
+```
+rm -i important.txt
+```
+
+Terminal will ask:
+`rm: remove regular file 'important.txt'?`
+This prevents accidental deletions.
+
+-_-
+
+`-f` (force)
+This forces deletion - even if the file is write-protected, or doesn't exist (no error). It disables any prompt.
+
+```
+rm -f dontcare.txt
+```
+
+This is dangerous if used alone or in scripts.
+
+-_-
+
+`-r` or `-R` (recursive)
+This is how you delete directories and everything inside them (files and subdirectories).
+
+```
+rm -r myfolder/
+```
+
+This walks through the directory tree and removes everything it finds.
+If you don’t use `-r`, you cannot delete a directory.
+
+-_-
+
+`-rf` (recursive + force)
+
+```
+rm -rf myfolder/
+```
+
+This is the most dangerous version. It:
+
+* Deletes everything inside `myfolder`
+* Does not ask for confirmation
+* Ignores errors
+
+It’s powerful in scripts, but risky in real terminal work.
+
+-_-
+
+Example for combined usage
+Imagine you have a folder `old_project` with lots of nested folders and protected files. This command:
+
+```
+rm -rf old_project
+```
+
+will silently wipe the entire folder tree in one go. No undo.
+
+-_-
+
+Some tips and best practices
+
+* Use `-i` or `-I` (capital i, less intrusive) if you want safety
+* Always double-check the path before using `rm -rf`
+* Never run `rm -rf /` or `rm -rf *` without thinking
+* Use `echo` before running:
+  `echo rm -rf myfolder` to verify you typed it right
+
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_- Detailed information about Links -_--_--_--_--_--_--_--_--_--_--_--_--_-
 
 What is a link in Linux?
 
