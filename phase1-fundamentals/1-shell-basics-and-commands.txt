@@ -127,7 +127,7 @@ This goes to the previous directory. Think of it as an undo.
 
 Let’s say:
 
-```bash
+```
 cd /etc
 cd /var/log
 cd -
@@ -521,8 +521,130 @@ Some tips and best practices
 * Use `-i` or `-I` (capital i, less intrusive) if you want safety
 * Always double-check the path before using `rm -rf`
 * Never run `rm -rf /` or `rm -rf *` without thinking
-* Use `echo` before running:
-  `echo rm -rf myfolder` to verify you typed it right
+* Use `echo` before running: `echo rm -rf myfolder` to verify you typed it right
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
+
+6. What `cp` really does
+The `cp` command creates a new file with its own inode and content, and copies the data from the original file into it.
+
+So when you run:
+
+```
+cp file.txt backup.txt
+```
+
+you are not creating a new label (like a hard link does). You are actually creating:
+
+* a brand new directory entry: `backup.txt`
+* a brand new inode: say inode #23456
+* new disk blocks for file content (same content as the original)
+* the data from `file.txt` is copied block-by-block into the new location
+
+This is important: `backup.txt` and `file.txt` now live completely independently. 
+They point to different inodes, and each inode has its own reference count, timestamps, and file content blocks.
+
+If you delete or change one of them, the other remains untouched.
+
+-_-
+
+Comparison with `ln` (hard link)
+
+Let’s contrast this.
+
+With:
+
+```
+ln file.txt alias.txt
+```
+
+you get:
+
+* One inode (shared)
+* Two names (labels): `file.txt` and `alias.txt`
+* Same reference count = 2
+
+But with:
+
+```
+cp file.txt new_copy.txt
+```
+
+you get:
+
+* Two different inodes
+* Two different sets of data
+* No connection at all between the two
+
+That’s why `cp` uses more disk space. It creates a full new copy.
+
+-_-
+
+What happens inside `cp`
+
+When you run `cp`, Linux:
+
+1. Opens the source file (say `file.txt`)
+2. Creates a new empty file (`backup.txt`)
+3. Reads chunks (e.g. 4096 bytes) from the original file
+4. Writes those chunks into the new file
+5. Copies over basic metadata (like permissions, unless you say not to)
+
+So the copying happens at the content level, not at the inode level. It’s a real duplication.
+
+-_-
+
+What about directories?
+
+If you want to copy an entire directory, you must use:
+
+```
+cp -r myfolder/ backup/
+```
+
+The `-r` means recursive. It tells `cp`:
+
+* go inside the directory
+* copy every file and subfolder
+* recreate the structure exactly
+
+If you try to copy a directory without `-r`, you get an error:
+
+```
+cp: -r not specified; omitting directory 'myfolder'
+```
+
+-_-
+
+Important `cp` options
+
+Only a few flags are very important for deeper work:
+
+* `cp -r`: recursive copy (for directories)
+* `cp -a`: archive mode (preserves symbolic links, file permissions, timestamps, owner, etc.)
+* `cp -u`: only copy if the destination file is older or missing
+* `cp -i`: interactive — ask before overwriting
+* `cp -v`: verbose — show each file being copied
+
+For example:
+
+```
+cp -av myfolder/ backup/
+```
+
+will recursively copy the folder while preserving metadata and showing each file it copies.
+
+-_-
+
+Analogy
+
+Think of `cp` like duplicating a document in real life:
+
+* You take `file.txt`, open it, read it
+* You write a brand new copy on a fresh page (that becomes `backup.txt`)
+* Now you have two separate sheets of paper. Changing one doesn't affect the other.
+
+But with `ln`, you had one shared page with two sticky notes pointing to it. Changing content affects both.
 
 
 -_--_--_--_--_--_--_--_--_--_--_--_--_- Detailed information about Links -_--_--_--_--_--_--_--_--_--_--_--_--_-
@@ -603,7 +725,7 @@ What is the link count you see in `ls -l`?
 
 When you run:
 
-```bash
+```
 ls -l
 ```
 
@@ -649,7 +771,7 @@ These two entries help with that.
 
 Example:
 
-```bash
+```
 cd ..
 ```
 
@@ -681,7 +803,7 @@ Inside this folder:
 
 Now imagine you make a subfolder:
 
-```bash
+```
 mkdir /home/mahammad/projects
 ```
 
