@@ -1,93 +1,3 @@
-1. What is the Terminal?
-
-The terminal is a program that shows you a text-based interface. 
-It's like a screen where you can type commands and see responses.
-
-But the terminal itself does not understand your commands.
-It is only a container - it accepts your keyboard input and displays output.
-
-Inside this terminal, it runs another program - the shell - and that shell is what understands the commands.
-
-Real-Life Analogy:
-
-* Think of the terminal like a TV screen.
-* The TV shows you what is happening.
-* But the TV itself is not doing the action. It is just showing it.
-* The “real work” is happening somewhere else - in this case, in the shell.
-
--_-
-
-2. What is the Shell?
-
-The shell is a command interpreter.
-It reads what you type and sends it to the operating system.
-
-The shell is like a middleman between you and the computer’s kernel (the lowest layer of the operating system).
-
-
-You type: ls
-
-Shell says: “Okay, this is a request to list files. I’ll send it to the OS.”
-The OS does the action, returns the result to the shell, and the shell shows it on the screen.
-
-So the shell has two main jobs:
-
-1. Understand your command - like `cd`, `mkdir`, or more complex expressions
-2. Send the correct system-level instructions to the OS
-
-Why the name “shell”?
-
-Because it’s a wrapper around the operating system. The real OS is the kernel, which is very low-level and doesn’t talk directly to users. So the shell wraps that and makes it usable by humans.
-
-There are different types of shells. Bash is one of them. Others include:
-
-* `sh` - Bourne Shell (older)
-* `zsh` - Z shell (more modern)
-* `fish` - Friendly Interactive Shell
-* `csh`, `ksh`, etc.
-
-Each shell has its own syntax rules, features, and behavior.
-
--_-
-
-3. What is Bash?
-
-Bash is a specific shell program.
-Its name comes from: Bourne Again SHell
-
-It is an improved version of the original `sh` (Bourne shell).
-Bash is very popular and is usually the default shell on most Linux systems.
-
-It is both:
-
-* A command-line interpreter, meaning it understands commands like `ls`, `cd`, etc.
-* A scripting language, meaning you can write `.sh` files with logic like `if`, `for`, variables, functions, and so on.
-
-Important:
-
-* Bash is not the terminal.
-* Bash runs inside the terminal.
-* When you open your terminal, it usually starts a Bash session automatically.
-* But you can choose to use other shells, too.
-
--_-
-
-Summary with an Example
-
-Imagine you type: mkdir test-folder
-
-Here’s what happens:
-
-1. Terminal shows the prompt. You type the command.
-2. Shell (like Bash) reads the line: `mkdir test-folder`
-3. Bash understands: this is a command to make a directory
-4. Bash tells the operating system: “Please create a folder named test-folder in this location”
-5. The OS uses the file system to create the folder
-6. Bash gets success or error response
-7. Bash shows that to you inside the terminal
-
--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
-
 1. `cd` - Change Directory
 
 This command is used to move between folders (directories) in the file system.
@@ -401,7 +311,7 @@ The name only exists in the directory that contains the file. This is crucial to
 So in reality, your file system works like this:
 
 ```
-Directory entry: "file.txt" → inode #12345 → actual content
+Directory entry: "file.txt" → inode 12345 → actual content
 ```
 
 What does `rm` actually do?
@@ -537,7 +447,7 @@ cp file.txt backup.txt
 you are not creating a new label (like a hard link does). You are actually creating:
 
 * a brand new directory entry: `backup.txt`
-* a brand new inode: say inode #23456
+* a brand new inode: say inode 23456
 * new disk blocks for file content (same content as the original)
 * the data from `file.txt` is copied block-by-block into the new location
 
@@ -623,8 +533,8 @@ Only a few flags are very important for deeper work:
 * `cp -r`: recursive copy (for directories)
 * `cp -a`: archive mode (preserves symbolic links, file permissions, timestamps, owner, etc.)
 * `cp -u`: only copy if the destination file is older or missing
-* `cp -i`: interactive — ask before overwriting
-* `cp -v`: verbose — show each file being copied
+* `cp -i`: interactive - ask before overwriting
+* `cp -v`: verbose - show each file being copied
 
 For example:
 
@@ -645,6 +555,413 @@ Think of `cp` like duplicating a document in real life:
 * Now you have two separate sheets of paper. Changing one doesn't affect the other.
 
 But with `ln`, you had one shared page with two sticky notes pointing to it. Changing content affects both.
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
+
+7. What `mv` really does
+
+On the surface, `mv` stands for “move,” and you might think it copies a file and deletes the original, like `cp` + `rm`. 
+But that’s not usually true. 
+The real behavior depends on where you're moving the file to - whether it's the same filesystem (partition) or not.
+
+Case 1: Moving within the same filesystem (most common case)
+
+When you run:
+
+```
+mv file.txt renamed.txt
+```
+
+inside the same directory or partition, no data is copied. The file’s content and inode stay exactly the same. 
+Only the directory entry (the name → inode mapping) is changed.
+
+So `mv` is just updating metadata:
+
+* Remove the label `file.txt` from the current directory
+* Add a new label `renamed.txt` pointing to the same inode
+* That’s it - the file wasn’t touched or moved on disk
+
+That’s why it’s very fast - even for huge files. You’re not moving gigabytes; you’re just changing a string in the directory table.
+
+So:
+
+```
+mv oldname newname
+```
+
+is just a rename operation if done on the same filesystem.
+
+-_-
+
+Case 2: Moving across different filesystems
+
+Now imagine this:
+
+```
+mv /mnt/driveA/file.txt /home/user/
+```
+
+If `/mnt/driveA/` is on a different partition than `/home/user/`, then `mv` can’t just rename the label. 
+Different filesystems have their own inode tables. You can’t simply point to the same inode.
+
+So here, `mv` actually does this:
+
+1. Reads the content of `file.txt`
+2. Creates a new file in `/home/user/` with the same data
+3. Deletes the original file in `/mnt/driveA/`
+
+This is basically `cp + rm`.
+
+So it becomes a real move only across filesystems.
+
+-_-
+
+What happens when renaming folders?
+Same logic. If you run:
+
+```
+mv myfolder/ mynewfolder/
+```
+
+and it’s on the same filesystem, then it simply updates the directory’s label - very fast.
+If it’s across filesystems, then it copies everything inside recursively, and deletes the original.
+
+You can check that with:
+
+```
+ls -i file.txt
+mv file.txt newname.txt
+ls -i newname.txt
+```
+
+You’ll see the inode number remains the same.
+
+-_-
+
+Hidden power of `mv`: replacing files
+
+If the destination exists, `mv` overwrites it without warning, unless you use `-i`.
+
+So this is dangerous:
+
+```
+mv report.txt final.txt
+```
+
+If `final.txt` already exists, it’s gone. To be safer:
+
+```
+mv -i report.txt final.txt
+```
+
+asks:
+
+```
+mv: overwrite 'final.txt'? (y/n)
+```
+
+-_-
+
+Key flags of `mv`
+
+There are only a few that matter deeply:
+
+* `-i` (interactive): prompts before overwriting
+* `-n` (no-clobber): never overwrite existing files
+* `-v` (verbose): shows what is being moved
+
+Example:
+
+```
+mv -iv draft.txt article.txt
+```
+
+asks before replacing, and tells you what was done.
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
+
+8. What `touch` really does
+The main purpose of `touch` is to update file timestamps - not to write content, not to open editors, 
+not even to fill the file with zeroes. It touches the file’s metadata, specifically the access time and modification time.
+
+Let’s say you do:
+
+```
+touch notes.txt
+```
+
+Now two scenarios can happen:
+
+Case 1: `notes.txt` does not exist
+
+Then `touch` will create an empty file. 
+Not 0 bytes of zeros - it creates an inode entry with no content blocks, 
+and just allocates the metadata part (inode). This is the case that feels like “creating a file.”
+
+Case 2: `notes.txt` already exists
+
+Then `touch` doesn’t change the content at all. Instead, it updates:
+
+* `atime` (last access time) - when file was last read
+* `mtime` (last modification time) - when content was last changed
+* sometimes also `ctime` (metadata change time), depending on the filesystem
+
+This lets you refresh the file's metadata without modifying the content.
+
+-_-
+
+Why is this useful?
+
+In Unix-like systems, every file has a timestamp triple:
+
+* access time - when the file was last read
+* modification time - when the file content was changed
+* change time - when inode metadata (like permissions) was changed
+
+```
+stat greet.txt 
+```
+
+  File: greet.txt
+  Size: 146       	Blocks: 8          IO Block: 4096   regular file
+
+Inode: 2279142     Links: 1
+
+Access: 2025-06-06 17:42:12.031955961 +0400
+Modify: 2025-05-27 23:41:06.320740396 +0400
+Change: 2025-05-27 23:41:06.320740396 +0400
+Birth: 2025-05-27 23:39:43.662440310 +0400
+
+These times matter for:
+
+* Makefiles: which files are "newer" than others
+* Backup systems: only backup changed files
+* Caching: expire based on last modification
+
+`touch` lets you manually control this timeline - you can make a file look newer than it is, or simulate recent use.
+
+after using touch command on this file: 
+
+  File: greet.txt
+  Size: 146       	Blocks: 8          IO Block: 4096   regular file
+
+Inode: 2279142     Links: 1
+
+Access: 2025-06-06 20:14:29.633280250 +0400
+Modify: 2025-06-06 20:14:29.633280250 +0400
+Change: 2025-06-06 20:14:29.633280250 +0400
+Birth: 2025-05-27 23:39:43.662440310 +0400
+
+only birth date remains unchanged.
+
+-_-
+
+A real case:
+
+Imagine you have:
+
+```
+program
+config.cfg
+```
+
+And the program only re-parses `config.cfg` if its modification time is newer than a lockfile. You can do:
+
+touch config.cfg
+Now it appears “freshly edited” even if the content didn’t change.
+
+-_- Some important flags for `touch`
+
+touch -c file.txt
+This does not create the file if it doesn’t exist. It only updates time if it exists.
+
+-_-
+
+touch -a file.txt
+Only updates the access time (when it was last read).
+
+-_-
+
+touch -m file.txt
+Only updates the modification time (when it was last written).
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
+
+
+9. `cat` - Concatenate and Display Files
+
+The name `cat` comes from concatenate, meaning to join things together. But when used alone, most people think of `cat` just as:
+
+```
+cat file.txt
+```
+
+This displays the file content to the screen (standard output). But what is really happening?
+
+Under the hood, `cat`:
+
+1. Opens the file for reading
+2. Reads the byte stream from beginning to end
+3. Sends that stream to stdout, which usually means your terminal screen
+4. If multiple files are passed, it joins their content in the given order
+
+So when you do:
+
+```
+cat a.txt b.txt > combined.txt
+```
+
+It’s literally:
+
+* Reading all of `a.txt`
+* Then all of `b.txt`
+* Writing them into `combined.txt` as one continuous file
+
+This is why it's called concatenate.
+
+-_-
+
+`cat` is also used with redirection:
+
+For example:
+
+```
+cat > newfile.txt
+```
+
+Now it’s not reading from a file, but from standard input - your keyboard.
+
+You can type something like:
+
+```
+Hello World
+This is a test
+```
+
+Then press `Ctrl + D` to end. That ends input stream and writes it to the file.
+
+So now, `newfile.txt` will contain what you typed.
+
+-_- Common flags for `cat`
+
+1. ```
+cat -n file.txt
+```
+
+Adds line numbers to each line of output.
+
+-_-
+
+Summary
+
+`cat` is a tool to:
+
+* display
+* merge
+* redirect
+* clean
+
+text files in Unix systems, working directly with raw byte streams and standard input/output.
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
+
+10. `nano` - A Text Editor in Terminal
+
+`nano` is an interactive terminal-based text editor. 
+Not just a display tool like `cat`, but an actual editor that lets you move around, write, delete, and save.
+
+When you run:
+
+```
+nano notes.txt
+```
+
+This happens:
+
+* If the file exists, it opens it in a mini editor screen inside the terminal
+* If it doesn’t exist, it starts a new empty buffer with that name
+* You can then type content, navigate with arrow keys, and use keyboard shortcuts
+
+At the bottom of the screen, you’ll see something like:
+
+```
+^O Write Out    ^X Exit    ^K Cut Line    ^U Uncut Line
+```
+
+This means:
+
+* `Ctrl + O` saves the file (write out)
+* `Ctrl + X` exits nano
+* `Ctrl + K` cuts a line (like delete)
+* `Ctrl + U` pastes what you cut
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
+
+11. `echo` - Print to Standard Output
+At first glance, `echo` seems too simple. You do:
+
+```
+echo Hello
+```
+
+And it prints `Hello`.
+
+But behind this simplicity, it’s a shell built-in that works with strings, environment variables, 
+file redirection, and even escape sequences.
+
+-_- Common examples
+
+1. ```
+echo $HOME
+```
+
+This prints your home directory, because `$HOME` is an environment variable.
+
+ahammad-ahmadov@R:~/Documents$ echo $HOME
+/home/mahammad-ahmadov
+
+
+2. ```
+echo "My name is $USER"
+```
+
+Shell will replace `$USER` with your username.
+
+mahammad-ahmadov@R:~/Documents$ echo $USER
+mahammad-ahmadov
+
+
+3. ```
+echo "Line 1\nLine 2"
+```
+
+This won’t show a newline, because by default `\n` is not interpreted.
+To enable escape sequences, use `-e`:
+
+```
+echo -e "Line 1\nLine 2"
+```
+
+Now you’ll see two lines.
+
+-_-
+
+echo with redirection
+You can write to a file:
+
+4. ```
+echo "Hello File" > hello.txt
+```
+
+This creates or replaces the file.
+
+Or append:
+
+5. ```
+echo "Another line" >> hello.txt
+```
+
+Now the new line goes to the end of the file.
 
 
 -_--_--_--_--_--_--_--_--_--_--_--_--_- Detailed information about Links -_--_--_--_--_--_--_--_--_--_--_--_--_-
