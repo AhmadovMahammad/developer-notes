@@ -98,6 +98,10 @@ Owner: rwx = read, write, execute → 7
 Group: rwx = read, write, execute → 7
 Others: r-x = read, no write, execute → 5
 
+write = 2
+execute = 1
+read = 4
+
 
 [2] 5 - What is this number?
 This is the link count - the number of hard links pointing to this directory.
@@ -140,7 +144,7 @@ This command looks short, but under the hood, it's a combination of two key thin
 1. how globbing (`*`) works and 2. how `ls -d` behaves.
 
 Let’s break it fully:
-
+  
 -_-
 
 What does `*` mean?
