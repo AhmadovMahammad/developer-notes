@@ -1,0 +1,113 @@
+1. What is a `.sh` file?
+
+A `.sh` file is a plain text file. 
+The `.sh` extension is just a convention - it tells humans (and maybe some IDEs or syntax highlighters) that this file probably contains shell script code.
+
+The shell doesn’t care about the extension. 
+You could name it `my-script`, `deploy`, or `x123` - 
+it will still work if you run it properly.
+
+-_-
+
+So when you create a file like this:
+
+```
+nano myscript.sh
+```
+
+And write something like:
+
+```
+echo "Hello"
+pwd
+ls -l
+```
+
+You're just writing a set of shell commands into a file - the same commands you could write in an interactive shell.
+At this point, this file is not active. It’s not an application. It's more like a saved notebook of commands.
+
+Let’s now understand how this file exists at the filesystem level.
+
+-_-
+
+What happens on the filesystem?
+
+When you save `myscript.sh`, your shell (through `nano`) tells the operating system:
+
+* Create a new directory entry: name → inode mapping
+* Allocate a new inode
+* Store content (your commands) as a data block
+* Record metadata: timestamps, size, permissions (usually `rw-r--r--`)
+
+So now you have a file:
+
+```
+ls -l myscript.sh
+```
+
+Output:
+
+```
+-rw-r--r-- 1 mahammad mahammad 47 May 27 22:41 myscript.sh
+```
+
+You can see:
+
+* It's a regular file (starts with `-`)
+* You can read/write it
+* Its size is 47 bytes
+* It was just created
+
+Still, it’s just a file with text. Not a command.
+
+-_-
+
+What can you do with this `.sh` file?
+
+You can:
+
+```
+cat myscript.sh
+```
+
+To view its contents
+
+Or:
+
+```
+bash myscript.sh
+```
+
+Which runs it by passing it as input to the `bash` interpreter
+
+This works even without `chmod +x`, because:
+
+* You're not trying to execute the file directly
+* You're telling `bash` to read and interpret this file
+
+This is like saying: "Hey bash, run these lines one by one".
+
+-_-
+
+Is `.sh` required?
+No. Try:
+
+```
+nano deploy
+```
+
+Add:
+
+```
+echo "Deploying..."
+```
+
+Then run:
+
+```
+bash deploy
+```
+
+Same result.
+
+So again: `.sh` is purely a naming convention. It helps you and your team know it’s a shell script.
