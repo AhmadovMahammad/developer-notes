@@ -197,6 +197,34 @@ public class Solution
         return 0;
     }
 
+    public int MaxProduct(int[] nums)
+    {
+        if (nums.Length == 1)
+        {
+            return nums[0];
+        }
+
+        int prev_max = nums[0];
+        int prev_min = nums[0];
+        int global_max = prev_max;
+
+        for (int i = 1; i < nums.Length; i++)
+        {
+            int num = nums[i];
+
+            int cur_max = Math.Max(num, Math.Max((prev_max * num), (prev_min * num)));
+            int cur_min = Math.Min(num, Math.Min((prev_max * num), (prev_min * num)));
+
+            global_max = Math.Max(global_max, Math.Max(cur_max, cur_min));
+
+            prev_max = cur_max;
+            prev_min = cur_min;
+        }
+
+        return global_max;
+    }
+
+
     // #Sliding Window
     public int MaxSumBruteForce(int[] nums, int k)
     {
@@ -278,7 +306,7 @@ public class Solution
         return prefix;
     }
 
-    public int RangeSum(int[] prefix, int start, int end) // [2, 6, 12, 20, 28]
+    public int RangeSum(int[] prefix, int start, int end) // [2, 6, 12, 20, 30]
     {
         if (start == 0) return prefix[end];
         return prefix[end] - prefix[start - 1];
@@ -617,5 +645,309 @@ public class Solution
         }
 
         return false;
+    }
+
+    // Input: nums     = [ 0, 1, 1, 1, 1, 1, 0, 0, 0]
+    // Cumulative sums = [-1, 0, 1, 2, 3, 4, 3, 2, 1]
+
+    // if cumulative sum is same between 2 indices,
+    // so subarray sum between these 2 indices are same
+
+    // example apart from that example:
+    // 5,  1,  2,   3,  -2,  -1,  -3
+    // 5,  6,  8,  11,   9,   8,   5
+
+    // here 5 is found on indices 0 and 6
+    // so sum between [1, 6] are 0 and it gives same result
+
+    public int FindMaxLength(int[] nums)
+    {
+        // sum -> first_occurrence_index
+        Dictionary<int, int> sum_index_pair = new Dictionary<int, int>()
+        {
+            { 0, -1 }
+        };
+
+        int cumulative_sum = 0;
+        int global_max = 0;
+
+        for (int i = 0; i < nums.Length; i++)
+        {
+            int num = nums[i];
+
+            int next = num == 0 ? -1 : num;
+            cumulative_sum += next;
+
+            if (sum_index_pair.TryGetValue(cumulative_sum, out int index))
+            {
+                global_max = Math.Max(global_max, i - index);
+            }
+            else
+            {
+                sum_index_pair[cumulative_sum] = i;
+            }
+        }
+
+        return global_max;
+    }
+
+    /*
+    
+    You are given an array prices where prices[i] is the price of a given stock on the ith day.
+    You want to maximize your profit by choosing a single day to buy one stock and 
+    choosing a different day in the future to sell that stock.
+    Return the maximum profit you can achieve from this transaction. If you cannot achieve any profit, return 0.
+
+    Example 1:
+
+    Input: prices = [7,1,5,3,6,4]
+    Output: 5
+    Explanation: Buy on day 2 (price = 1) and sell on day 5 (price = 6), profit = 6-1 = 5.
+    Note that buying on day 2 and selling on day 1 is not allowed because you must buy before you sell.
+    
+    Example 2:
+    
+    Input: prices = [7,6,4,3,1]
+    Output: 0
+    Explanation: In this case, no transactions are done and the max profit = 0.
+
+
+    */
+
+    public int MaxProfit(int[] prices)
+    {
+        int min_price = prices[0];
+        int max_profit = 0;
+
+        for (int i = 1; i < prices.Length; i++)
+        {
+            max_profit = Math.Max(max_profit, prices[i] - min_price);
+            min_price = Math.Min(min_price, prices[i]);
+        }
+
+        return max_profit;
+    }
+
+    /*
+    
+        Given an integer n, return all the numbers in the range [1, n] sorted in lexicographical order.
+        You must write an algorithm that runs in O(n) time and uses O(1) extra space. 
+         
+        
+        Example 1:
+        
+        Input: n = 13
+        Output: [1,10,11,12,13,2,3,4,5,6,7,8,9]
+        
+
+        Example 2:
+        
+        Input: n = 2
+        Output: [1,2]
+     
+        img for help:
+        https://assets.leetcode.com/users/images/c6aa8a16-9df8-4a19-8b9c-cf9755ea1082_1716309559.368739.jpeg
+    */
+
+    /*
+    
+    Output:
+    [
+        1,10,100,
+        101,102,103,104,105,106,107,108,109,
+        
+        11,110,
+        111,112,113,114,115,116,117,118,119,
+        
+        12,120,
+        121,122,123,124,125,126,127,128,129,
+        
+        13,130,
+        131,132,133,134,135,136,137,138,139,
+        
+        14,140,
+        141,142,143,144,145,146,147,148,149,
+        
+        15,150,
+        151,152,153,154,155,156,157,158,159,
+        
+        16,160,
+        161,162,163,164,165,166,167,168,169,
+        
+        17,170,
+        171,172,173,174,175,176,177,178,179,
+            
+        18,180,
+        181,182,183,184,185,186,187,188,189,
+        
+        19,190,
+        191,192,
+        
+        2,20,
+        21,22,23,24,25,26,27,28,29,
+        
+        3,30,
+        31,32,33,34,35,36,37,38,39,
+    
+        4,40,
+        41,42,43,44,45,46,47,48,49,
+    
+        5,50,
+        51,52,53,54,55,56,57,58,59,
+    
+        6,60,
+        61,62,63,64,65,66,67,68,69,
+    
+        7,70,
+        71,72,73,74,75,76,77,78,79,
+    
+        8,80,
+        81,82,83,84,85,86,87,88,89,
+    
+        9,90,
+        91,92,93,94,95,96,97,98,99
+    ]
+    */
+
+    public IList<int> LexicalOrder(int n)   // n = 192
+    {
+        /*
+        1
+        ├── 10
+        │   ├── 100
+        │   ├── 101
+        │   ...
+        ├── 11
+        │   ├── 110
+        │   ├── 111
+        │   ...
+        ...
+        9
+        ├── 90
+        │   ├── 900
+        │   ...
+ 
+        */
+
+        List<int> res = new List<int>();
+        int cur = 1;
+        int count = 0;
+
+        while (count < n)
+        {
+            //  1, 10, 100,
+            //  101, 102, 103, 104, 105, 106, 107, 108, 109,
+
+            //  19, 190, 
+            //  191, 192, 
+
+            //  2, 20, 
+            //  21, 22, 23, 24, 25, 26, 27, 28, 29, 
+
+            res.Add(cur);
+            count++;
+
+            // go deeper
+            if (cur * 10 <= n)
+            {
+                cur *= 10; // 10, 100, 11, 110, ... , 19, 190
+            }
+            else
+            {
+                while (cur % 10 != 9 && cur < n)
+                {
+                    cur += 1; // 101, 102, 103, 104, ... , 109, 111, 112, ... , 119, ... , 191, 192
+
+                    res.Add(cur);
+                    count += 1;
+                }
+
+                cur /= 10;
+                cur += 1;
+
+                while (cur % 10 == 0)
+                {
+                    cur /= 10;
+                }
+            }
+        }
+
+        return res;
+    }
+
+    public IList<int> LexicalOrderv2(int n)
+    {
+        List<int> res = new List<int>();
+        int cur = 1;
+        int count = 0;
+
+        while (count < n)
+        {
+            //  1, 10, 100,
+            //  101, 102, 103, 104, 105, 106, 107, 108, 109,
+
+            //  19, 190, 
+            //  191, 192, 
+
+            //  2, 20, 
+            //  21, 22, 23, 24, 25, 26, 27, 28, 29, 
+
+            res.Add(cur);
+            count++;
+
+            // go deeper
+            if (cur * 10 <= n)
+            {
+                cur *= 10; // 10, 100, 11, 110, ... , 19, 190
+            }
+            else
+            {
+                while (cur % 10 != 9 && cur < n)
+                {
+                    cur += 1; // 101, 102, 103, 104, ... , 109, 111, 112, ... , 119, ... , 191, 192
+
+                    res.Add(cur);
+                    count += 1;
+                }
+
+                cur /= 10;
+                cur += 1;
+            }
+        }
+
+        return res;
+    }
+
+    public IList<int> LexicalOrderv1(int n)
+    {
+        List<int> res = new List<int>();
+        int cur = res[0];
+
+        while (res.Count <= n)
+        {
+            while (cur < n)
+            {
+                cur *= 10;
+
+                if (cur < n)
+                {
+                    res.Add(cur); // 1, 10, 100
+                }
+            }
+
+            cur /= 10; // 10
+
+            while (cur + 1 <= n && cur % 10 != 9)
+            {
+                cur += 1;
+                res.Add(cur); // 11, 12, 13
+            }
+
+            cur /= 10;
+            cur += 1;
+            res.Add(cur);
+        }
+
+        return res;
     }
 }

@@ -605,19 +605,42 @@ internal class Program
 
         ComparisonBasedSorting sorting = new ComparisonBasedSorting();
         NonComparisonBasedSorting sorting_2 = new NonComparisonBasedSorting();
+        Solution solution = new Solution();
 
-        List<int[]> unsortedArrays = new()
+        //Console.WriteLine(solution.MaxProduct(new int[] { -4, -3, -2 }));
+
+        //Console.WriteLine(solution.FindMaxLength(new int[] { 0, 1, 1, 1, 1, 1, 0, 0, 0 }));
+        //Console.WriteLine(solution.FindMaxLength(new int[] { 0, 1, 1 }));
+        //Console.WriteLine(solution.FindMaxLength(new int[] { 0, 1 }));
+
+        //Console.WriteLine(solution.MaxProfit(new int[] { 7, 1, 5, 3, 6, 4 }));
+        //Console.WriteLine(solution.MaxProfit(new int[] { 7, 6, 4, 3, 1 }));
+
+        new List<int>() { 192, /*13, 2, 100*/ }.ForEach(test_case =>
         {
-            //new int[] { 237, 146, 259, 348, 152, 163, 235, 48, 36, 62 },
-            //new int[] { 8, 3, 7, 4 },
-            //new int[] { 9, 3, 7, 5, 6, 4, 8, 2 },
-            //new int[] { 4, 2, 2, 8, 3, 3, 1 },
-            //new int[] { 5, 4, 3, 2, 1 },
-            //new int[] { 1, 2, 3, 4, 5 },
-            //new int[] { 5, 1 },
-            //new int[] { 1, 2, 10, 7, 3, 6, 9, 0 },
-            //new int[] { 9, 3, 7, 6, 2, 5 },
-        };
+            IList<int> res = solution.LexicalOrder(test_case);
+
+            Console.WriteLine($"case: {test_case}\n");
+
+            Console.Write(string.Join(',', res));
+
+            Console.WriteLine();
+        });
+
+        // -----------------------------------------------------------------------
+
+        //List<int[]> unsortedArrays = new()
+        //{
+        //    new int[] { 237, 146, 259, 348, 152, 163, 235, 48, 36, 62 },
+        //    new int[] { 8, 3, 7, 4 },
+        //    new int[] { 9, 3, 7, 5, 6, 4, 8, 2 },
+        //    new int[] { 4, 2, 2, 8, 3, 3, 1 },
+        //    new int[] { 5, 4, 3, 2, 1 },
+        //    new int[] { 1, 2, 3, 4, 5 },
+        //    new int[] { 5, 1 },
+        //    new int[] { 1, 2, 10, 7, 3, 6, 9, 0 },
+        //    new int[] { 9, 3, 7, 6, 2, 5 },
+        //};
 
         //Console.WriteLine("==== Sorting Algorithms Visualization ====");
 

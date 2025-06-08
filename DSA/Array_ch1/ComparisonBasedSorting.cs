@@ -7,22 +7,24 @@ public class ComparisonBasedSorting
     public void BubbleSort(int[] arr)
     {
         int n = arr.Length;
-        bool swapped = false;
 
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < arr.Length - 1; i++)
         {
-            swapped = false;
+            bool swapped = false;
 
             for (int j = 0; j < n - i - 1; j++)
             {
                 if (arr[j] > arr[j + 1])
                 {
-                    swapped = true;
                     (arr[j], arr[j + 1]) = (arr[j + 1], arr[j]);
+                    swapped = true;
                 }
             }
 
-            if (!swapped) break;
+            if (!swapped)
+            {
+                break;
+            }
         }
     }
 
@@ -44,7 +46,7 @@ public class ComparisonBasedSorting
 
             if (minIndex != i)
             {
-                (arr[i], arr[minIndex]) = (arr[minIndex], arr[i]);
+                (arr[minIndex], arr[i]) = (arr[i], arr[minIndex]);
             }
         }
     }
@@ -70,14 +72,23 @@ public class ComparisonBasedSorting
 
     public void MergeSort(int[] arr)
     {
-        if (arr.Length <= 1) return;
+        // 8 7 6 5 4 3 2 1
+        // 8 7 6 5 - 4 3 2 1
+        // 8 7 - 6 5 - 4 3 - 2 1
+        // 8 - 7 - 6 - 5 - 4 - 3 - 2 - 1
+
+        if (arr.Length <= 1)
+        {
+            return;
+        }
 
         int mid = arr.Length / 2;
+
         int[] left = new int[mid];
         int[] right = new int[arr.Length - mid];
 
-        for (int i = 0; i < left.Length; i++) left[i] = arr[i];
-        for (int i = 0; i < right.Length; i++) right[i] = arr[mid + i];
+        for (int i = 0; i < mid; i++) left[i] = arr[i];
+        for (int j = 0; j < right.Length; j++) right[j] = arr[mid + j];
 
         MergeSort(left);
         MergeSort(right);
@@ -85,50 +96,41 @@ public class ComparisonBasedSorting
         Merge(arr, left, right);
     }
 
-    private void Merge(int[] arr, int[] left, int[] right)
+    public void Merge(int[] arr, int[] left, int[] right)
     {
-        int l = 0, r = 0;
         int i = 0;
+        int j = 0;
+        int k = 0;
 
-        while (l < left.Length && r < right.Length)
+        while (i < left.Length && j < right.Length)
         {
-            if (left[l] < right[r])
+            if (left[i] <= right[j])
             {
-                arr[i] = left[l];
-                l++;
+                arr[k++] = left[i++];
             }
             else
             {
-                arr[i] = right[r];
-                r++;
+                arr[k++] = right[j++];
             }
-
-            i++;
         }
 
-        while (l < left.Length)
+        while (i < left.Length)
         {
-            arr[i] = left[l];
-            l++;
-            i++;
+            arr[k++] = left[i++];
         }
 
-        while (r < right.Length)
+        while (j < right.Length)
         {
-            arr[i] = right[r];
-            r++;
-            i++;
+            arr[k++] = right[j++];
         }
     }
 
     // 9, 3, 7, 6, 2, 5
-    public void QuickSort(int[] arr)
+    public void QuickSort(int[] arr, int low = int.MinValue, int high = int.MaxValue)
     {
-        QuickSort(arr, 0, arr.Length - 1);
-    }
+        if (low == int.MinValue) low = 0;
+        if (high == int.MaxValue) high = arr.Length - 1;
 
-    private void QuickSort(int[] arr, int low, int high)
-    {
         if (low < high)
         {
             // p = 2
