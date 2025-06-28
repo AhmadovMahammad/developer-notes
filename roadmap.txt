@@ -177,9 +177,9 @@ Date: 09/12/2024 (MM/DD/YYYY)
     6.4 Stacks and Queues
         6.4.1 Theoretical Concepts:
         
-            Stack: LIFO principle, uses, and common operations (push, pop, peek).
-            Queue: FIFO principle, usage scenarios, and queue operations (enqueue, dequeue).
-            Types of Queues: Circular Queue, Priority Queue, Deque (Double-ended Queue).
+            Stack: LIFO principle, uses, and common operations (push, pop, peek).                   +
+            Queue: FIFO principle, usage scenarios, and queue operations (enqueue, dequeue).        +
+            Types of Queues: Circular Queue, Priority Queue, Deque (Double-ended Queue).            +
             Implementations: Array vs. Linked List implementations.
         
         6.4.2 Algorithms:

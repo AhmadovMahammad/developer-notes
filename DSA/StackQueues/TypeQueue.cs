@@ -141,14 +141,11 @@ public class TypeQueue<T>
         // If this is the first element, set front to 0
         if (IsEmpty)
         {
-            _front = 0;
             _rear = 0;
         }
-        else
-        {
-            // Move rear pointer to next position
-            _rear++;
-        }
+        
+        // Move rear pointer to next position
+        _rear++;
 
         _count++;
         _array[_rear] = item;
@@ -251,12 +248,12 @@ public class TypeQueue<T>
     public T[] ToArray()
     {
         T[] result = new T[_count];
-        
+
         for (int i = 0; i < _count; i++)
         {
             result[i] = _array[_front + i];
         }
-        
+
         return result;
     }
 
