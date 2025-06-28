@@ -38,7 +38,8 @@ public class Solution
                 string unit = units[i];
                 string section = HandleSection(num % 1000).Trim();
 
-                if (sb.Length > 0) sb.Insert(0, " ");
+                if (sb.Length > 0)
+                    sb.Insert(0, " ");
                 sb.Insert(0, section + (unit != "" ? $" {unit}" : ""));
             }
 
@@ -62,9 +63,14 @@ public class Solution
         (int odd, int ten) = (num % 10, num / 10);
         switch (ten)
         {
-            case int _ when odd == 0 && ten == 0: break;
-            case 0: sb.Append($" {_odds[odd]}"); break;
-            case 1: sb.Append($" {_teens[num]}"); break;
+            case int _ when odd == 0 && ten == 0:
+                break;
+            case 0:
+                sb.Append($" {_odds[odd]}");
+                break;
+            case 1:
+                sb.Append($" {_teens[num]}");
+                break;
             case int _ when ten > 1:
                 sb.Append($" {_tens[ten * 10]}");
                 if (odd != 0) // we do not need to add the last digit if it is zero
@@ -80,7 +86,8 @@ public class Solution
     public int MaxSumSlidingWindow(int[] nums, int k)
     {
         int n = nums.Length;
-        if (k > nums.Length) return -1; // edge case: if array size is less than k, just stop code;
+        if (k > nums.Length)
+            return -1; // edge case: if array size is less than k, just stop code;
 
         int initialWindowSum = 0;
         for (int i = 0; i < k; i++)
@@ -132,10 +139,13 @@ public class Solution
         while (left < right)
         {
             int sum = nums[left] + nums[right];
-            if (sum == target) return true;
+            if (sum == target)
+                return true;
 
-            if (sum > target) right--;
-            else left++;
+            if (sum > target)
+                right--;
+            else
+                left++;
         }
 
         return false;
@@ -308,7 +318,8 @@ public class Solution
 
     public int RangeSum(int[] prefix, int start, int end) // [2, 6, 12, 20, 30]
     {
-        if (start == 0) return prefix[end];
+        if (start == 0)
+            return prefix[end];
         return prefix[end] - prefix[start - 1];
     }
 
@@ -329,7 +340,8 @@ public class Solution
             int current = nums[i];
             int subTarget = target - current;
 
-            if (_keyValuePairs.ContainsKey(subTarget)) return new int[] { _keyValuePairs[subTarget], i };
+            if (_keyValuePairs.ContainsKey(subTarget))
+                return new int[] { _keyValuePairs[subTarget], i };
             _keyValuePairs[key: current] = i;
         }
 
@@ -338,7 +350,8 @@ public class Solution
 
     public bool IsPalindrome(int x)
     {
-        if (x < 0) return false;
+        if (x < 0)
+            return false;
         int temp = x;
         int reverse = 0;
 
@@ -366,8 +379,10 @@ public class Solution
         {
             char c = s[i];
 
-            if (keyValuePairs.TryGetValue(c, out int value) && value >= previousVal) sum += value;
-            else sum -= value;
+            if (keyValuePairs.TryGetValue(c, out int value) && value >= previousVal)
+                sum += value;
+            else
+                sum -= value;
 
             previousVal = value;
         }
@@ -396,72 +411,75 @@ public class Solution
         return minLen == int.MaxValue ? 0 : minLen;
     }
 
-    public double FindMaxAverage(int[] nums, int k) // 643, Easy
-    {
-        int n = nums.Length;
-        if (k > nums.Length) return -1;
+    //public double FindMaxAverage(int[] nums, int k) // 643, Easy
+    //{
+    //    int n = nums.Length;
+    //    if (k > nums.Length)
+    //        return -1;
 
-        double prevWindowSum = 0;
-        for (int i = 0; i < k; i++)
-        {
-            prevWindowSum += nums[i];
-        }
+    //    double prevWindowSum = 0;
+    //    for (int i = 0; i < k; i++)
+    //    {
+    //        prevWindowSum += nums[i];
+    //    }
 
-        double maxAverage = prevWindowSum / k;
+    //    double maxAverage = prevWindowSum / k;
 
-        for (int i = k; i < n; i++)
-        {
-            double newWindowSum = prevWindowSum + nums[i] - nums[i - k];
-            if (newWindowSum > prevWindowSum) maxAverage = Math.Max(maxAverage, newWindowSum / k);
+    //    for (int i = k; i < n; i++)
+    //    {
+    //        double newWindowSum = prevWindowSum + nums[i] - nums[i - k];
+    //        if (newWindowSum > prevWindowSum)
+    //            maxAverage = Math.Max(maxAverage, newWindowSum / k);
 
-            prevWindowSum = newWindowSum;
-        }
+    //        prevWindowSum = newWindowSum;
+    //    }
 
-        return maxAverage;
-    }
+    //    return maxAverage;
+    //}
 
-    public double FindMaxAverage2(int[] nums, int k) // 643, Easy
-    {
-        int n = nums.Length;
-        if (k > nums.Length) return -1;
+    //public double FindMaxAverage2(int[] nums, int k) // 643, Easy
+    //{
+    //    int n = nums.Length;
+    //    if (k > nums.Length)
+    //        return -1;
 
-        double prevWindowSum = 0;
-        for (int i = 0; i < k; i++)
-        {
-            prevWindowSum += nums[i];
-        }
+    //    double prevWindowSum = 0;
+    //    for (int i = 0; i < k; i++)
+    //    {
+    //        prevWindowSum += nums[i];
+    //    }
 
-        double maxAverage = prevWindowSum / k;
+    //    double maxAverage = prevWindowSum / k;
 
-        for (int i = k; i < n; i++)
-        {
-            prevWindowSum += nums[i] - nums[i - k];
-            maxAverage = Math.Max(maxAverage, prevWindowSum / k);
-        }
+    //    for (int i = k; i < n; i++)
+    //    {
+    //        prevWindowSum += nums[i] - nums[i - k];
+    //        maxAverage = Math.Max(maxAverage, prevWindowSum / k);
+    //    }
 
-        return maxAverage;
-    }
+    //    return maxAverage;
+    //}
 
-    public int SubarraySum(int[] nums, int k)
-    {
-        Dictionary<int, int> keyValuePairs = new() { { 0, 1 } };
-        int prefixSum = 0, count = 0;
+    //public int SubarraySum(int[] nums, int k)
+    //{
+    //    Dictionary<int, int> keyValuePairs = new() { { 0, 1 } };
+    //    int prefixSum = 0, count = 0;
 
-        foreach (int num in nums)
-        {
-            prefixSum += num;
+    //    foreach (int num in nums)
+    //    {
+    //        prefixSum += num;
 
-            if (keyValuePairs.TryGetValue(prefixSum - k, out int value))
-            {
-                count += value;
-            }
+    //        if (keyValuePairs.TryGetValue(prefixSum - k, out int value))
+    //        {
+    //            count += value;
+    //        }
 
-            if (keyValuePairs.ContainsKey(prefixSum)) keyValuePairs[prefixSum]++;
-            else keyValuePairs[prefixSum] = 1;
-        }
+    //        if (keyValuePairs.ContainsKey(prefixSum)) keyValuePairs[prefixSum]++;
+    //        else keyValuePairs[prefixSum] = 1;
+    //    }
 
-        return count;
-    }
+    //    return count;
+    //}
 
     public int RemoveElement(int[] nums, int val)
     {
@@ -490,7 +508,8 @@ public class Solution
             digits[i] = sum % 10;
             carry = sum / 10;
 
-            if (carry == 0) return digits;
+            if (carry == 0)
+                return digits;
         }
 
         int[] res = new int[n + 1];
@@ -516,7 +535,8 @@ public class Solution
             carry = sum / 2;
         }
 
-        if (carry != 0) sb.Append(carry);
+        if (carry != 0)
+            sb.Append(carry);
 
         char[] response = sb.ToString().ToCharArray();
         Array.Reverse(response);
@@ -527,7 +547,8 @@ public class Solution
     public string Convert(string s, int numRows)
     {
         // early exits
-        if (numRows == 1 || numRows > s.Length) return s;
+        if (numRows == 1 || numRows > s.Length)
+            return s;
 
         List<List<char>> builder = new();
         for (int i = 0; i < numRows; i++)
@@ -542,7 +563,8 @@ public class Solution
         {
             builder[row].Add(c);
 
-            if (row == 0 || row == numRows - 1) toBottom = !toBottom;
+            if (row == 0 || row == numRows - 1)
+                toBottom = !toBottom;
             row = toBottom ? row + 1 : row - 1;
         }
 
@@ -556,7 +578,8 @@ public class Solution
 
     private void Permute(string remains, string prefix)
     {
-        if (string.IsNullOrEmpty(remains)) Console.WriteLine(prefix);
+        if (string.IsNullOrEmpty(remains))
+            Console.WriteLine(prefix);
         else
         {
             for (int i = 0; i < remains.Length; i++)
@@ -577,7 +600,8 @@ public class Solution
         while (queue.Count > 0)
         {
             var (prefix, remains) = queue.Dequeue();
-            if (string.IsNullOrEmpty(remains)) Console.WriteLine(prefix);
+            if (string.IsNullOrEmpty(remains))
+                Console.WriteLine(prefix);
             else
             {
                 for (int i = 0; i < remains.Length; i++)
@@ -614,7 +638,8 @@ public class Solution
     {
         foreach (int num in nums)
         {
-            if (_set.Contains(num)) return true;
+            if (_set.Contains(num))
+                return true;
             _set.Add(num);
         }
 
@@ -623,7 +648,8 @@ public class Solution
 
     public bool CheckInclusion(string s1, string s2)
     {
-        if (s1.Length > s2.Length) return false;
+        if (s1.Length > s2.Length)
+            return false;
 
         int[] s1Freq = new int[26];
         int[] winFreq = new int[26];
@@ -634,14 +660,16 @@ public class Solution
             winFreq[s2[i] - 'a']++;
         }
 
-        if (s1Freq.SequenceEqual(winFreq)) return true;
+        if (s1Freq.SequenceEqual(winFreq))
+            return true;
 
         for (int i = s1.Length; i < s2.Length; i++)
         {
             winFreq[s2[i] - 'a']++;
             winFreq[s2[i - s1.Length] - 'a']--;
 
-            if (s1Freq.SequenceEqual(winFreq)) return true;
+            if (s1Freq.SequenceEqual(winFreq))
+                return true;
         }
 
         return false;
@@ -875,79 +903,125 @@ public class Solution
         return res;
     }
 
-    public IList<int> LexicalOrderv2(int n)
+    public int SubarraySum(int[] nums, int k)
     {
-        List<int> res = new List<int>();
-        int cur = 1;
+        // Input: nums = [1, 2, 3], k = 3
+        // Input: nums = [2, 2, 2, 4, 6, -4], k = 6
+
+        // sum -> count that makes k on this prefix sum
+        // so, in next cycles if we found this prefix sum + k, so we can increase value
+        Dictionary<int, int> sum_count_pair = new Dictionary<int, int>()
+        {
+            { 0, 1 }
+        };
+
+        // nums:            2,  2,  2,  4,  6,  -4, -2
+        // prefix sum:      2,  4,  6,  10, 16, 12, 10
+        // cur - k:        -4, -2,  0,  4,  10,  6,  4  
+        // found? :         -   -   +   +   +,   +   +
+
+        int cumulative_sum = 0;
         int count = 0;
 
-        while (count < n)
+        for (int i = 0; i < nums.Length; i++)
         {
-            //  1, 10, 100,
-            //  101, 102, 103, 104, 105, 106, 107, 108, 109,
+            cumulative_sum += nums[i];
+            int subtract = cumulative_sum - k;
 
-            //  19, 190, 
-            //  191, 192, 
-
-            //  2, 20, 
-            //  21, 22, 23, 24, 25, 26, 27, 28, 29, 
-
-            res.Add(cur);
-            count++;
-
-            // go deeper
-            if (cur * 10 <= n)
+            if (sum_count_pair.TryGetValue(subtract, out int value))
             {
-                cur *= 10; // 10, 100, 11, 110, ... , 19, 190
+                count += value;
+            }
+
+            sum_count_pair[cumulative_sum] = sum_count_pair.GetValueOrDefault(cumulative_sum) + 1;
+        }
+
+        return count;
+    }
+
+    public double FindMaxAverage(int[] nums, int k)
+    {
+        int n = nums.Length;
+        double avg = 0;
+        double sum = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (i < k)
+            {
+                sum += nums[i];
             }
             else
             {
-                while (cur % 10 != 9 && cur < n)
-                {
-                    cur += 1; // 101, 102, 103, 104, ... , 109, 111, 112, ... , 119, ... , 191, 192
+                sum = sum + nums[i] - nums[i - k];
+                avg = Math.Max(avg, sum / k);
+            }
 
-                    res.Add(cur);
-                    count += 1;
-                }
-
-                cur /= 10;
-                cur += 1;
+            if (i + 1 == k)
+            {
+                avg = sum / k;
             }
         }
 
-        return res;
+        return avg;
     }
 
-    public IList<int> LexicalOrderv1(int n)
+    public int[] MaxSlidingWindow(int[] nums, int k)
     {
-        List<int> res = new List<int>();
-        int cur = res[0];
+        int[] result = new int[nums.Length - k + 1];
+        int max = nums[0];
+        int max_index = 0;
 
-        while (res.Count <= n)
+        for (int i = 1; i < k; i++)
         {
-            while (cur < n)
+            if (nums[i] > max)
             {
-                cur *= 10;
+                max = nums[i];
+                max_index = i;
+            }
+        }
 
-                if (cur < n)
+        result[0] = max;
+
+        // [7, 5, 4] k = 2
+        // 1. [7, 5] max = 7, sum = 12
+        // 2. [5, 4] max = 5, 16 - 7 = 9
+
+        for (int i = k; i < nums.Length; i++)
+        {
+            int add = nums[i];
+
+            /*
+               [1   3  -1] -3  5  3  6   7       3
+                1  [3  -1  -3] 5  3  6   7       3
+                
+                1   3 [-1  -3  5] 3  6   7       5
+                1   3  -1 [-3  5  3] 6   7       5
+                1   3  -1  -3 [5  3  6]  7       6
+                1   3  -1  -3  5 [3  6   7]      7
+             */
+
+            if (max_index != i - k)
+            {
+                max = Math.Max(max, add);
+            }
+            else
+            {
+                max = int.MinValue;
+
+                for (int j = i; j > i - k; j--)
                 {
-                    res.Add(cur); // 1, 10, 100
+                    if (nums[j] > max)
+                    {
+                        max = nums[j];
+                        max_index = j;
+                    }
                 }
             }
 
-            cur /= 10; // 10
-
-            while (cur + 1 <= n && cur % 10 != 9)
-            {
-                cur += 1;
-                res.Add(cur); // 11, 12, 13
-            }
-
-            cur /= 10;
-            cur += 1;
-            res.Add(cur);
+            result[i - k + 1] = max;
         }
 
-        return res;
+        return result;
     }
 }

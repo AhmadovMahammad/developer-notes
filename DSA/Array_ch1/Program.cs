@@ -7,10 +7,10 @@ internal class Program
         #region Basics
 
         /* Array Basics
-         
+
         Arrays are one of the simplest data structures, 
         known for storing elements in a contiguous block of memory, which allows for constant-time access to elements via their index.
-        
+
         In memory, an array is allocated as a single block.
         Given an array arr with integer elements, the address of an element arr[i] is computed as:
 
@@ -28,7 +28,7 @@ internal class Program
         */
 
         /* Array types
-         
+
         a) Static Arrays
         Static arrays have a fixed size determined at the time of creation. Once defined, you can’t change the array’s length.
 
@@ -74,37 +74,37 @@ internal class Program
 
         -----Array Properties and Methods
         C# provides various properties and methods for accessing information about an array, which include:
-        
+
         1) Length Property
         The Length property returns the total number of elements in an array. 
         This is useful for looping over all elements, as it tells you the exact number of items.
-        
+
         Console.WriteLine(numbers.Length); // Output: 5
-        
+
         2) GetLength(int dimension) Method
         If you're working with multidimensional arrays, 
         GetLength(dimension) helps you retrieve the length along a specific dimension.
-        
+
         int[,] matrix = new int[3, 5];
         Console.WriteLine(matrix.GetLength(0)); // Output: 3 (number of rows)
         Console.WriteLine(matrix.GetLength(1)); // Output: 5 (number of columns)
-        
+
         3) GetUpperBound(int dimension) Method
         For multidimensional arrays, GetUpperBound(dimension) returns the index of the last element along a specified dimension. 
         It’s useful when you need the upper limit of an array dimension.
-        
+
         Console.WriteLine(matrix.GetUpperBound(0)); // Output: 2 (last row index)
         Console.WriteLine(matrix.GetUpperBound(1)); // Output: 4 (last column index)
 
         */
 
         /* Algorithms
-         
+
         -----1. Two-Pointer Technique
 
         The Two-Pointer technique involves using two indices (or pointers) 
         that traverse the array from opposite directions or move towards a goal. 
-        
+
         It’s highly efficient in terms of time complexity and memory usage, 
         often yielding O(n) time complexity solutions for problems 
         involving pairs or subarray constraints.
@@ -433,7 +433,7 @@ internal class Program
         */
 
         /* Notes
-         
+
         Here are a few popular sliding window tasks on LeetCode that 
         apply both fixed-size and variable-size sliding window techniques. 
         They cover common use cases and allow you to practice different aspects of the sliding window approach.
@@ -443,7 +443,7 @@ internal class Program
         Problem: Given an array of positive integers nums and a positive integer target, 
         find the minimal length of a contiguous subarray of which the sum is greater than or equal to target. 
         If there is no such subarray, return 0 instead.
-        
+
         Difficulty: Medium
         Sliding Window Type: Variable-size
         Solution Insight: Expand the window by adding elements until the sum meets or exceeds target, 
@@ -453,11 +453,11 @@ internal class Program
         Example 1:
         Input: target = 7, nums = [2,3,1,2,4,3]
         Output: 2
-        
+
         Example 2:
         Input: target = 4, nums = [1,4,4]
         Output: 1
-        
+
         Example 3:
         Input: target = 11, nums = [1,1,1,1,1,1,1,1]
         Output: 0
@@ -487,7 +487,7 @@ internal class Program
 
         Problem: Given an array nums consisting of n elements, 
         find the contiguous subarray of length k that has the maximum average, and return this maximum average.
-        
+
         Difficulty: Easy
         Sliding Window Type: Fixed-size
         Solution Insight: Use a fixed-size sliding window to calculate the sum of the first k elements, 
@@ -607,25 +607,36 @@ internal class Program
         NonComparisonBasedSorting sorting_2 = new NonComparisonBasedSorting();
         Solution solution = new Solution();
 
+        Console.WriteLine(string.Join(',', solution.MaxSlidingWindow(new int[] { 1, 3, -1, -3, 5, 3, 6, 7 }, 3)));
+        //Console.WriteLine(string.Join(',', solution.MaxSlidingWindow(new int[] { 7, 5, 4 }, 2)));
+
+
+        //Console.WriteLine(solution.FindMaxAverage(new[] { 1, 12, -5, -6, 50, 3 }, 4));
+        //Console.WriteLine(solution.FindMaxAverage(new[] { 5 }, 1));
+
+
         //Console.WriteLine(solution.MaxProduct(new int[] { -4, -3, -2 }));
+
 
         //Console.WriteLine(solution.FindMaxLength(new int[] { 0, 1, 1, 1, 1, 1, 0, 0, 0 }));
         //Console.WriteLine(solution.FindMaxLength(new int[] { 0, 1, 1 }));
         //Console.WriteLine(solution.FindMaxLength(new int[] { 0, 1 }));
 
+
         //Console.WriteLine(solution.MaxProfit(new int[] { 7, 1, 5, 3, 6, 4 }));
         //Console.WriteLine(solution.MaxProfit(new int[] { 7, 6, 4, 3, 1 }));
 
-        new List<int>() { 192, /*13, 2, 100*/ }.ForEach(test_case =>
-        {
-            IList<int> res = solution.LexicalOrder(test_case);
 
-            Console.WriteLine($"case: {test_case}\n");
+        //new List<int>() { 192, /*13, 2, 100*/ }.ForEach(test_case =>
+        //{
+        //    IList<int> res = solution.LexicalOrder(test_case);
 
-            Console.Write(string.Join(',', res));
+        //    Console.WriteLine($"case: {test_case}\n");
 
-            Console.WriteLine();
-        });
+        //    Console.Write(string.Join(',', res));
+
+        //    Console.WriteLine();
+        //});
 
         // -----------------------------------------------------------------------
 
