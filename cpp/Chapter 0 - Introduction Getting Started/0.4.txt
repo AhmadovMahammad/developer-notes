@@ -1,0 +1,88 @@
+Step 1 — What is your problem?
+This step is about thinking: What do you want your program to do?
+
+You don’t need to write any code yet. Just think clearly:
+
+What is the goal?
+What is the problem you want to solve?
+
+This step is called "Define the problem".
+
+Some examples:
+
+“I want to write a program that asks the user for numbers, and shows the average.”
+“I want to make a 2D maze game. The user can move and try to win.”
+“I want to write a program that reads a file with stock prices and tells if the price will go up or down.”
+
+This step is about the idea. You don’t care about how you will do it. You only care about what you want to do.
+If the idea is clear and simple, you can go to the next step.
+
+---
+
+Step 2 — How will you solve the problem?
+This step is very important. But many programmers forget it. This step is called: Plan your solution.
+
+You must think: How can I solve this problem in the best way?
+
+There are many ways to solve one problem. But some ways are bad, some are good. Good solutions have these qualities:
+
+Easy to understand
+Not too complicated
+Easy to change or fix later
+Can show a clear error if something goes wrong
+Written in small parts (modular), so you can reuse parts later
+
+Big mistake: Many programmers skip this thinking step. They just open the code editor and start typing. It works sometimes, but later they have problems:
+
+The program is hard to fix
+It breaks easily
+It cannot be improved without changing everything
+It has many bugs
+
+---
+
+What is a bug?
+
+A bug is a mistake in the program. It makes the program crash or work in the wrong way. Maybe you wanted 2 + 2 = 4, but it gives 5. That’s a bug.
+
+Interesting fact: A long time ago (1940s), a real moth was found inside a computer machine. It made the machine stop working. So they wrote in the log book: “Bug found.” That’s why we still call it a bug today.
+
+---
+
+Why planning is important?
+
+In big projects, programmers don’t spend all their time writing code. In fact, they write the first version of the code quickly. But then:
+
+60% to 90% of their time is used for maintenance
+Maintenance means:
+
+Fixing bugs
+Improving the code
+Changing the code for new OS or new devices
+Making it easier to read or faster
+
+So if you plan well in the beginning, you save yourself from pain in the future.
+
+---
+
+Step 3 — Write your code
+Now you are ready to write your C++ program.
+
+To write a C++ program, you need two things:
+
+1. C++ language knowledge— that’s what you’re learning in this course
+2. Text editor or code editor— a program where you write and save code
+
+Your code is called source code. It’s just text. For example:
+
+```cpp
+#include <iostream>
+
+int main()
+{
+    std::cout << "Here is some text.";
+    return 0;
+}
+```
+
+You can write this in any editor, even Notepad. But it is better to use a code editor.

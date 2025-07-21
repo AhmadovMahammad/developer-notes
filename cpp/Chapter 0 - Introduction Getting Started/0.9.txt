@@ -1,0 +1,249 @@
+Why does tasks.json exist in VS Code?
+
+When you're using VS Code, it's not a full-featured IDE like Visual Studio, CLion, or others. VS Code is more like a powerful text editor that doesn't come with a built-in compiler or build system.
+
+So to compile and run your C++ programs, you have to tell VS Code how to do it. This is where tasks.json comes in.
+
+Think of tasks.json as a set of custom instructions for how to build (and optionally run) your program. It lives inside a hidden folder called .vscode, and this file tells VS Code exactly what command to run when you hit Ctrl + Shift + B (or run the task manually).
+
+example tasks.json file:
+
+``` json
+
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build and Run C++",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "g++ -std=c++20 main.cpp -o main && ./main"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "C++ compile and run"
+        }
+    ]
+}
+
+
+```
+
+This means:
+“When the user builds the project, open a Bash shell, and inside it, run this command:”
+
+g++ -std=c++20 main.cpp -o main && ./main
+
+Let’s now break down this command too.
+
+    g++ - The GNU C++ compiler.
+    -std=c++20 - Use the C++20 standard.
+    main.cpp - Your source code file.
+    -o main - Output the compiled file as an executable named main.
+    && ./main - If compilation succeeds, run the executable (./main).
+
+
+What is a build configuration then?
+
+In more advanced setups (like Visual Studio), you don’t always want to just compile and run. 
+Sometimes you want to build for debugging or for release. These are two very different cases:
+
+Debug Build
+
+- No optimization (-O0)
+- Full debug info included (-g or -ggdb)
+- Used when writing and testing your code
+- Slower, but easier to debug step-by-step
+
+Release Build
+
+- Optimized for speed and size (-O2, -O3)
+- Removes debug info (-DNDEBUG)
+- Used when the program is finished and ready to share
+- Faster, but harder to debug
+
+
+
+
+-- Notes: Debugging option
+
+-g: extra debugging information in the operating system’s native format.
+-ggdb: extra debugging information for use by GDB.
+-g0
+
+-ggdb0: no debug information at all.
+-g1
+
+-ggdb1: minimal information, enough for making backtraces in parts of the program that you don’t plan to debug. This includes descriptions of functions and external variables, and line number tables, but no information about local variables.
+-g2
+
+-ggdb2: default level information.
+-g3
+
+-ggdb3: extra information, such as all the macro definitions present in the program.
+
+The last -g is effective while multiple -g options are used.
+See https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html.
+
+
+-DNDEBUG
+
+Means Define No Debug, it will define macro NDEBUG, make assert ineffective (be ignored in compiling).
+More about gcc is here: https://gcc.gnu.org/onlinedocs/gcc/index.htmlSEC_Contents.
+
+
+
+
+How to update tasks.json for Debug vs Release
+
+Instead of having just one command, you can create two separate tasks. One for debug, one for release. 
+Here’s how you can modify tasks.json to support both:
+
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Debug",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "g++ -std=c++20 -ggdb -O0 main.cpp -o main && ./main"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "C++ Debug build with debug info"
+        },
+        {
+            "label": "Build Release",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "g++ -std=c++20 -DNDEBUG -O2 main.cpp -o main && ./main"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "detail": "C++ Release build with optimizations"
+        }
+    ]
+}
+
+Ctrl + Shift + P → type “Run Task” → choose “Build Debug” or “Build Release”
+
+
+
+
+---- Let's now tie everything together
+
+Step 0: The environment in VS Code (no built-in compiler)
+
+Unlike Visual Studio, which comes with a full compiler (MSVC), linker, debugger, and a tightly integrated build system, 
+VS Code is a lightweight editor. It doesn't have a compiler built-in. 
+That’s why you had to install GCC (GNU Compiler Collection) or more precisely G++ - the part of GCC that compiles C++ code.
+
+So in VS Code:
+
+You write code in `.cpp` files.
+But there's no internal compiler or IDE build system. You must explicitly tell it how to compile.
+This means you bring your own compiler (G++), and optionally configure your own build system, like `tasks.json`.
+
+---
+
+Step 1: Installing G++ - What it gives you
+When you install G++, you get:
+
+A compiler: translates `.cpp` files into `.o` object files (machine code).
+A linker (usually `ld`): connects all `.o` files into one executable (`main`, `a.out`, etc.).
+Together, this is not a build system. It's a toolchain.
+
+So G++ handles both compiling and linking, unless you break those steps yourself.
+
+A build system (like Make, CMake, MSBuild, etc.) is something extra - it automates and organizes those steps. In VS Code, `tasks.json` serves as a very lightweight custom build system.
+
+---
+
+Step 2: What happens when you run `g++`
+
+When you run: g++ -std=c++20 main.cpp -o main
+This one line actually performs two big steps:
+
+Step 2.1: Compilation
+
+G++ reads `main.cpp`
+It converts the C++ code into machine-level instructions, but not a full executable yet.
+The result is an object file (e.g., `main.o`)
+This file contains the low-level code but is still not "runnable"
+
+Step 2.2: Linking
+
+G++ now calls the linker.
+The linker connects together all object files, and external libraries (like the C++ Standard Library).
+It resolves any function or variable usage across files.
+If a function from another file or library is missing, it gives a linker error
+The result is a full executable binary file (e.g., `main` on Linux)
+
+So yes, the compiler translates to machine code, but it's the linker that assembles the full executable by putting all machine code pieces together.
+
+---
+
+Step 3: How this is triggered in VS Code
+In VS Code, you want a simple way to automate this.
+
+So you write:
+
+```json
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Debug",
+            "type": "shell",
+            "command": "bash",
+            "args": [
+                "-c",
+                "g++ -std=c++20 -ggdb -O0 main.cpp -o main && ./main"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "detail": "C++ Debug build with debug info"
+        }
+    ]
+}
+```
+
+What happens when you press Ctrl + Shift + B:
+
+VS Code looks at your `tasks.json`
+Finds the task labeled as `"isDefault": true`
+
+Runs the command:
+
+```bash
+bash -c "g++ -std=c++20 -ggdb -O0 main.cpp -o main && ./main"
+```
+
+This calls the compiler, compiles, links, and immediately runs the program (`./main`).
+You are building your own small build system by writing this JSON file.
+
+---
+
+Step 6: Your Role in All This
+Because VS Code is just a text editor:
+
+You must install G++
+You must write your own tasks.json or build scripts
+You must understand the full pipeline: source → object → executable
+
+But once you set this up, the workflow becomes smooth.

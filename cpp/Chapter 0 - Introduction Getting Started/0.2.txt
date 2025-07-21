@@ -1,0 +1,179 @@
+0.2 - Introduction to programs and programming languages
+
+Computers today are very fast. They can do many things quickly. But they also have a big problem. They cannot think. They cannot guess. A computer does not know what to do unless we tell it step by step. A computer only understands a few special commands. It cannot understand English, or any normal human language. It only understands machine instructions, and only if we say them in the right way.
+
+So, to tell a computer what to do, we write a program. A program is like a step-by-step recipe. It is a group of instructions that tells the computer exactly what to do, and in what order. We do not give these instructions in natural language. Instead, we use something called a programming language. A programming language is not a real-world language like English or French. It is a special kind of language made only for giving instructions to a computer.
+
+There are many different programming languages. Some are easy, some are hard. Some are good for websites, some are good for games. Some are fast, some are simple. But all programming languages are made to help us talk to computers in a way they can understand after translating.
+
+---
+
+When a program is being used by the computer, when the computer is doing what the program says, we say the computer is running or executing the program. But the computer doesn’t start a program by itself. A person usually must click or open the program first. Sometimes, one program can also start another program.
+
+All of this happens on the computer’s hardware. Hardware means all the parts of the computer that you can touch. For example, the part called the CPU is very important. The CPU is like the brain of the computer. It is the part that reads and does each instruction in the program. The computer also has memory. This memory is like a temporary space where the program is kept when it is running. If there is no memory, the program cannot run.
+
+There are also parts of the computer that help people use it. For example, the screen, the keyboard, or the mouse. These are called interactive devices. They help you see what the computer is doing and tell the computer what you want.
+
+The computer also has storage. This is like a big box where it saves things. When you turn off your computer, the storage keeps all the programs and files. When you turn the computer back on, you can still open your programs. This is because they are saved in storage, like a hard drive or SSD.
+
+---
+
+Now let’s talk about something called software. Software means the programs that run on the computer. So, a program is part of software. If you open a game or a browser or a calculator app, you are using software. All software needs hardware to run on. You cannot run software without a computer or device.
+
+Today, programs do more than just talk to the hardware. They also talk to other software. For example, your game might ask the operating system (like Windows or Linux) to save a file or play a sound. So, the program asks the operating system, and the operating system talks to the hardware for you. The program does not need to know how the hardware works. It just asks the OS to do things.
+
+All of this-hardware and software together-is sometimes called a platform. A platform is a full system where programs can run. For example, a Windows computer with an Intel CPU is one platform. A phone with Android is another platform. A platform gives services to programs. For example, it can give them memory, let them save a file, or show a picture.
+
+But here is one important thing. If your program uses the platform’s features, it may only work on that one platform. If you want to run the program on a different platform (like from Windows to Linux), it may not work. You may have to change the program to make it work. We call that process porting. If a program works on many platforms without big changes, we say the program is portable.
+
+---
+
+Machine language
+
+When we write a program in C++, the computer cannot understand it directly. The computer's main brain, which is called the CPU, does not know what C++ is. The CPU only understands a special kind of language called machine language, or also called machine code.
+
+Machine language is the true language of computers. It is the only thing the CPU can read and understand. Everything else-C++, Python, JavaScript-is for humans to read and write easily. But in the end, the CPU only wants one thing: machine language.
+
+Machine language is made of 1s and 0s only. Just like turning a light on or off, 1 means “on” and 0 means “off”. Every machine instruction is a group of 1s and 0s. These 1s and 0s are called bits. Bit is short for "binary digit".
+
+For example, here is a small instruction written in machine code:
+
+```
+10110000 01100001
+```
+
+This is not random. This small line of bits tells the CPU to do something very exact, like "take this number and move it into memory" or "compare two numbers". Every such instruction has a very precise job. The CPU reads these bits and does what they say.
+
+Now imagine writing an entire program using only these 1s and 0s. You would have to know exactly what each bit does, which numbers mean what, and where everything is stored. That’s what programmers had to do long ago, when computers were very new. It was slow and very hard. That’s why programming languages like C and C++ were created-to make life easier. But still, in the end, your C++ code must be translated into machine language before the computer can run it.
+
+---
+
+At its core, the CPU is the brain of the computer. It’s the physical chip (or part of a chip) that reads instructions from memory and executes them, one by one. Those instructions could be moving data, doing math, comparing values, jumping to different locations in code, and so on.
+
+---
+
+1. First, not all machine instructions are the same size. Some CPUs always use instructions that are the same number of bits-like 32 bits. So every instruction is 32 bits long. But some CPUs, like the x86 family (which is common in many computers), allow instructions of different sizes. One instruction may be short, another may be long, depending on the job.
+
+When we say machine instructions are not always the same size, we are talking about how many bits (1s and 0s) make up one instruction.
+
+Let’s imagine a CPU that always uses 32-bit instructions. That means every single instruction must be exactly 32 bits long. Not more, not less. This makes it simple for the CPU, because it always expects the same size.
+
+Think of it like a box factory that makes only boxes that are 32 cm long. Every object must fit in that size. If the object is small, there will be empty space inside. If the object is too big, it won’t fit. But the factory doesn’t care. It always makes only 32 cm boxes.
+
+Now, some CPUs are more flexible. They don’t use a fixed box size. One instruction might be short-maybe 8 bits. Another might be long-maybe 64 bits. It depends on what the instruction needs to do.
+
+This is what happens with CPUs in the x86 family (used in many desktop and laptop computers). These CPUs allow variable-length instructions. Some can be small, some can be big. The CPU knows how to handle this.
+
+This flexible design is powerful, but it also makes things more complicated for the CPU and for people writing very low-level code. Still, it gives more freedom to use only the size you need, not more.
+
+---
+
+2. Second, not all CPUs speak the same machine language. Each family of CPUs has its own machine language. For example, CPUs from the x86 family use one kind of machine language. But CPUs from the ARM64 family (common in phones and newer Macs) use a different kind of machine language. These two machine languages are not the same. That means if you write a machine language program for an x86 CPU, it will not work on an ARM64 CPU, and the other way around. They are not compatible.
+
+Not all CPUs are built in the same way. Think of different CPU families like different human languages.
+For example, x86 is one CPU family. These are used in most Windows computers, many Linux computers, and many older Macs.
+Another CPU family is ARM64. These are used in most smartphones, tablets, and now even some modern Macs (Apple Silicon).
+
+Each CPU family has its own machine language. That means, their way of writing machine instructions-the 1s and 0s-is different.
+
+This is exactly like how English and Chinese are different. If you write something in English, someone who only speaks Chinese cannot understand it. Same with CPUs: an x86 CPU understands x86 machine code, but not ARM machine code.
+
+So if you write a machine code program for an x86 CPU, and then try to run it on an ARM CPU, it simply won’t work. The ARM CPU will not understand what those bits mean. It will be like trying to read a book in a language you don’t know.
+
+Because of this, machine language is not portable. It works only for one family of CPUs. If you want to run the same program on a different CPU family, you need to change the machine code. That process is usually done by recompiling the program for the new CPU.
+
+---
+
+And finally, even though machine code is the fastest and closest way to talk to the CPU, it is very hard for people to write and read. You have to think in 1s and 0s. You have to remember exactly what every bit means. You make one mistake, and the CPU may crash or do the wrong thing.
+
+Also, you have to write it all over again if you want it to work on another CPU family.
+
+That’s why we use programming languages like C++. They let us write code in a way that humans can understand, and then we use a compiler to translate that code into the correct machine code for the CPU we are using.
+
+This saves a lot of time, avoids many mistakes, and lets us focus on the logic of the program instead of raw 1s and 0s.
+
+---
+
+Assembly Languages - Why assembly was invented
+
+Machine language-binary like 10110000 01100001-is perfect for the CPU, but it's extremely hard for humans to read, write, and debug. You have no idea what 10110000 does unless you memorize the binary representation of every operation the CPU supports. That’s not practical for human programmers.
+
+To solve this, assembly languages were created. Assembly doesn’t abstract things like modern programming languages (such as C++, Python). It’s still very low-level, but instead of working directly with 1s and 0s, you write short, meaningful mnemonics that correspond one-to-one with machine instructions.
+
+For example, instead of writing this:
+10110000 01100001
+
+you write this:
+mov al, 0x61
+
+---
+
+These two are exactly the same instruction, but the second is assembly (specifically x86 assembly), and much easier for humans to understand.
+
+What the instruction means
+
+mov al, 0x61 is an x86 instruction. Let’s decode it:
+
+1. mov is a mnemonic, short for "move", meaning copy data.
+2. al is the name of a register, a small memory location inside the CPU. Specifically, it's the lower 8 bits of the ax register in x86.
+3. 0x61 is a hexadecimal number, which equals 97 in decimal, or 'a' in ASCII.
+
+So this instruction copies the value 0x61 (or 'a') into the al register.
+
+Assembly doesn’t hide anything from you-it’s still one-to-one with the machine code. Every assembly instruction has a direct mapping to a binary instruction. But it gives you a readable and writable form, and humans now can edit programs more reasonably.
+
+--- 
+
+From assembly to machine code
+
+Even though assembly is readable by humans, CPUs still don’t understand it. They can only understand binary machine code. So the assembly code must be translated to machine code.
+
+This is done by an assembler. Think of an assembler as a translator:
+
+    You write readable assembly code.
+    The assembler reads it, translates each line into the correct binary instruction.
+    The result is an executable machine code program.
+
+---
+
+Introduction to low-level languages
+
+Low-level languages, like machine language and assembly language, are called "low-level" because they are very close to the actual hardware of the computer. This means they work directly with the specific instructions the CPU understands. There is little or no extra help or simplification provided by the language itself. It’s like talking directly to the computer’s brain in its own language, with almost no translation or shortcuts.
+
+Writing programs in low-level languages requires a lot of detailed knowledge about the CPU and how it works. For example, in assembly, you might see an instruction like `mov al, 0x61`. To understand this, you need to know what `al` means-it is the name of a small, very fast storage area inside the CPU called a register. Other CPUs might have different registers or might not have that register at all, so you need to be very familiar with the specific CPU to write or understand these instructions.
+
+Another challenge is that even though individual assembly instructions can be simple, understanding what a whole program does can be very hard. This is because a program written in assembly needs many instructions just to do simple things. So, assembly programs tend to be long and complex, making it hard for humans to read or maintain them.
+
+Writing complex programs in assembly is difficult because the language only provides very basic commands. Things like managing memory, organizing data, or handling input/output all have to be done by the programmer from scratch. This makes it time-consuming and error-prone to write large or complicated programs in low-level languages.
+
+Despite these difficulties, low-level languages have one main advantage: speed. Programs written in assembly can run very fast because they are closely matched to the hardware’s instructions. Because of this, assembly language is still used today in situations where speed is very important, like in parts of operating systems, video games, or device drivers. There are also some special cases where assembly is needed to interact directly with hardware, or when a programmer wants to control the CPU very precisely.
+
+---
+
+Introduction to high-level Languages
+
+High-level languages were created to solve many of the problems low-level languages have, such as complexity, portability, and difficulty of understanding. Unlike assembly or machine language, high-level languages let programmers write instructions using words and symbols that are much closer to human language and mathematics. For example, the assembly instruction mov al, 0x61 can be written in C or C++ simply as a = 97;. This is much easier to read, write, and maintain.
+
+Programs written in high-level languages cannot be directly understood by the CPU. They need to be translated into machine language first. This translation happens in two main ways: compiling and interpreting.
+
+---
+
+1. Compiling involves a special program called a compiler. The compiler reads the entire high-level language program, then translates it into machine code-often producing an executable file that the operating system can run directly. This executable contains all the machine instructions the CPU needs, and it can be run on its own without requiring the compiler. Early compilers were simple and generated slow code, but modern compilers are highly advanced and can produce optimized machine code that sometimes runs even faster than hand-written assembly.
+
+Sometimes, a programmer may want to see the exact machine or assembly code generated by the compiler for learning or optimization purposes. Most compilers support this feature, showing the low-level instructions behind the high-level code.
+
+Here is a simplified representation of the compiling process:
+https://www.learncpp.com/images/CppTutorial/Chapter0/Compiling-min.png?ezimgfmt=rs:521x161/rscb2/ng:webp/ngcb2
+
+2. Interpreting, on the other hand, works differently. An interpreter reads the high-level language code and executes it directly, translating each instruction on the fly every time the program runs. This makes interpreters more flexible and easier to use during development since you don’t need a separate compilation step. However, interpreted programs tend to run slower because the translation happens every time the program runs.
+
+Some languages, like C, C++, and Pascal, are traditionally compiled for speed and efficiency. 
+Others, like Perl or JavaScript, are usually interpreted, which helps rapid development and flexibility. 
+Java uses a combination of both: it compiles code into an intermediate form (bytecode), which is then interpreted or further compiled just before running, balancing portability and performance.
+
+In summary, high-level languages provide easier, more portable, and more maintainable ways to write programs. They rely on compilers and interpreters to translate human-friendly code into CPU-friendly instructions.
+
+Here is a simplified representation of the interpretation process:
+https://www.learncpp.com/images/CppTutorial/Chapter0/Interpreting-min.png?ezimgfmt=rs:721x61/rscb2/ng:webp/ngcb2
+
+---
