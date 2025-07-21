@@ -1,0 +1,28 @@
+﻿@page "/counter"
+@inject CounterStateService CounterState
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @CounterState.Count</p>
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+<h3>Primary Theme: @Primary</h3>
+<h3>Secondary Theme: @Secondary</h3>
+<p>
+    probably we won't have username property here because it is cascading parameter but we did not included this component within cascading value
+    and username value: @username
+</p>
+
+@code {
+    [CascadingParameter(Name = "username")] public string username { get; set; } = string.Empty;
+    [CascadingParameter(Name = "PrimaryTheme")] public string Primary { get; set; } = "";
+    [CascadingParameter(Name = "SecondaryTheme")] public string Secondary { get; set; } = "";
+    private int currentCount = 0; // This is component state
+
+    private void IncrementCount()
+    {
+        CounterState.IncrementCount();
+    }
+}

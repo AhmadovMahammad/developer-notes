@@ -1,0 +1,124 @@
+﻿@page "/userdisplay"
+@using PortfolioApp.Entities
+@using System.Text.Json
+@inject UserService UserService
+@inject NavigationManager Navigation
+
+<h3>Users</h3>
+
+<button @onclick="GoToCreatePage" class="add-button">+ Add New User</button>
+
+@if (_users is null)
+{
+    <div class="users-container">
+        @for (int i = 0; i < 5; i++)
+        {
+            <div class="user-card skeleton">
+                <h4></h4>
+                <p></p>
+                <p></p>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="users-container">
+        @foreach (var user in _users)
+        {
+            <div class="user-card">
+                <h4>@user.Name</h4>
+                <p><strong>Email:</strong> @user.Email</p>
+                <p><strong>Bio:</strong> @user.Profile?.Bio</p>
+
+                <button @onclick="() => EditUser(user.Id)" class="edit-button">Edit</button>
+                @* <button @onclick="() => EditUser(user)" class="edit-button">Edit</button> *@
+                <button @onclick="() => DeleteUser(user.Id)" class="delete-button">Delete</button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private IEnumerable<User>? _users = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _users = await UserService.GetUsersAsync();
+    }
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         _users = await UserService.GetUsersAsync();
+    //         _ = InvokeAsync(StateHasChanged);
+    //     }
+    // }
+
+    private void EditUser(User user)
+    {
+        string json = JsonSerializer.Serialize(user, options: new JsonSerializerOptions
+            {
+                ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve
+            });
+        string uri = Uri.EscapeDataString(json);
+        Navigation.NavigateTo($"/useredit?user={uri}");
+    }
+
+    private void EditUser(int id) => Navigation.NavigateTo($"useredit/{id}");
+    private async Task DeleteUser(int id)
+    {
+        await UserService.DeleteUserAsync(id);
+        _users = await UserService.GetUsersAsync();
+    }
+
+    private void GoToCreatePage() => Navigation.NavigateTo("/useredit");
+}
+
+<style>
+    .add-button {
+        margin-bottom: 15px;
+        padding: 10px 15px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .edit-button {
+        background: #ffc107;
+        margin-right: 5px;
+    }
+
+    .delete-button {
+        background: #dc3545;
+        color: white;
+    }
+
+    .users-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .user-card {
+        background: #f9f9f9;
+        border-radius: 10px;
+        padding: 15px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+    }
+
+        .user-card:hover {
+            transform: scale(1.05);
+        }
+
+    .skeleton {
+        background: #eee;
+        border-radius: 10px;
+        height: 100px;
+        animation: pulse 1.5s infinite;
+    }
+</style>

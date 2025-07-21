@@ -1,0 +1,22 @@
+﻿@page "/dashboard"
+@inject IJSRuntime JS
+
+<h2>Dashboard</h2>
+
+<button class="btn btn-outline-primary" @onclick="ChangeData">change data</button>
+<SalesChart SalesData="@salesData"></SalesChart>
+
+@code {
+    private readonly Random random = new Random();
+    private List<int> salesData = new() { 120, 200, 150, 320, 400 };
+
+    private async Task ChangeData()
+    {
+        for (int i = 0; i < salesData.Count; i++)
+        {
+            salesData[i] = random.Next(100, 300);
+        }
+
+        await JS.InvokeVoidAsync("initChart", salesData);
+    }
+}

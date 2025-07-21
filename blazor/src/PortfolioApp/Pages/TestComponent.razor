@@ -1,0 +1,72 @@
+﻿@page "/user/{userId?}"
+
+<h3>User Profile</h3>
+<p>User ID: @userId</p>
+
+@code {
+    [Parameter] public string userId { get; set; } = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (userId is null)
+        {
+            userId = "Unknown";
+        }
+    }
+}
+
+
+@* <h3>User Details</h3>
+<p>@details</p> *@
+@* <p>User ID: @userId</p>
+<p>Detail ID: @detailId</p> *@
+@* 
+@code {
+    [Parameter] public string userId { get; set; } = string.Empty;
+    [Parameter] public string detailId { get; set; } = string.Empty;
+
+    private string username { get; set; } = string.Empty;
+    private string email { get; set; } = string.Empty;
+    private string details { get; set; } = string.Empty;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Simulate a call to an API to fetch specific details
+            details = await FetchUserDetailsAsync(userId, detailId);
+            StateHasChanged();
+            // Process the retrieved details...
+
+            // User user = await FetchUserDetailsAsync(userId);
+            // username = user.Name;
+            // email = user.Email;
+
+            // StateHasChanged();
+        }
+    }
+
+    private async Task<User> FetchUserDetailsAsync(string userId)
+    {
+        // In a real scenario, this would be an API call.
+        // For this example, we are returning mock data.
+        await Task.Delay(3 * 1000);
+        return new User
+            {
+                Name = "Mahammad Ahmadov",
+                Email = "dev.ahmadov.mahammad@gmail.com"
+            };
+    }
+
+    private Task<string> FetchUserDetailsAsync(string userId, string detailId)
+    {
+        // Simulate fetching data based on both UserId and DetailId
+        return Task.FromResult($"Details for User {userId} with Detail ID {detailId}");
+    }
+
+    public class User
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+    }
+} *@

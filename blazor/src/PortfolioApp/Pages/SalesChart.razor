@@ -1,0 +1,25 @@
+﻿@inject IJSRuntime JS
+
+<h3>Monthly Sales Chart</h3>
+<canvas id="salesChart" width="400" height="200"></canvas>
+
+@code {
+    [Parameter] public List<int> SalesData { get; set; } = new();
+    private bool isRendered = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                await JS.InvokeVoidAsync("initChart", SalesData);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"JavaScript error: {ex.Message}");
+            }
+        }
+    }
+}
+

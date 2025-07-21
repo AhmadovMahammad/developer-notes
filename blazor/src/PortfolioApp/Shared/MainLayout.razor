@@ -1,0 +1,41 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>PortfolioApp</PageTitle>
+
+<div class="page">
+
+    <CascadingValue Value="loggedInUser" Name="username">
+        <CascadingValue Value="isAdmin" Name="isAdmin">
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+        </CascadingValue>
+    </CascadingValue>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
+        </div>
+
+        <CascadingValue Value="themeClass"> 
+            <button @onclick="ToggleTheme">Toggle Theme</button>
+            <div class="@themeClass content px-4">
+                @Body
+            </div>
+        </CascadingValue>
+    </main>
+</div>
+
+@code {
+    private bool isDarkMode = false;
+    private string themeClass => isDarkMode ? "dark-theme" : "light-theme";
+
+    public void ToggleTheme()
+    {
+        isDarkMode = !isDarkMode;
+    }
+
+
+    private string loggedInUser = "Mahammad Ahmadov";
+    private bool isAdmin = true;
+}

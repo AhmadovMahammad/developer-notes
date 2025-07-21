@@ -1,0 +1,323 @@
+﻿@page "/"
+@page "/index"
+@page "/home"
+@using System.Text
+@using System.Diagnostics
+@implements IDisposable
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@inject CounterStateService CounterState
+@inject ModalStateService ModalState
+
+<style>
+    .blog-button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+        .blog-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+
+        .blog-button:active {
+            transform: scale(0.95);
+        }
+
+    .blog {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+        .blog p {
+            font-size: 18px;
+            color: #333;
+            margin: 0;
+        }
+</style>
+
+<PageTitle>Parent Component</PageTitle>
+Welcome to your new app.
+<p>This page is accessible via both /home and /index.</p>
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+<EditForm Model="user">
+    <label>Name:</label>
+    <InputText @bind-value="user.Name" @bind-value:event="onchange" />
+    <p>You entered: @user.Name</p>
+</EditForm>
+
+<EditForm Model="user">
+    <label>Age:</label>
+    <InputNumber @bind-Value="user.Age" />
+    <p>Your age is: @user.Age</p>
+</EditForm>
+
+<EditForm Model="user">
+    <label>Subscribe:</label>
+    <InputCheckbox @bind-Value="user.IsSubscribed" />
+    <p>Subscribed: @(user.IsSubscribed ? "Yes" : "No")</p>
+</EditForm>
+
+@* <EditForm Model="user">
+    <label>Role:</label>
+    <InputSelect @bind-Value="user.Role">
+        <option value="Admin">Admin</option>
+        <option value="User">User</option>
+        <option value="Guest">Guest</option>
+    </InputSelect>
+    <p>Selected Role: @user.Role</p>
+</EditForm>
+ *@
+
+<EditForm Model="user">
+    <label>Role:</label>
+    <InputSelect @bind-Value="selectedRole">
+        @foreach (var role in Enum.GetValues(typeof(UserRole)))
+        {
+            <option value="@role">@role</option>
+        }
+    </InputSelect>
+    <p>Selected Role: @selectedRole</p>
+</EditForm>
+
+
+<label>Birthdate:</label>
+<InputDate DisplayName="sda" @bind-Value="birthdate" />
+
+<InputFile OnChange="HandleFileUpload" />
+<p>File Name: @fileName</p>
+<p>File Size: @fileSize bytes</p>
+<p>File Content: @fileContent</p>
+
+
+<button class="blog-button" @onclick="LoadData">Load Data</button>
+<div class="blog">
+    <p class="">
+        @content
+    </p>
+</div>
+
+@code {
+    private string content = string.Empty;
+
+    private async Task LoadData()
+    {
+        HttpClientHandler httpClientHandler = new HttpClientHandler()
+            {
+                UseCookies = true,
+                UseProxy = false
+            };
+
+        HttpClient httpClient = new HttpClient(httpClientHandler)
+            {
+                BaseAddress = new Uri("https://jsonplaceholder.typicode.com/"),
+                Timeout = TimeSpan.FromSeconds(5),
+            };
+
+        try
+        {
+            // Send a GET request
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri("https://jsonplaceholder.typicode.com/posts")
+                };
+            HttpResponseMessage httpResponseMessage = await httpClient.SendAsync(httpRequestMessage);
+
+            // HttpResponseMessage httpResponseMessage = await httpClient.GetAsync("posts");
+            httpResponseMessage.EnsureSuccessStatusCode(); // Ensure the response was successful
+
+            content = await httpResponseMessage.Content.ReadAsStringAsync();
+            // Console.WriteLine($"Response Content: {content}");
+        }
+        catch (HttpRequestException exception)
+        {
+            Console.WriteLine(exception.Message);
+        }
+    }
+
+
+    private UserModel user = new();
+    private UserRole selectedRole = UserRole.User;
+    private DateTime birthdate = DateTime.Now;
+    private string fileName = "";
+    private long fileSize = 0;
+    private StringBuilder sb = new();
+    private string fileContent = "";
+    private decimal price = 0.0m;
+
+    private enum UserRole
+    {
+        Admin,
+        User,
+        Guest
+    }
+
+    private class UserModel
+    {
+        public string Name { get; set; } = "";
+        public int Age { get; set; }
+        public bool IsSubscribed { get; set; }
+        public string Role { get; set; } = "User";
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs inputFileChangeEventArgs)
+    {
+        sb.Clear();
+
+        var file = inputFileChangeEventArgs.File;
+        fileName = file.Name;
+        fileSize = file.Size;
+
+        int bytesRead = 0;
+        using var stream = file.OpenReadStream();
+        using var reader = new StreamReader(stream);
+
+        char[] buffer = new char[1024 * 8]; // 8KB buffer
+
+        while ((bytesRead = await reader.ReadAsync(buffer, 0, buffer.Length)) > 0)
+        {
+            sb.Append(buffer, 0, bytesRead);
+            fileContent = sb.ToString();
+            await InvokeAsync(StateHasChanged);
+            // await Task.Delay(500);
+        }
+    }
+}
+
+
+@* <input @bind="message" @bind:event="oninput" @bind:after="UpdateLength" />
+<p>length: @messageLength</p>
+
+@code {
+    private string message = "";
+    private int messageLength = 0;
+
+    private void UpdateLength()
+    {
+        messageLength = message.Length;
+    }
+}
+ *@
+
+@* <Child eventCallback="HandleChildClick" /> *@
+
+
+@* @if (ModalState.IsModalVisible)
+{
+    <div>
+        <h3>Modal Content</h3>
+        <button @onclick="()=> ToggleModal(false)">Close</button>
+    </div>
+}
+else
+{
+    <button @onclick="()=> ToggleModal(true)">Show Modal</button>
+}
+
+<button @onclick="ToggleButtonState" class="@ButtonClass">Toggle</button>
+ *@
+
+@* <button @onclick="GoToDashboard">Click me to open Dashboard</button>
+<a href="/dashboard">Go to Dashboard</a>
+ *@
+
+@* <p>The counter value is: @CounterState.Count</p>
+ *@
+
+@* <CascadingValue Name="PrimaryTheme" Value="PrimaryTheme">
+    <CascadingValue Name="SecondaryTheme" Value="SecondaryTheme">
+        <Counter />
+    </CascadingValue>
+</CascadingValue>
+ *@
+
+@* <label for="user">Select User:</label>
+<select id="user" @bind="selectedUserId">
+    <option value="1">Alice</option>
+    <option value="2">Bob</option>
+    <option value="3">Charlie</option>
+</select>
+
+<UserAnalytics UserId="@selectedUserId" />
+ *@
+
+@* <p>@currentValue</p> *@
+
+@code {
+    private string PrimaryTheme = "Dark";
+    private string SecondaryTheme = "Light";
+    private bool _isActive = false;
+
+    // private int selectedUserId = 1;
+    private int currentValue = 1;
+    // private System.Timers.Timer? timer;
+
+    protected override void OnInitialized()
+    {
+        ModalState.OnModalVisibilityChanged += async () =>
+        {
+            await InvokeAsync(StateHasChanged);
+        };
+
+        // timer = new System.Timers.Timer(1000);
+        // timer.Elapsed += Timer_Elapsed;
+
+        // timer.Start();
+    }
+
+    // private void Timer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    // {
+    //     currentValue++;
+    //     Console.WriteLine($"current value: {currentValue}");
+    //     InvokeAsync(StateHasChanged);
+    // }
+
+    private void GoToDashboard()
+    {
+        Navigation.NavigateTo("/dashboard");
+    }
+
+    public void Dispose()
+    {
+        ModalState.OnModalVisibilityChanged -= StateHasChanged;
+
+        // if (timer != null)
+        // {
+        //     timer.Stop();
+        //     timer.Dispose();
+        // }
+    }
+
+    private void ToggleModal(bool visibility)
+    {
+        switch (visibility)
+        {
+            case true:
+                ModalState.ShowModal();
+                break;
+
+            case false:
+                ModalState.HideModal();
+                break;
+        }
+    }
+
+    private void ToggleButtonState()
+    {
+        _isActive = !_isActive;
+    }
+
+    private string ButtonClass => _isActive ? "btn-active" : "btn-inactive";
+}   

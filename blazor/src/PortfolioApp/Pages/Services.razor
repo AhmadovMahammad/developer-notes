@@ -1,0 +1,20 @@
+﻿@page "/services"
+@using PortfolioApp.Lifecycle
+@inject ITransientService TransientService
+@inject IScopedService ScopedService
+@inject ISingletonService SingletonService
+
+<h2>Service Lifetime Demo</h2>
+
+<p><strong>Transient Service GUID:</strong> @TransientService.GetGuid()</p>
+<p><strong>Scoped Service GUID:</strong> @ScopedService.GetGuid()</p>
+<p><strong>Singleton Service GUID:</strong> @SingletonService.GetGuid()</p>
+
+<button @onclick="Refresh">Refresh</button>
+
+@code {
+    private void Refresh()
+    {
+        StateHasChanged(); // Forces component to re-render
+    }
+}

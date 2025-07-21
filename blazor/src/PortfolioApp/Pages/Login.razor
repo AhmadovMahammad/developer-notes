@@ -1,0 +1,194 @@
+﻿@page "/login"
+@inject IHttpClientFactory ClientFactory
+@inject IConfiguration Configuration
+
+<p>Enter city name</p>
+<input @bind-value="City" />
+
+@if (weatherData != null)
+{
+    <p>Temperature: @weatherData.Main.Temp °C</p>
+}
+else if (isLoading)
+{
+    <p>Loading weather data...</p>
+}
+
+@code {
+    private WeatherResponse? weatherData;
+    private string city = string.Empty;
+    private bool isLoading = false;
+    private CancellationTokenSource? cts;
+
+    public string City
+    {
+        get => city;
+        set
+        {
+            city = value;
+            _ = OnCityChanged();
+        }
+    }
+
+    private async Task OnCityChanged()
+    {
+        cts?.Cancel();
+        cts = new CancellationTokenSource();
+        var token = cts.Token;
+
+        if (!string.IsNullOrWhiteSpace(city))
+        {
+            await LoadDataForCity(token);
+        }
+    }
+
+    private async Task LoadDataForCity(CancellationToken token)
+    {
+        try
+        {
+            isLoading = true;
+            weatherData = null;
+
+            string apiKey = Configuration["OpenWeather:ApiKey"] ?? string.Empty;
+            string URL = $"weather?q={city}&units=metric&appid={apiKey}";
+            var weatherClient = ClientFactory.CreateClient("OpenWeather");
+            var response = await weatherClient.GetAsync(URL, token);
+
+            if (response.IsSuccessStatusCode)
+            {
+                weatherData = await response.Content.ReadFromJsonAsync<WeatherResponse>(token);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            // Request was canceled due to fast typing, ignore it
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching weather data: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    public class WeatherResponse
+    {
+        public MainData Main { get; set; } = new MainData();
+    }
+
+    public class MainData
+    {
+        public float Temp { get; set; }
+    }
+}
+
+@* <div class="container d-flex justify-content-center align-items-center vh-100">
+    <div class="card p-4 shadow-lg" style="max-width: 400px; width: 100%;">
+        <h2 class="text-center mb-4">Sign Up</h2>
+
+        <EditForm Model="user" OnValidSubmit="HandleValidSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <InputNumber @bind-Value="user.Number" />
+            <ValidationMessage For="@(()=> user.Number)" />
+
+            <div class="mb-3">
+                <label for="fullName" class="form-label">Full Name</label>
+                <InputText @bind-Value="user.FullName"
+                           type="text" class="form-control" id="fullName" placeholder="Enter your full name" />
+                <ValidationMessage For="@(()=> user.FullName)" />
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <InputText @bind-Value="user.Email"
+                           type="email" class="form-control" id="email" placeholder="Enter your email" />
+                <ValidationMessage For="@(()=> user.Email)" />
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <InputText @bind-Value="user.Password"
+                           type="password" class="form-control" id="password" placeholder="Enter your password" />
+                <ValidationMessage For="@(()=> user.Password)" />
+            </div>
+            <div class="mb-3">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <InputText @bind-Value="user.ConfirmPassword"
+                           type="password" class="form-control" id="confirmPassword" placeholder="Confirm your password" />
+                <ValidationMessage For="@(()=> user.ConfirmPassword)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+        </EditForm>
+
+        <p class="text-center mt-3">
+            Already have an account? <a href="#">Login</a>
+        </p>
+    </div>
+</div>
+
+@code {
+    private EditContext? _editContext;
+
+    public class MustBeEvenAttribute : ValidationAttribute
+    {
+        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
+        {
+            if (value is int intValue && intValue % 2 != 0)
+            {
+                return new ValidationResult("The number must be even");
+            }
+
+            return ValidationResult.Success;
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        // bool? isValid = _editContext?.Validate();
+
+        List<ValidationResult> validationResults = new List<ValidationResult>();
+        ValidationContext validationContext = new ValidationContext(user);
+
+        // bool isValid = Validator.TryValidateObject(user, validationContext, validationResults);
+        if (!Validator.TryValidateObject(user, validationContext, validationResults))
+        {
+            validationResults.ForEach(valResult =>
+            {
+                Console.WriteLine(valResult.ErrorMessage);
+            });
+        }
+    }
+
+    private UserModel user = new UserModel();
+
+    private class UserModel
+    {
+        [Required(ErrorMessage = "Full Name is required.")]
+        [StringLength(maximumLength: 15, MinimumLength = 5, ErrorMessage = "Length should be between [5 - 15]")]
+        public string FullName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required.")]
+        public string Password { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Confirm Password is required.")]
+        [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; } = string.Empty;
+
+        [MustBeEven]
+        public int Number { get; set; }
+    }
+
+    private void HandleValidSubmit()
+    {
+
+    }
+}
+ *@

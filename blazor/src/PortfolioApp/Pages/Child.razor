@@ -1,0 +1,28 @@
+﻿@page "/child"
+@inject ModalStateService ModalState
+
+<h3>Child Component</h3>
+<p>Title: @Title</p>
+
+<div class="@themeClass">
+    <p>This text is inside a themed component!</p>
+</div>
+
+<button @onclick="ShowModal">Show Modal</button>
+<button @onclick="eventCallback">will be executed by parent event callback, just click it...</button>
+
+@code {
+    [Parameter] public EventCallback eventCallback { get; set; }
+    [Parameter] public string Title { get; set; } = "Default Title";
+    [CascadingParameter] public string themeClass { get; set; } = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        Console.WriteLine($"Title updated to: {Title}");
+    }
+
+    private void ShowModal()
+    {
+        ModalState.ShowModal();
+    }
+}

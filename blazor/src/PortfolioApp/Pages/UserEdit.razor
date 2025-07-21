@@ -1,0 +1,77 @@
+﻿@page "/useredit/{id?}"
+@using System.Text.Json
+@inject UserService UserService
+@inject NavigationManager Navigation
+
+<h3>@(IsNewUser ? "Create New User" : "Edit User")</h3>
+
+<EditForm Model="User" OnValidSubmit="SaveUser">
+    <DataAnnotationsValidator />
+    <div>
+        <label>Name:</label>
+        <InputText @bind-Value="User.Name" />
+    </div>
+    <div>
+        <label>Email:</label>
+        <InputText @bind-Value="User.Email" />
+    </div>
+    <div>
+        <label>Bio:</label>
+        <InputText @bind-Value="User.Profile!.Bio" />
+    </div>
+    <button type="submit">Save</button>
+    <button type="button" @onclick="Cancel">Cancel</button>
+</EditForm>
+
+@code {
+    [Parameter] public string? Id { get; set; }
+    private bool IsNewUser => string.IsNullOrEmpty(Id);
+    private User User { get; set; } = new();
+
+    protected override void OnInitialized()
+    {
+        var query = Navigation.Uri.Split('?').Skip(1).FirstOrDefault();
+
+        if (!string.IsNullOrEmpty(query))
+        {
+            var userQuery = System.Web.HttpUtility.ParseQueryString(query);
+            var serializedUser = userQuery["user"];
+
+            if (serializedUser is not null)
+            {
+                User = JsonSerializer.Deserialize<User>(Uri.UnescapeDataString(serializedUser))!;
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!IsNewUser)
+        {
+            if (int.TryParse(Id, out int userId))
+            {
+                var existingUser = await UserService.GetUserByIdAsync(userId);
+                if (existingUser is not null)
+                {
+                    User = existingUser;
+                }
+            }
+        }
+        else
+        {
+            User = new User { Profile = new UserProfile() };
+        }
+    }
+
+    private async Task SaveUser()
+    {
+        if (IsNewUser)
+            await UserService.AddUserAsync(User);
+        else
+            await UserService.UpdateUserAsync(User);
+
+        Navigation.NavigateTo("/userdisplay");
+    }
+
+    private void Cancel() => Navigation.NavigateTo("/userdisplay");
+}
