@@ -1,0 +1,113 @@
+Bash Learning Roadmap
+
+Phase 1: Fundamentals - Daily Usage, Syntax, and Flow
+We’ll begin with what you see and use every day.
+
+1. Shell basics and commands
+
+   What is Bash? Terminal vs Shell vs Bash
+   `cd`, `ls`, `pwd`, `mkdir`, `rm`, `cp`, `mv`, `touch`, `cat`, `nano`, `echo`
+   `man`, `--help`, `history`, tab-completion, and searching command history
+
+2. Scripts and execution
+
+   Creating `.sh` files
+   `chmod +x script.sh`, and running via `./script.sh`
+   Understanding shebang `!/bin/bash`
+   Script arguments: `$0`, `$1`, `$2`, `$@`, `$`
+   Exit codes and `exit`
+
+3. Variables
+
+   Declaration and usage: `var=value`, `echo $var`
+   Quoting: `"`, `'`, and escaping
+   Environment variables: `export`, `env`, `printenv`
+
+4. Conditionals and Loops
+
+   `if`, `elif`, `else`, and `[ ]`, `[[ ]]` conditions
+   `for`, `while`, and `until` loops
+   `break`, `continue`
+
+
+Phase 2: Data Structures and Functions
+Where we get more programmer-style.
+
+1. Arrays
+
+   Declaring arrays: `arr=(one two three)`
+   Accessing elements: `${arr[0]}`
+   Looping through arrays: `for item in "${arr[@]}"`
+
+2. Associative Arrays (like dictionaries)
+
+   `declare -A mymap`
+   `mymap[foo]="bar"`
+   `${mymap[foo]}`
+
+3. Functions
+
+   Declaring: `my_func() { echo "Hello"; }`
+   Arguments: `$1`, `$2`, `"$@"`
+   Returning values and status codes
+
+
+Phase 3: File and Text Handling
+Very powerful area. Bash loves files and text.
+
+1. Redirects and Pipes
+
+   Output: `>`, `>>`
+   Input: `<`
+   `|` for piping between commands
+
+2. Reading and writing files
+
+   `cat`, `head`, `tail`
+   `read`, `read -r line < file.txt`
+   Loop through file: `while read -r line; do ...; done < file.txt`
+
+3. String processing
+
+   String length, substring, replace, split
+   `cut`, `awk`, `sed`, `grep` (we’ll go deep in these later)
+
+
+Phase 4: File System Navigation and Operations
+Like PowerShell, but more granular and pipe-driven.
+
+1. Finding files
+
+   `find`, `locate`, `which`, `type`
+   File test operators: `[ -f file ]`, `[ -d dir ]`
+
+2. File permissions
+
+   `chmod`, `chown`, `ls -l`
+   `rwx` permissions meaning
+
+3. Archive & compression
+
+   `tar`, `gzip`, `zip`, `unzip`
+
+
+
+Phase 5: Bash Scripting Patterns & Projects
+You already think like a dev, so you’ll write proper scripts.
+
+1. Project-level scripts
+
+   Write a backup script
+   Create a CLI tool (e.g. to parse logs)
+   Script to sync or monitor files
+
+2. Arguments and help menu
+
+   `getopts` for CLI flags (`-f`, `-h`, etc.)
+   Dynamic usage help for scripts
+
+3. Debugging and best practices
+
+   `set -x`, `set -e`
+   Linting with `shellcheck`
+   Comments and readability

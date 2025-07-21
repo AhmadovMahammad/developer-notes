@@ -1,0 +1,261 @@
+The Fundamental Nature of Files in Unix
+
+At its core, every file in a Unix-like system exists as an entry in the filesystem that points to an inode. 
+This inode is a data structure that contains all the metadata about the file: 
+
+1. its size, 2. timestamps, 3. ownership, and crucially, 4. its permission bits.
+
+When you create a script file, the system doesn't inherently know whether this collection of bytes represents executable code or 
+simple text data. 
+The distinction exists purely in the permission metadata stored in the inode.
+
+```
+Create a new script file
+echo '#!/bin/bash' > script.sh
+echo 'echo "Hello World"' >> script.sh
+
+Check its initial state - just passive data
+
+ls -l script.sh
+Output: -rw-rw-r-- 1 mahammad-ahmadov mahammad-ahmadov 31 Jun  8 01:41 script.sh
+
+The system sees this as text data, not a program
+file script.sh
+Output: script.sh: ASCII text
+```
+
+The permission system in Unix operates like: files are passive data by default. 
+When you create a new file, the system assumes it's meant to be read and written, but not executed. 
+This conservative approach prevents accidental execution of data files and 
+provides a security boundary between passive content and active programs.
+
+```
+Attempting to run it fails - it's just data
+./script.sh
+Output: bash: ./script.sh: Permission denied
+
+But you can still read its contents
+cat script.sh
+Output: #!/bin/bash
+        echo "Hello World"
+```
+
+The Permission Matrix and Access Control
+
+The Unix permission system implements an access control matrix based on three dimensions: 
+identity categories (owner, group, others) and access types (read, write, execute). 
+
+```
+View the permission matrix in detail
+ls -l script.sh
+-rw-r--r-- breaks down as:
+- = regular file (not directory, link, etc.)
+rw- = owner can read and write, but not execute
+r-- = group can only read
+r-- = others can only read
+
+View the same permissions in octal format: 
+https://askubuntu.com/questions/152001/how-can-i-get-octal-file-permissions-from-command-line
+
+stat -c "%a %n" *
+- Replace * with the relevant directory or the exact filename that you want to examine.
+
+From the man page of stat:
+
+-c  --format=FORMAT
+        use  the  specified  FORMAT instead of the default; 
+        output a newline after each use of FORMAT
+
+%a     Access rights in octal
+
+%n     File name
+
+Output: 
+
+mahammad-ahmadov@R:~/Documents$ stat -c "%a %n" script.sh 
+664 script.sh
+
+6 = rw- (4+2+0 = read + write + no_execute)
+6 = rw- (4+2+0 = read + write + no_execute)
+4 = r-- (4+0+0 = read + no_write + no_execute)
+```
+
+When you examine a file with `ls -l`, you're viewing this permission matrix in human-readable form. 
+The `rwx` pattern for each category represents the kernel's decision tree for that type of user. 
+
+-_-
+
+The Transformation: From Data to Program
+
+The `chmod +x` command performs a fundamental transformation at the inode level. It's not simply changing a flag-it's promoting a file from passive data to active program status. 
+This transformation happens immediately and atomically. 
+The moment you set the execute bit, the kernel's perception of that file changes completely.
+
+```
+The moment of transformation
+chmod +x script.sh
+
+Now check the permissions - notice the 'x' appears
+ls -l script.sh
+Output: -rwxr--r-- 1 user user 32 Jun  8 10:15 script.sh
+
+The octal representation also changed
+stat -c "%a %n" script.sh
+Output: 744 script.sh
+7 = rwx (4+2+1 = read+write+execute)
+
+
+mahammad-ahmadov@R:~/Documents$ ls -l script.sh 
+-rwxr--r-- 1 mahammad-ahmadov mahammad-ahmadov 31 Jun  8 01:41 script.sh
+
+mahammad-ahmadov@R:~/Documents$ stat -c "%a %n" script.sh
+744 script.sh
+
+
+The system now recognizes it as executable
+file script.sh
+Output: script.sh: Bourne-Again shell script, ASCII text executable
+```
+
+The Execution Request Flow
+
+When you type `./script.sh`, you're initiating a complex dialogue between multiple system components. 
+The shell first parses this command and recognizes it as an execution request for a file in the current directory. 
+The `./` prefix is crucial-it's an explicit path specification that tells the shell exactly where to find the file, 
+bypassing the PATH search mechanism.
+
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-
+
+
+The Shebang Mechanism and Interpreter Chain
+
+The shebang line (`#!/bin/bash`) represents one of Unix's most elegant design patterns: delegation of execution.
+When the kernel finds a shebang, it's not executing your script directly. 
+
+Instead, it's launching the specified interpreter and passing your script as input. 
+This creates a chain of execution: shell → kernel → interpreter → your script.
+
+```
+Create scripts with different interpreters
+echo '#!/bin/bash' > bash_script.sh
+echo 'echo "Running in bash: $BASH_VERSION"' >> bash_script.sh
+
+echo '#!/bin/sh' > sh_script.sh
+echo 'echo "Running in sh"' >> sh_script.sh
+
+echo '#!/usr/bin/python3' > python_script.sh
+echo 'print("Running in Python")' >> python_script.sh
+
+Make them all executable
+chmod +x *.sh
+
+Each uses a different interpreter but same execution mechanism
+./bash_script.sh
+Output: Running in bash: 5.1.16(1)-release
+
+./sh_script.sh
+Output: Running in sh
+
+./python_script.sh
+Output: Running in Python
+```
+
+This mechanism allows the system to handle multiple scripting languages uniformly. 
+Whether your script is written in bash, Python, Perl, or any other interpreted language, the execution pathway remains consistent. 
+The kernel doesn't need to understand the scripting language-it simply needs to know how to launch the appropriate interpreter.
+
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-
+
+
+The Security Implications
+
+The execute permission system serves as a critical security boundary. It prevents several classes of attacks and accidents.
+Without explicit execute permissions, downloaded files, temporary files, and data files cannot accidentally become programs.
+This is particularly important in shared environments where multiple users might have access to the same directories.
+
+```
+Demonstrate security boundaries with different permission sets
+chmod 755 public_script.sh    Everyone can execute
+chmod 750 group_script.sh     Only owner and group can execute  
+chmod 700 private_script.sh   Only owner can execute
+chmod 644 data_file.txt       No one can execute
+
+ls -l *script.sh data_file.txt
+-rwxr-xr-x 1 user user ... public_script.sh
+-rwxr-x--- 1 user user ... group_script.sh
+-rwx------ 1 user user ... private_script.sh
+-rw-r--r-- 1 user user ... data_file.txt
+```
+
+Directory execute permissions control traversal
+mkdir restricted_dir
+chmod 644 restricted_dir  Remove execute permission on directory
+
+ls -ld restricted_dir
+dr--r--r-- 2 user user ... restricted_dir
+
+Can't enter directory without execute permission
+cd restricted_dir
+Output: bash: cd: restricted_dir: Permission denied
+
+Restore directory execute permission
+chmod 755 restricted_dir
+cd restricted_dir  Now works
+```
+
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-
+
+
+The Role of File Types and Magic Numbers
+
+While the execute bit grants permission to run a file, the kernel still needs to determine how to run it. 
+This is where file type detection becomes crucial. The kernel examines the first few bytes of the file to determine its format. 
+
+If it finds a shebang, it follows the interpreter path. If it finds an ELF header (for compiled binaries), it loads the binary directly. This multi-layered approach allows the system to handle diverse executable formats through a unified interface.
+
+```
+Demonstrate PATH resolution behavior
+echo $PATH
+cp script.sh /usr/local/bin/script  Copy to PATH directory
+
+Now it can be found without explicit path
+script
+Output: Hello World
+
+But local version still requires explicit path
+./script.sh
+Output: Hello World
+
+Show which command is being executed
+which script
+Output: /usr/local/bin/script
+
+type ./script.sh
+Output: ./script.sh is ./script.sh
+```
+
+This distinction is crucial for security. 
+If the shell automatically searched the current directory for commands, malicious users could place executable files with common command names in directories where unsuspecting users might run them. 
+The requirement for explicit path specification (`./`) prevents this class of attack.
+
+```
+Demonstrate the security protection
+
+echo '#!/bin/bash' > ls  # Create malicious 'ls' in current directory
+echo 'echo "MALICIOUS COMMAND EXECUTED!"' >> ls
+chmod +x ls
+
+This still runs the real ls command (from PATH)
+ls
+Output: (normal directory listing)
+
+The malicious version requires explicit execution
+./ls
+Output: MALICIOUS COMMAND EXECUTED!
+
+Clean up
+rm ls
+```
