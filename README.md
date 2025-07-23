@@ -9,6 +9,7 @@ This repository is a collection of organized learning materials and reference no
 - [`csharp`](./csharp) - C# programming guides and code samples
 - [`blazor`](./blazor) - Blazor framework learning resources
 - [`python`](./python) - Python tutorials and notes
+- [`vim`](./vim) - Vim materials from vimtutor
 
 Each folder includes its own detailed README with explanations, examples, and further guidance.
 
