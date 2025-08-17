@@ -1,0 +1,198 @@
+Konteyner fəlsəfəsi: Docker nədir və VM-dən fərqi nədir
+
+Birincisi, Docker öz-özünə sehrli bir “virtual maşın” deyil. 
+O, sadəcə Linux kernelində çoxdan olan iki imkanın — namespaces və cgroups — üstündə qurulmuş proqram təminatıdır.
+Yəni Docker bu mexanizmləri sənə rahat idarə edilən formada təqdim edir.
+
+İkincisi, bu primitivlərin üzərində Docker əlavə qat gətirir: 
+1. image formatı (lay-lar ilə qurulmuş), 2. fayl sisteminin overlay strukturu və 3. runtime orkestrasiyası. 
+Bu qatların hamısı birlikdə bir “təkrarlana bilən mühit” yaradır.
+
+Bunu belə təsəvvür elə: əvvəllər bir tətbiqi başqa serverə daşıyanda fərqli OS versiyası, fərqli kitabxana və ya konfiqurasiya problemləri çıxırdı. 
+Ona görə də məşhur bir ifadə vardı — “məndə işləyir, səndə niyə işləmir?”. 
+Docker burada oyunu dəyişir, çünki tətbiqin özünü, istifadə etdiyi kitabxanaları və hətta userspace-i bir paket (image) halında saxlayır. 
+Bu image istənilən yerdə eyni formada açılır.
+
+-detailed-
+Docker yox idi, sən API-ni yazmısan. İndi onu başqa serverə köçürmək istəyirsən. Ne edirdin? 
+Əvvəlcə həmin serverdə uyğun .NET runtime quraşdırmalı idin. 
+Əgər serverdə .NET versiyası bir az köhnə idisə, proqram heç açılmırdı. 
+Bəzən lazımi kitabxanalar (məsələn, libssl və ya icu) həmin sistemdə yox idi, sən ayrıca onları tapıb quraşdırmalı idin. 
+Server Linux-un başqa distronu ola bilərdi (Ubuntu yerinə CentOS), onda paketlərin adları belə fərqli çıxırdı. 
+Hətta bəzi hallarda sadəcə kiçik konfiqurasiya fərqləri (fayl yolları, environment dəyişənləri, systemd xidmət faylları) üzündən proqram hostda işləmirdi. 
+Buna görə də o məşhur söz yaranmışdı: “məndə işləyir, səndə niyə işləmir?”.
+
+Docker isə deyir ki: heç bir serverə əl ilə kitabxana, runtime və konfiqurasiya quraşdırma. 
+Sən tətbiqi və ona lazım olan hər şeyi bir image kimi paketlə. 
+Bu image-in içində sənin .NET runtime-ın, lazımi OS kitabxanaları və tətbiqin öz faylları olur. 
+İndi bu image-i harada açsan (istər Ubuntu, istər Debian, istər Fedora üzərində Docker olsun), 
+konteyner eyni görünüşlə qalxır və sənə eyni nəticəni verir.
+
+Beləliklə, Docker problemin kökünü həll edir: artıq “o serverdə hansı OS versiyası var, hansı paketlər qurulub” sualları səni maraqlandırmır. 
+Çünki hər şey image-in içində gəlir. 
+Sən yalnız Docker-in özünü quraşdırırsan, 
+qalan iş Docker-in sənin image-ində gətirdiyi userspace ilə təmin olunur.
+
+---
+
+Namespaces anlayışı sadəcə belədir: prosesin gördüyü dünya kəsilir, ona “özəl eynək” taxılır. 
+Əslində bütün proseslər eyni kernel üzərində işləyir, amma kernel deyir ki, “sən bu proseslərdən, bu fayl sistemindən, bu şəbəkədən başqa heç nə görməyəcəksən”. 
+Beləliklə, hər konteynerin içindəki proses sanki öz kiçik əməliyyat sistemi varmış kimi davranır.
+
+1. PID namespace — hər prosesin bir PID nömrəsi var. Normalda hostda “systemd” PID 1-dir. 
+Amma konteyner öz PID namespace-də doğulanda, həmin konteynerin içində çalışan proseslər üçün “PID 1” artıq sənin proqramındır. 
+Hostdakı minlərlə proses orada görünmür. Sanki sənə “sıfırdan başlayan proses siyahısı” verilmiş kimi olur.
+
+---
+
+2. Mount namespace
+Hostda normal halda sən `ls /usr` və `ls /var` edəndə, öz Linux sisteminin kitabxana və log qovluqlarını görürsən. Məsələn:
+
+```bash
+hostda
+ls /usr
+bin  games  include  lib  local  sbin  share  src
+
+ls /var
+backups  cache  lib  log  mail  opt  run  snap  tmp
+```
+
+Amma sən `docker run -it alpine sh` deyib konteyner açanda, eyni əmri konteyner içində versən:
+
+```bash
+konteynerin içində
+ls /usr
+bin  lib  sbin
+
+ls /var
+cache  empty  lib  lock  log  run  spool  tmp
+```
+
+Görürsən ki, buradakı `/usr` və `/var` artıq hostdakının eynisi deyil. 
+Bunlar image-in qatlarından gələn xüsusi rootfs-dir. 
+Yəni mount namespace prosesi sənin hostun `/usr`-nı görməyə qoymur, onun yerinə konteynerə ayrıca fayl sistemi “xəritələyir”.
+
+---
+
+3. Network namespace
+
+Hostda `ip addr` desən, real interfeysləri görəcəksən, məsələn:
+
+```bash
+hostda
+ip addr
+1: lo: <LOOPBACK,UP> ...
+2: eth0: <BROADCAST,MULTICAST,UP> ...
+```
+
+Konteynerə girib eyni əmri desən:
+
+```bash
+konteynerdə
+ip addr
+1: lo: <LOOPBACK,UP> ...
+39: eth0@if40: <BROADCAST,MULTICAST,UP> ...
+```
+
+Burada hostdakı `eth0` görünmür, əvəzində Docker-in verdiyi virtual `eth0@if40` görünür. 
+Bu, Docker bridge şəbəkəsi ilə bağlıdır. 
+Hər konteynerin öz loopback interfeysi də var (`lo`), amma bu konteynerin içindəki `127.0.0.1` yalnız özünə aiddir, hostdakına yox.
+
+---
+
+4. User namespace
+
+Normal hostda `id` əmri sənin real UID/GID-ni göstərir, məsələn:
+
+```bash
+hostda
+id
+uid=1000(maham) gid=1000(maham) groups=1000(maham),27(sudo)
+```
+
+Konteynerə girdikdə:
+
+```bash
+konteynerdə
+id
+uid=0(root) gid=0(root) groups=0(root)
+```
+
+Burada sən konteynerin içində “root” görünürsən. 
+Amma əgər user namespace mapping açıqdırsa, kernel deyir: bu konteynerdəki `uid=0` əslində hostda məsələn `uid=100100`. 
+Yəni içəridə “root” olmağın host səviyyəsində sənə real root gücü vermir. 
+Bu texnika rootless konteynerlərin əsasını təşkil edir: sən konteynerdə superuser görünürsən, amma host səviyyəsində adi istifadəçisən.
+
+
+
+Yekun olaraq: bütün bu namespaces mexanizmləri birlikdə prosesə “özünə aid kiçik bir sistem” hissi yaradır. 
+Amma arxa planda hamısı eyni Linux kernelini paylaşır. 
+Bu illüziya Docker-in “yüngül” olmasının səbəbidir: 
+yeni kernel yüklənmir, sadəcə mövcud kernel deyir “sənə özəl aləm yaratdım”.
+
+
+---
+
+
+Cgroups nədir?
+
+Cgroups sözü “control groups”dan gəlir. 
+Bu, Linux kernelində bir mexanizmdir ki, prosesləri qruplaşdırıb onların istifadə etdiyi resursları idarə edir. 
+Sadə dillə desək, namespaces izolasiya verir (“nələri görə bilərsən?”), cgroups isə resurs limiti qoyur (“nə qədər istifadə edə bilərsən?”).
+
+Cgroups-un əsas gücü odur ki, hər konteynerə ayrılıqda bu sərhədlər qoyula bilir:
+
+CPU – neçə faiz gücdən istifadə edə bilər.
+RAM – maksimum nə qədər yaddaş işlədə bilər.
+Disk I/O – hansı sürətlə oxuyub-yaza bilər.
+Network I/O – ötürmə məhdudiyyətləri də qoymaq olar.
+
+
+--- Praktik nümunə – RAM limiti
+Tutaq ki, konteyneri belə işə salırsan:
+
+docker run -m 256m alpine stress --vm 1 --vm-bytes 300M --vm-hang 0
+
+1. docker run – yeni konteyner açır.
+2. -m 256m – bu konteynerin maksimum RAM istifadəsini 256 MB ilə məhdudlaşdırır. 
+Əslində Docker arxa planda Linux-un memory cgroup-una yazır ki, “bu qrup üçün sərhəd = 256 MB”.
+3. alpine – sadə, yüngül Linux image-i.
+4. stress – test üçün yazılmış utilitdir. Məqsədi sistemə yük verməkdir.
+5. --vm 1 – bir virtual işçi proses yarat.
+6. --vm-bytes 300M – həmin proses 300 MB RAM rezerv etməyə çalışsın.
+7. --vm-hang 0 – yaddaşı aldısa, dayandırmasın, saxlasın.
+
+-- Yəni sən konteynerin limitini 256 MB qoymusan, amma içindəki proqram 300 MB istəyəndə kernel bunu necə idarə edir?
+Kernel hər prosesin yaddaş istifadəsini izləyir. 
+Konteynerin prosesləri müəyyən bir memory cgroup-a bağlıdır. Limit 256 MB-dır. 
+Proses 257-ci MB-a çıxmaq istəyəndə kernel deyir: “yox, icazə yoxdur”. 
+Əgər proqram bu məhdudiyyəti aşmaqda israr edirsə, kernel OOM killer-i işə salır (Out Of Memory killer). Bu, o konteynerdəki prosesi vurur.
+
+Cgroups-un gözəlliyi budur ki, sərhəd konteyner-qrupla məhdudlaşır. 
+Yəni bir konteyner RAM limitini aşırsa, yalnız onun prosesləri vurulur. Digər konteynerlər normal işləyir.
+Əgər cgroups olmasaydı, əksinə, bir konteyner hostdakı bütün RAM-ı yeyə bilərdi və 
+bütün sistemdə (o cümlədən digər konteynerlərdə) proseslər çökərdi.
+
+Təsəvvür et ki, bir binada su anbarı var. Əgər cgroups yoxdursa, hamı həmin anbardan sərhədsiz su çəkə bilər, 
+bir qonşu bütün suyu açıb axıtsa, digərləri quru qalar.
+Cgroups olan halda hər mənzil üçün ayrıca su sayğacı və limit var. 
+Bir mənzil öz limitini keçsə, yalnız o quru qalır; başqalarının payına toxunmur.
+
+
+--- Praktik nümunə – CPU limiti
+docker run --cpus="1.0" alpine stress --cpu 4
+Burada deyirik ki, konteyner cəmi 1 CPU-nun gücünü işlədə bilər. 
+
+
+--- Məqsəd nədir?
+
+Ən böyük məqsəd budur: bir konteynerin davranışı başqalarına zərər verməsin. 
+Məsələn, sənin PostgreSQL konteynerin var, yanında da ağır hesablama edən başqa bir konteyner. 
+Əgər cgroups olmasa, ikinci konteyner bütün CPU və RAM-ı yeyib Postgres-i çökdürə bilər. 
+Cgroups isə sərhəd çəkir – hər biri öz sandboxunda oynayır.
+
+--- Yəni yekunda belədir:
+
+Namespaces → konteynerin görəcəyi dünya.
+Cgroups → konteynerin istifadə edə biləcəyi resurs miqdarı.
+
