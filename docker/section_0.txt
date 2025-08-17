@@ -196,3 +196,126 @@ Cgroups isə sərhəd çəkir – hər biri öz sandboxunda oynayır.
 Namespaces → konteynerin görəcəyi dünya.
 Cgroups → konteynerin istifadə edə biləcəyi resurs miqdarı.
 
+
+---
+
+
+1. Image nədir, əslində?
+
+Image sadəcə “bir fayl sistemi fotoşəklidir”. 
+Yəni sən kompüterini açanda /bin, /usr, /etc kimi qovluqlar var ha – image də bunların kiçik bir nüsxəsidir. 
+Fərq ondadır ki, image dəyişməzdir (read-only).
+
+-- Docker image-in içində nə olur?
+
+Ən sadə halda – bir Linux distributivinin “userspace” faylları (Debian, Alpine və s.).
+Onun üzərinə – sənin əlavə kitabxanaların (məsələn, .NET runtime).
+Daha sonra – sənin yazdığın tətbiqin faylları.
+
+Bunların hamısı qat-qat saxlanır, sanki diff arxivləri kimi. 
+Ən altdakı baza lay, sonra onun üzərinə əlavə laylar. 
+Docker bunu buna görə edir ki, hər dəfə sıfırdan bütün rootfs-i kopyalamayaq. 
+Yəni ubuntu layını artıq yükləmisənsə, sabah başqa image də eyni ubuntu-ya əsaslansa, onu təkrar endirməyəcəksən.
+
+Ona görə image = qat-qat arxiv + metadata (ENTRYPOINT, CMD və s.).
+
+--
+
+.NET image əslində nədir?
+
+Məsələn, sən mcr.microsoft.com/dotnet/sdk:9.0 image-i çəkirsən. 
+Görünüşdə “bu sadəcə .NET SDK image” kimi gəlir, amma realda bu image bir neçə qatın birləşməsidir:
+
+Ən altda baza Linux userspace olur. 
+Microsoft-un .NET image-ləri uzun illər Debian üzərində qurulurdu, indi bəzi versiyaları Alpine də olur. 
+Yəni image-in dərinliyində “debian:bookworm-slim” və ya “alpine:3.x” kimi qat var.
+
+Onun üstündə .NET runtime və SDK quraşdırılmış qat gəlir.
+
+Ən üst qatlarda isə image metadata olur (məsələn, ENTRYPOINT ["dotnet"]).
+
+Yəni sən dotnet sdk image çəkəndə, Docker əvvəl yoxlayır: “sənin sistemində debian:bookworm-slim qatı var?” 
+Əgər əvvəllər başqa bir image (məsələn, node:20-bullseye) çəkmisənsə və 
+onda da eyni Debian bazası işlənibsə, həmin baza qat artıq mövcuddur və təkrar endirilmir.
+
+“Bəs niyə sadəcə .NET kifayət edir?”
+
+Çünki image-lərin qat mexanizmi var. 
+Sənə .NET SDK lazım olanda mcr.microsoft.com/dotnet/sdk:9.0 image-ində həm Debian baza qatını, həm .NET qatlarını birlikdə gətirir. 
+Docker sənin üçün bunu avtomatik həll edir. 
+Sən ayrıca “debian” image-i çəkməyə məcbur deyilsən. 
+Amma əgər sistemində həmin qat onsuz da varsa, Docker sadəcə onu reuse edir, yəni “yenidən endirmir”.
+
+Beləliklə, sən sadəcə .NET image çəkdiyini zənn edirsən, amma arxa planda bu image çoxqatlıdır. 
+Docker isə hər qatı “digest” ilə yoxlayır, eynisi varsa təkrar gətirmir. 
+Ona görə download bəzən çox tez gedir – çünki bəzi laylar artıq hostunda var.
+
+Nəticə
+
+.NET SDK image = Debian/Alpine baza qatları + .NET runtime/SDK qatı + metadata.
+Docker sənin üçün bu qatları birləşdirib “tam bir rootfs” kimi göstərir.
+Əgər qat artıq varsa, təkrar endirilmir, sadəcə mövcud olan istifadə olunur.
+
+
+--
+
+Image = read-only qatlar
+
+Image dedikdə təsəvvür elə ki, sənin qarşında dəyişdirilə bilməyən kitab səhifələri var. 
+Bu səhifələr qat-qat düzülüb: 
+birinci səhifə Debian baza fayllarıdır (/bin, /usr və s.), ikinci səhifə .NET runtime kitabxanalarıdır, üçüncü səhifə sənin tətbiq fayllarındır.
+Bu səhifələri sən oxuya bilərsən, amma dəyişdirə bilməzsən. Yəni image read-only-dur.
+
+
+
+2. Container nədir?
+Container image-dən fərqli olaraq canlı prosesdir.
+
+Docker image qatlarının üstündə copy-on-write adlı əlavə bir qat qoyur. Buna sadəcə “yazı qatı” da deyirlər. 
+Bu qat boş başlayır.
+
+Əgər sən konteynerdə sadəcə fayl oxuyursansa (cat /usr/lib/libssl.so kimi), o fayl image qatlarından gəlir. 
+Əgər sən fayl dəyişməyə çalışsan (echo "hello" > /etc/motd), onda kernel həmin faylı image qatından götürür, 
+bir nüsxəsini “yazı qatı”na kopyalayır və dəyişiklik artıq orada edilir. 
+Yəni sənin dəyişdirdiyin fayl artıq container-ə məxsus olur.
+
+
+-- Container silinəndə nə olur?
+O yazı qatı konteynerlə birlikdə silinir. Yəni sən içində etdiyin dəyişikliklər uçur. 
+Image qatları isə toxunulmaz qalır. Buna görə image dəyişmir və yenə də eyni qalır.
+
+
+---
+
+
+Image və fayllar
+
+Image əslində “root filesystem”dir. 
+Yəni bir əməliyyat sisteminin içində gördüyün /bin, /usr, /etc qovluqları — bunlar image qatlarında saxlanılır. 
+Məsələn, Alpine image-də bu qovluqlar var, çünki Linux userspace-in işləməsi üçün gərəkdir.
+
+Deməli, konteyner açıldıqda onun gördüyü bütün fayllar — proqram faylları, kitabxanalar, konfiqurasiya faylları — image qatlarından gəlir.
+
+-- 1. Container açanda nə baş verir?
+
+docker run -it mcr.microsoft.com/dotnet/sdk:9.0 bash
+Bu əmrlə sən deyirsən: “.NET SDK image götür, üstündə bir terminal (bash) işə sal”.
+
+-- Docker nə edir?
+dotnet/sdk:9.0 image qatlarını götürür.
+Ən altda baza qat var — Debian və ya Alpine (Microsoft-un rəsmi image-ləri uzun illər Debian idi, bəzi versiyalarında Alpine də var).
+Üstündə .NET runtime + SDK faylları qatı.
+Ən yuxarıda isə metadata qat (məsələn, ENTRYPOINT ["dotnet"]).
+Sonra bu qatların hamısını overlayfs ilə birləşdirib sənə bir root filesystem göstərir.
+
+
+2. Sən terminalda nə görürsən?
+
+Konteynerin içinə girəndə /bin, /usr, /etc, /app və s. görürsən. Bunların hamısı image qatlarından gəlir.
+
+/usr/bin/dotnet → .NET SDK qatında əlavə olunmuş fayldır.
+/bin/ls, /bin/bash → baza Debian/Alpine qatında olan fayllardır.
+/etc/os-release → baza OS qatında mövcud olan sistem faylıdır.
+
+Yəni sən konteynerdə gəzdiyin fayl sistemi image qatlarının üst-üstə qoyulmuş nüsxəsidir.
+
