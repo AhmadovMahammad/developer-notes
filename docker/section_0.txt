@@ -319,3 +319,46 @@ Konteynerin içinə girəndə /bin, /usr, /etc, /app və s. görürsən. Bunlar�
 
 Yəni sən konteynerdə gəzdiyin fayl sistemi image qatlarının üst-üstə qoyulmuş nüsxəsidir.
 
+
+---
+
+
+İşin başlanğıc nöqtəsi fiziki serverdir. Bu, sadəcə real dəmirdir: 
+CPU, RAM, disk və şəbəkə kartı olan, 24/7 işləmək üçün yığılmış güclü kompüter. 
+Bu dəmirin üzərinə ya bir host əməliyyat sistemi qoyursan və onun içində texnologiyalar işləyir, ya da elə birbaşa hardware-i idarə edən qat qurursan.
+
+Virtual maşın yolunda səhnəyə hypervisor çıxır. Hypervisorın iki forması var. 
+1. Type 1 (bare-metal) birbaşa hardware üzərində dayanır və sanki özü host OS rolunu oynayır; VMware ESXi, Hyper-V Server, Xen bu qəbildəndir. 
+2. Type 2 (hosted) isə adi bir host OS-in içində sadə proqram kimi işləyir; VMware Workstation və VirtualBox buna nümunədir. 
+
+Hər iki halda hypervisor hostdakı real resursları tanıyır: 
+Type 1 birbaşa sürücülərlə hardware-ə toxunur, Type 2 isə host OS-in API-ləri vasitəsilə
+
+
+Sən VM üçün, tutalım, 2 CPU, 4 GB RAM və 40 GB disk deyəndə hypervisor həmin miqdarda virtual hardware düzəldir: 
+virtual CPU vaxt dilimləri ayırır, RAM səhifələrini xəritələyir, disk üçün bir faylı (məsələn, vmdk) VM-ə “sənin diskindir” kimi göstərir, 
+şəbəkə kartını da NAT və ya bridge ilə bağlayır. Beləcə VM-in içində tam ayrıca Guest OS əsl kompüter kimi boot edir
+
+
+Nəticə çox güclü izolasiya olsa da baha başa gəlir: hər VM öz kernelini və userspace-ni daşıdığı üçün, start vaxtı saniyələrdən dəqiqələrə qədər çəkə bilər, 
+üstəlik hər VM ayrıca OS olduğu üçün update, patch və monitorinq idarəçiliyi də artır. 
+Ən vacib məqam budur ki, hədəfin tək bir tətbiqi işə salmaq olsa belə, VM səndən tam bir OS daşımağını tələb edir.
+
+
+Konteyner yolunda həmin əlavə OS qatı yox olur. 
+Burada Guest OS yoxdur, host kernel paylaşılır, amma tətbiq öz izolyasiya olunmuş userspace-də işləyir. 
+Bu izolyasiyanı Linux-un namespaces mexanizmi verir: 
+1. PID namespace prosesi öz proses siyahısı ilə məhdudlaşdırır, 
+2. mount namespace konteynerə öz root filesystem görünüşünü təqdim edir, 
+3. network namespace ona ayrıca şəbəkə stack verir, 
+4. UTS və IPC ad və proseslərarası ünsiyyəti kəsir, 
+5. user namespace isə içəridə root görünsə də hostda başqa UID/GID-ə xəritələmə ilə təhlükəsizliyi sərtləşdirir. 
+
+Resurs limiti isə cgroups-la qoyulur: 
+RAM, CPU və I/O sərhədləri kernel səviyyəsində həmin proses qrupuna tətbiq edilir, 
+limit aşılarsa o konteynerin prosesləri vurulur, digərləri təsirlənmir.
+
+
+
+
+
