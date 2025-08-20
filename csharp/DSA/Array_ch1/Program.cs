@@ -607,7 +607,9 @@ internal class Program
         NonComparisonBasedSorting sorting_2 = new NonComparisonBasedSorting();
         Solution solution = new Solution();
 
-        Console.WriteLine(string.Join(',', solution.MaxSlidingWindow(new int[] { 1, 3, -1, -3, 5, 3, 6, 7 }, 3)));
+        solution.Permutation("abc");
+
+        //Console.WriteLine(string.Join(',', solution.MaxSlidingWindow(new int[] { 1, 3, -1, -3, 5, 3, 6, 7 }, 3)));
         //Console.WriteLine(string.Join(',', solution.MaxSlidingWindow(new int[] { 7, 5, 4 }, 2)));
 
 

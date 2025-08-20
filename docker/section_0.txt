@@ -359,6 +359,36 @@ RAM, CPU və I/O sərhədləri kernel səviyyəsində həmin proses qrupuna tət
 limit aşılarsa o konteynerin prosesləri vurulur, digərləri təsirlənmir.
 
 
+---
+
+
+Docker run vaxtı ardıcıllıq belədir: 
+əvvəl seçdiyin image-in laylarından read-only rootfs hazırlanır, onun üzərinə boş yazı qatı qoyulur ki, 
+copy-on-write ilə dəyişikliklər yalnız konteynerə məxsus olsun; 
+sonra kernelə “bu prosesi bu namespaces və cgroups daxilində, bu rootfs ilə işə sal” deyilir və birbaşa execve ilə sənin tətbiqin start verir. 
+Yeni kernel boot edilmir, init sistemi açılmır, virtual hardware simulyasiyası yoxdur. 
+Bu, startı millisaniyə–saniyə miqyasında sürətləndirir, 
+RAM/disk izini kəskin azaldır və eyni host üzərində onlarla-yüzlərlə konteyneri sakitcə qaçırmağa imkan verir.
+
+Burada image mexanizmi oyunu dəyişir. Image dəyişməz laylardan yığılmış userspace-dir: 
+altda Debian və ya Alpine kimi baza qatları, üstündə .NET runtime/SDK kimi kitabxanalar, ən üstündə isə sənin tətbiq faylların və metadata olur. 
+Eyni digest ilə çəkilən image hər yerdə eyni görünüşü verir. 
+
+Konteyner image-in üzərində canlı prosesdir: oxuma əməliyyatları read-only qatlarından gəlir, 
+yazmağa çalışanda kernel faylı yazı qatına kopyalayıb orada dəyişir; 
+konteyner silinəndə yazı qatı da gedir, image toxunulmaz qalır. 
+Bu model “məndə işləyir, səndə işləmir” problemini həll edir, çünki tətbiq və userspace bir yerdə, deterministik paket kimi daşınır.
+
+Niyə Docker yarandı sualının cavabı da buradadır. VM-lər izolasiya baxımından mükəmməl olsa da, ağır və idarəetməsi çətindir; 
+bir maşında ancaq bir neçə VM rahat saxlanırdı. 
+Konteynerlər eyni kernel üzərində yüngül izolyasiya verdiyi üçün sıxlıq xeyli artır, 
+start vaxtı praktiki olaraq dərhal olur və image-lə mühit daşıma sabitləşir.
+
+
+
+
+
+
 
 
 
