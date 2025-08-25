@@ -1,4 +1,5 @@
-Konteyner fəlsəfəsi: Docker nədir və VM-dən fərqi nədir
+0. Konteyner fəlsəfəsi: Docker nədir və VM-dən fərqi nədir
+----------------------------------------------------------
 
 Birincisi, Docker öz-özünə sehrli bir “virtual maşın” deyil. 
 O, sadəcə Linux kernelində çoxdan olan iki imkanın — namespaces və cgroups — üstündə qurulmuş proqram təminatıdır.

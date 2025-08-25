@@ -1,0 +1,143 @@
+1. Quraşdırma və ilk təcrübə: Windows, WSL2, Linux
+--------------------------------------------------
+
+1. Windows və Docker problemi
+
+Docker Linux kernel primitivlərinə (namespaces, cgroups, overlayfs və s.) söykənir. 
+Windows kernelində bunların eynisi yoxdur. Deməli, Windows öz-özlüyündə Docker-i işlədir bilməz.
+Bunu həll etmək üçün iki yol var:
+
+1. Arxa planda kiçik Linux VM açmaq.
+2. WSL2 (Windows Subsystem for Linux v2) istifadə etmək.
+
+
+Docker Desktop əslində bu işləri sənin üçün avtomatlaşdırır. 
+O, Windows-da proqram kimi qurulur, amma arxa planda WSL2 və ya Hyper-V ilə Linux nüvəsini işə salır və 
+Docker Engine həmin Linux qatında işləyir.
+
+
+
+2. WSL2 nədir və niyə vacibdir?
+
+WSL2 – Windows-un içində yüngül virtualizasiya ilə işləyən real Linux kernelidir. 
+Əvvəlki WSL1 sadəcə sistem çağırışlarını tərcümə edirdi, 
+amma WSL2-də Microsoft artıq əsl Linux kernelini quraşdırdı. 
+Bu kernel VM kimi işləyir, amma çox yüngüldür, host OS ilə sıx inteqrasiya olunub.
+
+Docker Desktop da bu WSL2 nüvəsindən istifadə edir. 
+Sənin Docker konteynerlərin WSL2 Linux qatının içində açılır, amma sən Windows terminalından və fayl sistemindən rahat idarə edə bilirsən.
+
+
+
+3. Quraşdırma addımları (Windows + WSL2)
+Əsas ardıcıllıq belədir:
+
+3.1. WSL2 aktivləşdir.
+wsl --install
+
+Bu, default olaraq Ubuntu quraşdırır və WSL2-ni aktiv edir.
+
+
+3.2. Docker Desktop quraşdır.
+İlk açılışda soruşacaq: WSL2 istifadə etsin, yoxsa Hyper-V. Ən yaxşısı WSL2-ni seçməkdir.
+
+
+3.3. İlk test
+Terminal aç (PowerShell və ya Windows Terminal):
+
+docker run hello-world
+
+Bu image Docker Hub-dan çəkiləcək, konteyner açılacaq və bir “Hello from Docker!” mesajı yazacaq. 
+Bu sənin Docker-in düzgün işlədiyini göstərir.
+
+-RESPONSE-
+
+Unable to find image 'hello-world:latest' locally
+latest: Pulling from library/hello-world
+17eec7bbc9d7: Pull complete
+Digest: sha256:a0dfb02aac212703bfcb339d77d47ec32c8706ff250850ecc0e19c8737b18567
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker!
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+    (amd64)
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker ID:
+ https://hub.docker.com/
+
+For more examples and ideas, visit:
+ https://docs.docker.com/get-started/
+
+-END RESPONSE-
+
+
+-Izahat-
+
+-- Docker iki hissədən ibarətdir:
+
+1. Docker client - sənin əlinlə yazdığın docker run, docker build, docker ps kimi əmrlərdir. Bu sadəcə CLI alətidir.
+2. Docker daemon (dockerd) - əslində bütün işi görən server prosesi. 
+Konteynerləri yaradan, image qatlarını yığan, cgroups və namespaces açan budur.
+
+Yəni sən Windows terminalında docker run hello-world yazanda əslində client, arxa planda işləyən daemon-a müraciət edir.
+
+
+-- Windows + WSL2 vəziyyətində nə baş verir?
+Sənin sistemində Docker Desktop var. Bu belə işləyir:
+
+Docker client → Windows-da işləyən docker.exe proqramıdır.
+Bu client, WSL2-nin içində işləyən dockerd ilə danışır. Yəni sənin gördüyün əmrlər əslində WSL2-dəki Linux kernelinə ötürülür.
+Dockerd də Linux kernelində namespaces, cgroups və overlayfs istifadə edib konteyneri qaldırır.
+
+
+-- Hello-world ssenarisi necə işləyir?
+
+Sən docker run hello-world yazırsan → bu əmri client (docker.exe) qəbul edir.
+Client WSL2 içindəki docker daemon ilə API vasitəsilə danışır.
+Daemon yoxlayır ki, “hello-world:latest” image lokalda varmı? Yoxdursa → Docker Hub-dan çəkir.
+Image qatlarından rootfs qurur, namespaces və cgroups hazırlayır və image-in içindəki sadə proqramı (/hello) işə salır.
+Bu proqram sadəcə “Hello from Docker!” yazır və çıxır.
+Daemon həmin çıxışı client-ə göndərir, o da terminalda göstərir.
+
+
+Əslində dockerd elə bir server prosesidir ki, yalnız Docker əmrlərini icra etmək üçün yaşayır. 
+Ona görə də sən hər dəfə əmri client-dən verirsən, amma əməliyyatı həyata keçirən daemon-dur.
+
+
+
+4. İlk real təcrübə
+
+docker run -it --rm alpine sh
+
+alpine → çox kiçik bir Linux distributivi image-i.
+-it → interaktiv terminal açır.
+--rm → konteyner çıxanda avtomatik silinsin.
+sh → konteynerdə sadə shell açır.
+
+
+İndi sən əslində Windows-un içində Alpine Linux terminalına düşmüsən. 
+Orada ls, pwd, apk add curl (Alpine-in paket meneceri ilə) yaza bilərsən. 
+Sonra exit desən, konteyner bağlanacaq və --rm olduğuna görə tamamilə silinəcək.
+
+Buradan çıxardığın nəticə: 
+konteynerin içində nə qurursansa, konteynerlə birlikdə gedir. Bu müşahidə növbəti mövzu – volumes və davamlılıq – üçün baza rolunu oynayacaq.
+
+
+
+QEYD: Əsas fərqi yadda saxlamaq
+Windows öz kernelində Docker işlədə bilmir.
+Docker Desktop + WSL2 → arxa planda Linux kernel açılır, Docker Engine orada işləyir.
+Sən Windows terminalından idarə etsən də, konteynerlərin əslində Linux-un içində yaşayır.
+
+
