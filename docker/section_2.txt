@@ -1,0 +1,4 @@
+2. Docker CLI məntiqi: imajlar, konteynerlər, laylar, keş
+---------------------------------------------------------
+
+

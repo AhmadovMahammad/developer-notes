@@ -10,6 +10,7 @@ This repository is a collection of organized learning materials and reference no
 - [`blazor`](./blazor) - Blazor framework learning resources
 - [`python`](./python) - Python tutorials and notes
 - [`vim`](./vim) - Vim materials from vimtutor
+- [`docker`](./docker) - Learn Docker in Azerbaijani (detailed explanations)
 
 Each folder includes its own detailed README with explanations, examples, and further guidance.
 
