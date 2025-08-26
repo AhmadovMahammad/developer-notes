@@ -10,7 +10,6 @@ Bunu həll etmək üçün iki yol var:
 1. Arxa planda kiçik Linux VM açmaq.
 2. WSL2 (Windows Subsystem for Linux v2) istifadə etmək.
 
-
 Docker Desktop əslində bu işləri sənin üçün avtomatlaşdırır. 
 O, Windows-da proqram kimi qurulur, amma arxa planda WSL2 və ya Hyper-V ilə Linux nüvəsini işə salır və 
 Docker Engine həmin Linux qatında işləyir.
@@ -71,13 +70,13 @@ To generate this message, Docker took the following steps:
     to your terminal.
 
 To try something more ambitious, you can run an Ubuntu container with:
- $ docker run -it ubuntu bash
+docker run -it ubuntu bash
 
 Share images, automate workflows, and more with a free Docker ID:
- https://hub.docker.com/
+https://hub.docker.com/
 
 For more examples and ideas, visit:
- https://docs.docker.com/get-started/
+https://docs.docker.com/get-started/
 
 -END RESPONSE-
 
@@ -99,6 +98,89 @@ Sənin sistemində Docker Desktop var. Bu belə işləyir:
 Docker client → Windows-da işləyən docker.exe proqramıdır.
 Bu client, WSL2-nin içində işləyən dockerd ilə danışır. Yəni sənin gördüyün əmrlər əslində WSL2-dəki Linux kernelinə ötürülür.
 Dockerd də Linux kernelində namespaces, cgroups və overlayfs istifadə edib konteyneri qaldırır.
+
+
+--- overlay fs ---
+
+Başlanğıc nöqtə belədir: 
+
+image layları read-only qalır. 
+Kernel isə overlayfs ilə bu read-only layların üstündə bir write qatı birləşdirib “merged” adlı yekun görünüş yaradır. 
+
+Terminlər çox sadədir. 
+
+lowerdir -> read-only qatların zənciridir, yəni image layları; 
+upperdir -> konteynerə məxsus yazı qatıdır; 
+workdir -> overlayfs-in daxili iş qovluğudur; 
+merged -> isə prosesin gördüyü kök fayl sistemidir. 
+
+Docker konteyneri start edəndə məhz belə mount edir: 
+lowerdir=“image layları”, upperdir=“konteyner diff-i”, workdir=“xüsusi iş qovluğu”, merged=“/” kimi prosesə göstərilən root.
+
+-
+
+Silinmə və “nə üçün görünmür” məsələsi də overlayfs-in öz anlayışı ilə işlənir. 
+Əgər merged altında bir faylı silsən, lowerdəki orijinalı həqiqətən silmək olmaz, çünki o read-only-dur. 
+Kernel upperdə xüsusi “whiteout” izi yaradır. Bu, adətən .wh.filename kimi görünən markerdir. 
+
+Merged görünüşündə həmin fayl itmiş kimi görünür, çünki whiteout lowerdəki nüsxəni maskalayır. 
+Bütün bir qovluğu “boşaltmaq” istəyəndə də overlayfs qovluğa “opaque” atributu qoyur (trusted.overlay.opaque=y), yəni alt qatdakı məzmunu gizlədir. 
+Docker build/commit edəndə bu whiteout/opaque işarələrini image layer tar arxivinə kodlayır, 
+ona görə də “yuxarı layda sildim” effekti digər maşında da eyni cür görünür.
+
+-
+
+Namespaces və cgroups necə kernel primitividirsə, OverlayFS də eynilə kernel primitividir. 
+Sadəcə Docker onu çox intensiv və sistemli şəkildə istifadə edir.
+
+-- Docker konteyneri qaldıranda:
+
+image qatlarını lowerdir kimi bağlayır (bunlar read-only qovluqlar olur),
+konteynerin yazı qatını upperdir kimi göstərir,
+texniki iş üçün workdir yaradır,
+və nəticədə birləşdirilmiş görünüşü merged mount edir.
+
+NOTE: Yəni sən docker run yazanda Docker sadəcə kernelin mount -t overlay ... əmrinə bənzər əmrləri özü avtomatik edir.
+
+-
+
+Bu Docker-ə aid xüsusi şey deyil. İstənilən Ubuntu və ya başqa Linux-da root hüququ ilə belə edə bilərsən:
+
+`bash
+-----
+
+mkdir -p /tmp/ovl/lower /tmp/ovl/upper /tmp/ovl/work /tmp/ovl/merged
+: Burada lower, upper, work, merged adında 4 qovluq hazırladıq.
+
+echo "salam" > /tmp/ovl/lower/hello.txt
+: lower qovluğunda hello.txt faylı var. İçində “salam” yazısı yazır.
+
+sudo mount -t overlay overlay \
+  -o lowerdir=/tmp/ovl/lower,upperdir=/tmp/ovl/upper,workdir=/tmp/ovl/work \
+  /tmp/ovl/merged
+: İndi kernelə dedik: “lower = bu qovluq, upper = o qovluq, iş qovluğu da var, 
+: bunları birləşdir və nəticəni merged-də göstər”.
+  
+cat /tmp/ovl/merged/hello.txt       # "salam"
+: Burada nəticə “salam” olacaq. Çünki hazırda fayl lower qatdan gəlir, oxumaq üçün heç bir kopyalama yoxdur.
+
+echo "dunya" > /tmp/ovl/merged/hello.txt
+: Faylı dəyiş (copy-on-write)
+: İndi sən faylı dəyişmək istədin. Overlayfs nə etdi? Faylı lower qatdan götürdü, upperdir-ə kopyaladı və dəyişiklik orada baş verdi.
+
+cat /tmp/ovl/upper/hello.txt   # burada "dunya" olacaq
+cat /tmp/ovl/lower/hello.txt   # burada hələ də "salam" qalır
+
+rm /tmp/ovl/merged/hello.txt
+ls -a /tmp/ovl/upper
+: İndi upper qovluğunda .wh.hello.txt adlı xüsusi fayl yaranacaq. Bu whiteout markeridir: 
+merged görünüşündə fayl sanki silinib, amma lower qatdakı orijinal hələ də durur.
+`
+
+Burada heç Docker iştirak etmir. Bu, sırf kernelin OverlayFS mexanizminin özüdür. 
+Docker sadəcə bu mexanizmi alıb, image-layer konsepsiyası ilə birləşdirib avtomatlaşdırır.
+
+---
 
 
 -- Hello-world ssenarisi necə işləyir?
