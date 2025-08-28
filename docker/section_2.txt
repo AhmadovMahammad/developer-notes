@@ -1,4 +1,62 @@
 2. Docker CLI məntiqi: imajlar, konteynerlər, laylar, keş
 ---------------------------------------------------------
 
+------------------------------------------------------------------------------------------------------------
+2.1. Image üçün 4 əsas əməliyyat var: pull, build, tag, push. Hərəsi eyni obyekt üzərində fərqli mərhələdir:
+registry-dən gətirmək, sıfırdan yaratmaq, ad vermək, registriyə yollamaq.
 
+1. Image adı necə qurulur?
+Bir image-in adı həmişə üç hissədən ibarət olur:
+
+[registry]/[repo adı]:[tag]
+
+registry – image haradan gəlir (məsələn, docker.io → Docker Hub). Yazmasan default olaraq Docker Hub götürülür.
+repo adı – layihənin və ya proqramın adı (ubuntu, nginx, microsoft/dotnet).
+tag – versiya işarəsi (20.04, 9.0, latest).
+
+
+Məsələn: docker pull ubuntu:20.04
+Bu əmrlə sən Docker Hub-dan (registry) ubuntu repozitoriyasının 20.04 tag-lı image-in çəkirsən.
+
+
+Qeydlər:
+Əgər :tag yazmasan → avtomatik :latest gəlir. Amma “latest” heç vaxt zəmanət deyil, sadəcə bir etiketdir. Sabah dəyişə bilər.
+Həqiqi dəyişməz identifikator isə digest-dir. Digest sha256:xxxx... formasında olur. Digest ilə çəkilən (pull edilən) image hər yerdə eyni baytları gətirir.
+
+
+Pull əməliyyatı əslində nə edir?
+Məsələn, sən yazırsan: docker pull nginx:1.25
+Arxada addım-addım bunlar olur:
+
+1. Client → Daemon
+Sənin docker əmrini yazmağın sadəcə client-dir. O, arxa plandakı dockerd-ə deyir: “nginx:1.25 image-ni çək (pull)”.
+
+2. Manifest istənilir
+Docker daemon Docker Hub API-yə sorğu göndərir və deyir: “Bu ad və tag üçün manifest ver”.
+Manifest sadəcə “bu image neçə laydan ibarətdir, hər layın hash-ı və ölçüsü nədir” siyahısıdır.
+
+3. Layların yoxlanması
+Daemon əvvəl lokaldakı store-a baxır: bu hash-lı lay artıq varmı? 
+Əgər var, yenidən endirmir. Əgər yoxdur, həmin layı registridən çəkir.
+
+Məsələn:
+Ən altda debian:bookworm-slim bazası.
+Üstündə nginx serverin faylları.
+
+4. Layların yığılması
+Laylar endirilib dekompress edilir və lokal store-a yazılır.
+
+5. İstifadəyə hazır olur
+İndi sən docker run nginx:1.25 desən, həmin laylardan root filesystem hazırlanacaq və konteyner işə düşəcək.
+
+
+
+Platforma məsələsi
+Bəzən eyni ad altında fərqli arxitektura imajlar olur. Məsələn, nginx:1.25 həm linux/amd64, həm də linux/arm64 üçün mövcuddur.
+
+Əgər sənin kompüterin amd64-dür, Docker uyğun olan manifesti seçəcək.
+Əgər sən ARM cihazındasan (məsələn, Apple M1/M2), Docker oradakı arm64 qatını çəkəcək.
+Əgər xüsusi olaraq amd64 istəyirsənsə, belə yaza bilərsən:
+
+docker pull --platform linux/arm64 nginx:1.25
+------------------------------------------------------------------------------------------------------------
