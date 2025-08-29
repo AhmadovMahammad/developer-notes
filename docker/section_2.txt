@@ -2,7 +2,9 @@
 ---------------------------------------------------------
 
 ------------------------------------------------------------------------------------------------------------
-2.1. Image üçün 4 əsas əməliyyat var: pull, build, tag, push. Hərəsi eyni obyekt üzərində fərqli mərhələdir:
+2.1. Image adı necə qurulur?
+
+Image üçün 4 əsas əməliyyat var: pull, build, tag, push. Hərəsi eyni obyekt üzərində fərqli mərhələdir:
 registry-dən gətirmək, sıfırdan yaratmaq, ad vermək, registriyə yollamaq.
 
 1. Image adı necə qurulur?
@@ -60,3 +62,125 @@ Bəzən eyni ad altında fərqli arxitektura imajlar olur. Məsələn, nginx:1.2
 
 docker pull --platform linux/arm64 nginx:1.25
 ------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------
+2.2. Build – sıfırdan image yaratmaq
+
+“Build” dedikdə məqsəd odur ki, kodunu və ona lazım olan faylları götürüb dəyişməz bir image-ə çevirəsən.
+Bu image sabit olacaq, yəni eyni Dockerfile və eyni fayllarla yenidən quranda eyni nəticəni verəcək.
+Bunun üçün iki anlayışı bir yerdə başa düşmək kifayətdir: 1. build konteksti və 2. Dockerfile.
+
+
+Build konteksti sənin göndərdiyin iş qovluğudur. docker build -t myapp:1.0 . yazanda sondakı nöqtə həmin qovluq deməkdir. 
+Docker client bu qovluğu arxivləyib daemon-a ötürür. Kontekstdə nə varsa, hash hesabına daxil olur. 
+Ona görə lazımsız və iri qovluqları konteksdən kənar saxlamaq vacibdir. 
+Bunun üçün kökdə .dockerignore faylı saxlayırsan. 
+Məsələn, .NET layihəsində bin, obj, .vs, .git və oxşar kataloqları .dockerignore-a yazırsan ki, hər build-də bu tonlarla fayl göndərilməsin və 
+COPY . . sətirinin cache-i boş yerə pozulmasın.
+
+
+Dockerfile sənin “reseptindir”. Docker onu sətir-sətir oxuyur, hər sətir deterministik bir addımdır və nəticəsi ayrı bir lay kimi yadda qalır. 
+Eyni sətir eyni giriş faylları ilə təkrar gəlirsə, Docker layı keşdən götürür və vaxt itirmir. 
+Buna görə sətir sırası performansdır. 
+Nadir dəyişən addımlar yuxarıda, tez-tez dəyişən addımlar altda olmalıdır.
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Sadə bir .NET Web API nümunəsi üzərindən sıfırdan quraq. Kökdə src/MyApi.csproj, src/Program.cs və s. var. .dockerignore da kökdədir və lazımsız qovluqları çıxarıb.
+
+# 1) Build mərhələsi: ağır SDK imajı içində publish
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Restore-un keşlənməsi üçün əvvəlcə yalnız layihə təsvirlərini kopyala
+COPY ./src/*.csproj ./
+RUN dotnet restore
+
+# İndi qalan kodu gətir və publish et
+COPY ./src/. .
+RUN dotnet publish -c Release -o /out --no-restore
+
+# 2) Run mərhələsi: yüngül runtime imajı, yalnız artefaktlar
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+COPY --from=build /out ./
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+ENTRYPOINT ["dotnet", "MyApi.dll"]
+
+Konteksin təmiz qalması üçün kökdə belə bir .dockerignore saxla:
+**/bin
+**/obj
+**/.vs
+**/*.user
+**/*.suo
+.git
+.gitignore
+*.md
+*.log
+node_modules
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Birinci hissə dotnet restore-un SDK mərhələsində nə iş gördüyüdür. 
+dotnet restore layihə faylındakı (*.csproj) NuGet dependecyleri həll edir, yəni hansı paketlərin hansı dəqiq versiyaları lazım olduğunu müəyyənləşdirir, 
+onları NuGet feed-lərdən endirir, layihənin obj/ altında asset xəritələrini (project.assets.json və s.) yaradır və 
+SDK-nın kompayl zamanı nəyə, haradan istinad edəcəyini sabitləşdirir. 
+
+
+1. Docker-da RUN əmrləri və cache
+Dockerfile-ı oxuyanda hər sətir (RUN, COPY, ADD, və s.) yeni bir qat (layer) yaradır.
+
+: Docker hər qatın girişini (hansı fayllar konteksdən kopyalandı + əmrin özü) hash-layır.
+: Əgər həmin hash eyni qalırsa, Docker əvvəlki nəticəni (cache) istifadə edir.
+: Əgər hansısa giriş dəyişibsə (məsələn, kopyalanan fayl dəyişdi, ya da əmrin özü dəyişdi), onda həmin qat yenidən icra olunur və nəticə yeni qat kimi saxlanılır.
+
+RUN dotnet restore
+qatının cache-də qalması üçün bu əmrin girişləri eyni olmalıdır. Onun girişləri nədir?
+
+1. Ondan əvvəlki qatın faylları (biz COPY ilə yalnız *.csproj gətirmişik).
+2. Əmr mətninin özü (“dotnet restore”). 
+
+Əgər .csproj faylları dəyişməyibsə və əmr də eynidirsə → Docker görür ki, “bu qatın nəticəsi artıq var” və təkrar işləmir, cache-dən götürür.
+
+
+2. Niyə restore-u koddan əvvəl edirik?
+Əgər sən əvvəlcə bütün kodu COPY . . ilə gətirsən və sonra RUN dotnet restore desən:
+
+1. Kodda hər xırda dəyişiklik (məsələn, Program.cs-də bir sətir) COPY qatını dəyişəcək.
+2. O zaman həmin qatın digest-i dəyişəcək və ondan sonra gələn bütün qatların cache-i pozulacaq, yəni restore da təkrar icra olunacaq.
+Halbuki NuGet paketləri heç dəyişməyib.
+
+Bu səbəbdən restore-u .csproj-ları kopyalayandan dərhal sonra edirik. .csproj-lar nadir dəyişir, ona görə bu qat çox vaxt cache-dən gəlir. 
+Kod isə ayrı COPY ilə sonradan gətirilir. Beləliklə, kod dəyişəndə yalnız publish qatı pozulur, restore qatının cache-i qorunur.
+
+
+3. “no-restore” nə üçündür?
+
+Sən dotnet publish yazanda əslində o, default olaraq əvvəlcə restore edir, sonra publish. 
+Amma biz artıq restore-u ayrıca etmişik və cache-də saxlamışıq. 
+Ona görə publish-də --no-restore yazırıq. Bu, “yenidən paketləri yoxlama, keçmiş qatdakı restore nəticəsindən istifadə et” deməkdir.
+
+Əgər --no-restore yazmasan, publish hər dəfə restore etməyə çalışacaq → cache mexanikasının qazancı gedəcək.
+
+--------------------------------------------------
+
+İkinci hissə .dockerignore-un nə iş gördüyüdür. 
+Docker build vaxtı nöqtə (.) ilə göstərdiyin qovluq arxivlənib daemon-a göndərilir; buna build konteksti deyirik. 
+.dockerignore bu arxivə daxil olmayacaq fayl və qovluqları sadə pattern-lərlə çıxarır. 
+Məna çox sadədir: nə qədər az lazımsız fayl göndərsən, bir o qədər az hash dəyişər və cache qorunar.
+
+.dockerignore yalnız build kontekstdən çıxarır; lokal diskindəki fayllar silinmir. Nəticədə build sürətlənir.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
