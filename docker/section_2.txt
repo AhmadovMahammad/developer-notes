@@ -191,96 +191,68 @@ Biz burada Dockerfile.api və ya Dockerfile.client istifadə edə bilərik.
 --------------------------------------------------
 
 Əvvəlcə “build konteksti” ilə “WORKDIR” arasındakı fərqi qısaca yerləşdirim ki, qalan hamısı aydın olsun. 
-
 1. Build konteksti sənin hostdakı iş qovluğundur; docker build ... . yazanda sondakı nöqtə həmin qovluğu daemon-a göndərmək deməkdir. 
-2. WORKDIR isə imajın içində “hazırda işlədiyim qovluq” deməkdir. 
 
-Yəni COPY A B əməlində A hostdakı kontekstdədir, B isə imajın içindədir və WORKDIR-ə nisbidir. Bu ikisi eyni şey deyil: 
-biri kənardakı material, digəri konteynerin içində istifadə edilən ünvan anlayışıdır.
+2. WORKDIR isə imajın içində “hazırda işlədiyim qovluq” deməkdir. 
+Yəni COPY A B əməlində A hostdakı kontekstdədir, B isə imajın içindədir və WORKDIR-ə nisbidir. 
+Bu ikisi eyni şey deyil: biri kənardakı material, digəri konteynerin içində istifadə edilən ünvan anlayışıdır.
 
 
 Sənin həndəsənə görə ən rahat yol Dockerfile-ı repozitoriyanın kökünə qoyub build kontekstini də kök qovluq etməkdir. 
-Onda src/... yollarını birbaşa COPY edə biləcəyik. 
-.dockerignore da elə kökdə durmalıdır. Bu .dockerignore Docker-a “kontekstə bunları qatma” siyahısı verir. 
-Fayllar diskindən silinmir, sadəcə build üçün arxivə düşmür. 
-Nəticə ikiqatdır: göndərilən material balacalaşır, COPY . . kimi sətirlərin hash-ı xırda səbəblərlə dəyişməyib cache pozulmur.
+Onda src/... yollarını birbaşa COPY edə biləcəyik. .dockerignore da elə kökdə durmalıdır. Bu .dockerignore Docker-a “kontekstə bunları qatma” siyahısı verir. 
+Fayllar diskindən silinmir, sadəcə build üçün arxivə düşmür. Nəticə ikiqatdır: göndərilən material balacalaşır, COPY . . kimi sətirlərin hash-ı xırda səbəblərlə dəyişməyib cache pozulmur.
 
 
-İndi API üçün Dockerfile. Sənin server tərəfində bir neçə layihə var və API layihəsi onlara referans verir. 
-Restore qatını sabit saxlamaq üçün əvvəlcə yalnız .sln və hər referans olunan layihənin .csproj faylını kopyalayırıq. 
-Bu, NuGet paketlərinin bərpasını (restore) koda toxunmadan etmək üçündür. 
-Sonra bütün mənbəni gətirib publish edirik. 
-Multi-stage ilə final imajda yalnız publish artefaktları qalır.
-
-
-############################################
-# 1) SDK step : restore + publish
-############################################
-
+-------------------------
+# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# initially we copy sln and all related csproj files to cache restore layer.
-COPY ./src/server/ApiSolution.sln ./server
+# Copy solution file
+COPY ./src/server/ApiSolution.sln ./
 
-COPY ./src/server/LearnKazakh.API/*.csproj           ./server/LearnKazakh.API/
-COPY ./src/server/LearnKazakh.Application/*.csproj   ./server/LearnKazakh.Application/
-COPY ./src/server/LearnKazakh.Core/*.csproj          ./server/LearnKazakh.Core/
-COPY ./src/server/LearnKazakh.Domain/*.csproj        ./server/LearnKazakh.Domain/
-COPY ./src/server/LearnKazakh.Infrastructure/*.csproj ./server/LearnKazakh.Infrastructure/
-COPY ./src/server/LearnKazakh.Persistence/*.csproj   ./server/LearnKazakh.Persistence/
+# Copy csproj files
+COPY ./src/shared/LearnKazakh.Shared/*.csproj               ./shared
+COPY ./src/server/LearnKazakh.API/*.csproj                  ./server/LearnKazakh.API/
+COPY ./src/server/LearnKazakh.Application/*.csproj          ./server/LearnKazakh.Application/
+COPY ./src/server/LearnKazakh.Core/*.csproj                 ./server/LearnKazakh.Core/
+COPY ./src/server/LearnKazakh.Domain/*.csproj               ./server/LearnKazakh.Domain/
+COPY ./src/server/LearnKazakh.Infrastructure/*.csproj       ./server/LearnKazakh.Infrastructure/
+COPY ./src/server/LearnKazakh.Persistence/*.csproj          ./server/LearnKazakh.Persistence/
 
-COPY ./src/shared/LearnKazakh.Shared/*.csproj ./shared
+# Restore dependencies
+RUN dotnet restore ./server/LearnKazakh.API/LearnKazakh.API.csproj
 
-# at this stage, only sln, shared solution csproj and relative dependencies csproj files exists in work directory.
-RUN dotnet restore ./server/ApiSolution.sln
-
+# Copy source code
 COPY ./src/server ./server
 COPY ./src/shared ./shared
 
-# publish api project, use no restore to use cache layer.
+# Publish stage
 RUN dotnet publish ./server/LearnKazakh.API/LearnKazakh.API.csproj -c Release -o /out --no-restore
 
-
-############################################
-# 2) Runtime step: light ASP.NET runtime
-############################################
-
+# Runtime stage
 FROM mcr.microsoft.com/aspnet:8.0 AS runtime
 WORKDIR /app
 
+# Copy published app
 COPY --from=build /out ./
 
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
 ENTRYPOINT [ "dotnet", "LearnKazakh.API.dll" ]
+-------------------------
 
---------------------------------------------------
+İndi hansı sətir nə edir və niyə bu sıradadır, mətləbə toxunaraq izah edim. 
 
-İndi hansı sətir nə edir və niyə bu sıradadır, mətləbə toxunaraq izah edim.
-
-İlk FROM sdk:9.0 build alətlərinin olduğu ağır qatdır; burada restore və publish edirik. 
-WORKDIR /src imajın içində “iş qovluğu”nu sabitləşdirir; 
-sonrakı COPY/RUN əmrləri artıq bu kataloqa nisbidir. 
-
+İlk FROM sdk:8.0 build alətlərinin olduğu ağır qatdır; burada restore və publish edirik. 
+WORKDIR /src imajın içində “iş qovluğu”nu sabitləşdirir; sonrakı COPY/RUN əmrləri artıq bu kataloqa nisbidir. 
 Bir neçə COPY .../*.csproj ... ilə yalnız layihə təsvirlərini gətiririk; məhz bu addım cache-in açarıdır. 
+
 RUN dotnet restore ./server/ApiSolution.sln NuGet paketlərini endirir və obj/ altında aktivləri yaradır. 
-Bu qat .csproj dəyişmədiyi müddətcə keştə düşəcək. 
-Bundan sonra bütöv ./src/server və ./src/shared mənbələrini gətiririk; indi kodda kiçik dəyişiklik olsa belə restore qatına toxunulmur, yalnız publish qatı yenilənir. 
-dotnet publish ... --no-restore məhz buna görə yazılıb.
+Bu qat .csproj dəyişmədiyi müddətcə keştə düşəcək. indi kodda kiçik dəyişiklik olsa belə restore qatına toxunulmur, yalnız publish qatı yenilənir. 
+dotnet publish ... --no-restore məhz buna görə yazılıb: 
 
-Ikinci FROM aspnet:9.0 yüngül runtime imajıdır; yalnız tətbiqin işləməsinə lazım olan kitabxanalar var. 
-COPY --from=build /out ./ multi-stage kopyadır; ağır mərhələdən yalnız nəticəni götürürük. 
-
-ENV ASPNETCORE_URLS=http://+:8080 konteyner içində Kestrel-ə “bütün interfeyslərdə 8080 dinlə” deyir. 
-EXPOSE 8080 sadəcə metadata olaraq qalır. 
-
-ENTRYPOINT ["dotnet","LearnKazakh.API.dll"] start prosesidir; shell qatına ehtiyac yoxdur, siqnallar birbaşa tətbiqə gedir və graceful shutdown doğru işləyir.
-
-
-
-
-
-
+İkinci FROM aspnet:9.0 yüngül runtime imajıdır; yalnız tətbiqin işləməsinə lazım olan kitabxanalar var. COPY --from=build /out ./ multi-stage kopyadır; 
+ağır mərhələdən yalnız nəticəni götürürük. 
 
