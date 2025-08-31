@@ -231,7 +231,7 @@ COPY ./src/shared ./shared
 RUN dotnet publish ./server/LearnKazakh.API/LearnKazakh.API.csproj -c Release -o /out --no-restore
 
 # Runtime stage
-FROM mcr.microsoft.com/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
 WORKDIR /app
 
 # Copy published app
