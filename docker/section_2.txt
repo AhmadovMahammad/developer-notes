@@ -205,33 +205,33 @@ Fayllar diskindən silinmir, sadəcə build üçün arxivə düşmür. Nəticə 
 
 -------------------------
 # Build stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Copy solution file
-COPY ./src/server/ApiSolution.sln ./
+COPY ./src/server/ApiSolution.sln ./server/
 
 # Copy csproj files
-COPY ./src/shared/LearnKazakh.Shared/*.csproj               ./shared
-COPY ./src/server/LearnKazakh.API/*.csproj                  ./server/LearnKazakh.API/
-COPY ./src/server/LearnKazakh.Application/*.csproj          ./server/LearnKazakh.Application/
-COPY ./src/server/LearnKazakh.Core/*.csproj                 ./server/LearnKazakh.Core/
-COPY ./src/server/LearnKazakh.Domain/*.csproj               ./server/LearnKazakh.Domain/
-COPY ./src/server/LearnKazakh.Infrastructure/*.csproj       ./server/LearnKazakh.Infrastructure/
-COPY ./src/server/LearnKazakh.Persistence/*.csproj          ./server/LearnKazakh.Persistence/
+COPY ./src/shared/LearnKazakh.Shared/*.csproj         ./shared/LearnKazakh.Shared/
+COPY ./src/server/LearnKazakh.API/*.csproj            ./server/LearnKazakh.API/
+COPY ./src/server/LearnKazakh.Application/*.csproj    ./server/LearnKazakh.Application/
+COPY ./src/server/LearnKazakh.Core/*.csproj           ./server/LearnKazakh.Core/
+COPY ./src/server/LearnKazakh.Domain/*.csproj         ./server/LearnKazakh.Domain/
+COPY ./src/server/LearnKazakh.Infrastructure/*.csproj ./server/LearnKazakh.Infrastructure/
+COPY ./src/server/LearnKazakh.Persistence/*.csproj    ./server/LearnKazakh.Persistence/
 
-# Restore dependencies
-RUN dotnet restore ./server/LearnKazakh.API/LearnKazakh.API.csproj
+# Restore dependencies for ALL projects
+RUN dotnet restore ./server/ApiSolution.sln
 
-# Copy source code
-COPY ./src/server ./server
-COPY ./src/shared ./shared
+# Copy the rest of the source code
+COPY ./src/server ./server/
+COPY ./src/shared ./shared/
 
-# Publish stage
+# Publish stage: Publish API project
 RUN dotnet publish ./server/LearnKazakh.API/LearnKazakh.API.csproj -c Release -o /out --no-restore
 
 # Runtime stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
 # Copy published app
@@ -240,19 +240,16 @@ COPY --from=build /out ./
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-ENTRYPOINT [ "dotnet", "LearnKazakh.API.dll" ]
+ENTRYPOINT ["dotnet", "LearnKazakh.API.dll"]
 -------------------------
 
-İndi hansı sətir nə edir və niyə bu sıradadır, mətləbə toxunaraq izah edim. 
+docker build -t test-api-image:1.0 . -f .\docker\Dockerfile.api
+docker faylından yeni image yaradır
 
-İlk FROM sdk:8.0 build alətlərinin olduğu ağır qatdır; burada restore və publish edirik. 
-WORKDIR /src imajın içində “iş qovluğu”nu sabitləşdirir; sonrakı COPY/RUN əmrləri artıq bu kataloqa nisbidir. 
-Bir neçə COPY .../*.csproj ... ilə yalnız layihə təsvirlərini gətiririk; məhz bu addım cache-in açarıdır. 
+powershell command: [docker image ls]
 
-RUN dotnet restore ./server/ApiSolution.sln NuGet paketlərini endirir və obj/ altında aktivləri yaradır. 
-Bu qat .csproj dəyişmədiyi müddətcə keştə düşəcək. indi kodda kiçik dəyişiklik olsa belə restore qatına toxunulmur, yalnız publish qatı yenilənir. 
-dotnet publish ... --no-restore məhz buna görə yazılıb: 
+REPOSITORY       TAG       IMAGE ID       CREATED          SIZE
+test-api-image   1.0       974ad39e9d51   36 minutes ago   387MB
 
-İkinci FROM aspnet:9.0 yüngül runtime imajıdır; yalnız tətbiqin işləməsinə lazım olan kitabxanalar var. COPY --from=build /out ./ multi-stage kopyadır; 
-ağır mərhələdən yalnız nəticəni götürürük. 
+
 
