@@ -84,46 +84,6 @@ Buna görə sətir sırası performansdır.
 Nadir dəyişən addımlar yuxarıda, tez-tez dəyişən addımlar altda olmalıdır.
 
 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Sadə bir .NET Web API nümunəsi üzərindən sıfırdan quraq. Kökdə src/MyApi.csproj, src/Program.cs və s. var. .dockerignore da kökdədir və lazımsız qovluqları çıxarıb.
-
-# 1) Build mərhələsi: ağır SDK imajı içində publish
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
-
-# Restore-un keşlənməsi üçün əvvəlcə yalnız layihə təsvirlərini kopyala
-COPY ./src/*.csproj ./
-RUN dotnet restore
-
-# İndi qalan kodu gətir və publish et
-COPY ./src/. .
-RUN dotnet publish -c Release -o /out --no-restore
-
-# 2) Run mərhələsi: yüngül runtime imajı, yalnız artefaktlar
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
-WORKDIR /app
-COPY --from=build /out ./
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
-ENTRYPOINT ["dotnet", "MyApi.dll"]
-
-Konteksin təmiz qalması üçün kökdə belə bir .dockerignore saxla:
-**/bin
-**/obj
-**/.vs
-**/*.user
-**/*.suo
-.git
-.gitignore
-*.md
-*.log
-node_modules
---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-Birinci hissə dotnet restore-un SDK mərhələsində nə iş gördüyüdür. 
-dotnet restore layihə faylındakı (*.csproj) NuGet dependecyleri həll edir, yəni hansı paketlərin hansı dəqiq versiyaları lazım olduğunu müəyyənləşdirir, 
-
-
 1. Docker-da RUN əmrləri və cache
 Dockerfile-ı oxuyanda hər sətir (RUN, COPY, ADD, və s.) yeni bir qat (layer) yaradır.
 
@@ -251,5 +211,105 @@ powershell command: [docker image ls]
 REPOSITORY       TAG       IMAGE ID       CREATED          SIZE
 test-api-image   1.0       974ad39e9d51   36 minutes ago   387MB
 
+
+Port mapping necə işləyir
+--------------------------------------------------
+Port məsələsini belə düşünmək ən rahatdır: 
+tətbiq içəridə hansı “qulaq”dan eşidir, Docker isə çöldən gələn səsi həmin qulağa necə gətirir. 
+İkisi uyğun gəlməsə, bağlantı alınmır.
+
+İçəridə Kestrel var hansı ki, container içərisndə run olan asp net app orda işləyir. 
+Ona “hansı ünvanda və portda qulaq as” deməlisən. 
+`ASPNETCORE_URLS=http://+:8080` yazanda mənası budur: “bütün şəbəkə interfeyslərində 8080-də qulaq as”. 
+
+Buradakı `+` praktikdə `0.0.0.0` kimidir, yəni konteynerin içində hansı IP varsa hamısından gələn trafiki qəbul et. 
+Əgər `http://localhost:8080` desən, Kestrel yalnız konteynerin öz “loopback”ində eşidər; 
+konteynerin şəbəkə kartından gələn trafik ora çatmaz. 
+Ona görə konteynerdə ən təhlükəsiz ünvan `http://+:PORT`-dur; bütün qapıları içəridə həmin porta açıq saxlayır.
+
+Çöldə işi Docker görür. `-p 8080:8080` deyəndə hostdakı 8080-i konteynerdəki 8080-ə bağlayırsan. 
+Brauzerdən `http://localhost:8080` vurursan, sorğu hosta düşür, 
+Docker onu konteynerin 8080-nə ötürür, içəridə Kestrel artıq `0.0.0.0:8080`-də qulaq asdığı üçün cavab verir. 
+Əsas qayda sadədir: sağ tərəf konteynerin içində Kestrel-in dinlədiyi portdur, sol tərəf hostda istifadə edəcəyin portdur. 
+Kestrel içəridə 5000-də dinləyirsə, ya `ASPNETCORE_URLS=http://+:5000` verməlisən, ya da `-p 8080:5000` deyib host 8080-ni konteyner 5000-ə yönləndirməlisən. 
+Eyni məntiqdə hostda 80-dən açmaq istəsən `-p 80:8080` yazırsan; içəridə heç nə dəyişmir, yalnız çöldə rahat URL alırsan.
+
+“localhost” sözünün kimə aid olduğunu da dəqiq ayır. 
+Konteynerin içində “localhost” konteynerin özüdür; hostun “localhost”u isə sənin maşınındır. 
+Konteynerdən hostdakı servislərə getmək üçün Windows/macOS-da `host.docker.internal` xüsusi adı var; 
+əks istiqamətdə isə hostdan konteynerə keçid `-p` ilə edilir. 
+İçəridə `0.0.0.0` demək “hansı IP ilə gəlsə, qəbul et” mənasındadır, yəni Docker-in yönləndirdiyi paketlər Kestrel-ə çatır.
+
+Bir cümləlik yadda saxla. 
+
+1. `ASPNETCORE_URLS` içəridə Kestrel-in eşitdiyi adres və portu təyin edir, 
+2. `-p host:container` isə çöldən o porta yol açır. Sağdakı rəqəm Kestrel-ə uyğun gəlməlidir, soldakı isə hostda istifadə etdiyin rəqəmdir.
+
+
+
+
+host.docker.internal nədir, harada işləyir
+--------------------------------------------------
+Docker Desktop olan Windows və macOS-da konteynerin içindən “host” maşına getmək üçün xüsusi bir ad var: host.docker.internal. 
+Sənin API konteynerdən hostdakı Postgres-ə qoşulmaq istəyəndə connection string-də Host=host.docker.internal yazanda işin məğzi budur: 
+“konteynerdən çıx, Docker-in host qapısına get, ordan da hostun Postgres-ə çat”.
+
+Linux serverdə bu ad mövcud deyil, çünki Docker Desktop yoxdur. Ona görə istehsalda iki yol praktik olur. 
+
+1. Ya Postgres-i də konteynerdə saxlayıb eyni şəbəkədə servis adı ilə çağırırsan (Compose-da db servisi varsa, Host=db yazırsan və bu, Docker-in daxili DNS-i ilə işləyir). 
+2. Ya da tam hostdankənar bir DB-ə qoşulursan və normal DNS/IP yazırsan (məsələn, Host=10.0.0.12 və ya Host=prod-db.mycompany.com). 
+
+
+
+
+ASP.NET Core konfiqurasiyada üstünlük qaydası və --env-file
+--------------------------------------------------
+ASP.NET Core konfiqurasiyanı qat-qat yığır. 
+
+1. Əsas appsettings.json oxunur, 
+2. sonra mühitə görə fayl gəlir (məsələn, appsettings.Production.json), 
+3. daha sonra environment dəyişənləri, ən sonda isə command-line arqumentləri. 
+
+Eyni açar bir neçə yerdə varsa, ən son gələn qalibdir. 
+Konteynerdə praktiki olaraq ən əlçatan qat environment dəyişənləridir, çünki bir komanda və ya bir fayl ilə hər şeyi üstələyə bilirsən.
+
+Docker-da hər dəfə PowerShell-də uzun-uzadı -e yazmaq əzabdır, üstəlik quoting problemi olur. 
+Ona görə kökdə sadə bir app.env faylı saxlayırsan və --env-file ilə verirsən. 
+ASP.NET Core-da dərin açarları environment şəklinə çıxarmaq üçün iki nöqtə : yerinə iki alt xətt __ istifadə olunur. 
+
+Məsələn, ConnectionStrings:DefaultConnection açarı environment-də belə yazılmalıdır:
+ConnectionStrings__DefaultConnection=…
+
+Praktiki app.env belə görünür:
+ConnectionStrings__DefaultConnection=Host=host.docker.internal;Database=LearnKazakh;Username=postgres;Password=supersecret
+Authentication__Jwt__Issuer=http://localhost:8080
+Authentication__Jwt__IssuerSigningKey=super secret signing key, change on production
+Authentication__Jwt__Audience=http://localhost:8080
+Authentication__Jwt__AccessTokenExpirationMinutes=15
+Authentication__Jwt__RefreshTokenExpirationDays=7
+ASPNETCORE_URLS=http://+:8080
+ASPNETCORE_ENVIRONMENT=Production
+
+
+Burada diqqət ediləsi iki incə məqam var. Birincisi, --env-file daxilində dəyərləri dırnaqlamırsan; 
+sətri necə yazırsansa, Docker bütöv dəyər kimi götürür, boşluqlar da problem yaratmır. 
+
+İşə salmaq artıq çox sadədir:
+docker run --rm -p 8080:8080 --env-file app.env learn-kazakh-api:latest
+
+hansı ki, əvvəl bu formatda etməli idin.
+docker run --rm -p 8080:8080 `
+  -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Database=LearnKazakh;Username=postgres;Password=supersecret" `
+  -e Authentication__Jwt__Issuer="http://localhost:8080" `
+  -e Authentication__Jwt__IssuerSigningKey="super secret signing key, change on production" `
+  -e Authentication__Jwt__Audience="http://localhost:8080" `
+  -e Authentication__Jwt__AccessTokenExpirationMinutes="15" `
+  -e Authentication__Jwt__RefreshTokenExpirationDays="7" `
+  -e HealthChecks__SelfUrl="http://127.0.0.1:8080/api/health"  `
+  learn-kazakh-api:latest
+
+
+build image:      docker build -t learn-kazakh-api:latest -f docker/Dockerfile.api .
+run a container:  docker run --rm --env-file .\docker\app.env -p 8080:8080 learn-kazakh-api:latest
 
 
