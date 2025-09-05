@@ -311,5 +311,21 @@ docker run --rm -p 8080:8080 `
 
 build image:      docker build -t learn-kazakh-api:latest -f docker/Dockerfile.api .
 run a container:  docker run --rm --env-file .\docker\app.env -p 8080:8080 learn-kazakh-api:latest
+------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------
+2.3. Tag anlayışı
+
+Tag əslində ad göstəricisidir. 
+Image dediyimiz obyekt dəyişməz məzmundur: laylar, konfiqurasiya və manifestdən ibarət bir paket. 
+Bu paketin həqiqi kimliyi digest-dir (sha256 ilə hesablanan məzmun xülasəsi). 
+Tag isə həmin obyektə yönələn işarədir.
+
+docker build -t myapp:1.0 .
+
+
+
+
+
 
 
