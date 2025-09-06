@@ -1,6 +1,7 @@
 2. Docker CLI məntiqi: imajlar, konteynerlər, laylar, keş
 ---------------------------------------------------------
 
+Image operations
 ------------------------------------------------------------------------------------------------------------
 2.1. Image adı necə qurulur?
 
@@ -322,8 +323,107 @@ Bu paketin həqiqi kimliyi digest-dir (sha256 ilə hesablanan məzmun xülasəsi
 Tag isə həmin obyektə yönələn işarədir.
 
 docker build -t myapp:1.0 .
+------------------------------------------------------------------------------------------------------------
 
 
+
+
+
+
+Container Operations
+------------------------------------------------------------------------------------------------------------
+“docker run” deyəndə beynində belə bir axın canlandır. Sən əmri yazırsan, Docker əvvəlcə image-ə baxır: 
+lokaldadırsa götürür, yoxdursa səssizcə pull edir. 
+
+
+Sonra image-in read-only laylarını overlayfs ilə birləşdirib üstünə boş yazı qatı qoyur ki, 
+içəridə etdiyin dəyişikliklər yalnız bu konteynerə aid olsun. 
+Ardınca kernel səviyyəsində konteyner üçün ayrı “dünya” açılır: PID, mount, user və s. namespaces qurulur, cgroups ilə RAM/CPU limitləri yazılır.
+
+
+Şəbəkə hissəsini ən sadə, amma dəqiq dildə belə düşün. 
+Docker heç nə deməsən, konteyneri “bridge” adlı daxili şəbəkəyə qoşur.
+Hostla konteyner arasında görünməz bir “kabel” var, texniki adı veth cütüdür: 
+bir ucu konteynerin içindəki eth0, o biri ucu hostdakı bridge-ə taxılıb. 
+Konteyner həmin daxili şəbəkədən özünə lokal IP alır; məsələn, 172.17.0.5 kimi. 
+Bu IP yalnız host və eyni bridge-də olan başqa konteynerlər üçündür, kənar dünyadan görünmür.
+
+
+Hostdan və ya internetdən konteynerə giriş ancaq port dərc edəndə mümkün olur. 
+-p 8080:80 yazanda hostun 8080 portuna gələn trafiki Docker qaydaları (iptables/NAT) konteynerin 80 portuna yönəldir. 
+Yəni brauzerdə http://localhost:8080 açanda sorğu hosta düşür, host isə onu konteynerin içindəki 80-ə ötürür. 
+
+İstəsən yalnız yerli maşından giriş olsun deyə -p 127.0.0.1:8080:80 yaza bilərsən. 
+Əksinə bütün interfeyslərdə açmaq üçün -p 0.0.0.0:8080:80 yazılır. 
+
+EXPOSE 80 Dockerfile-da yalnız metadata-dır, şəbəkə qaydası yaratmır. 
+
+--------------------------------------------------
+
+Docker run parameterləri
+
+-i (interactive)
+-i deməkdir ki, konteynerin STDIN kanalı açıq saxlanacaq.
+
+Normalda konteyner içindəki proqram yalnız öz işini görüb çıxır. 
+Amma sən -i versən, terminaldan yazdığın komandalar konteynerin içindəki prosesə ötürülür. Yəni proseslə “ünsiyyət” qurmaq olur.
+--- docker run --rm --env-file .\docker\app.env -p 8080:8080 learn-kazakh-api:latest
+məsələn burada -interactive olmadığı üçün sən heçbir command göndərə bilməzsən konteynerin içində işləyən prosesə qarşı.
+
+
+
+-i default deyil
+Əgər sən -i yazmasan, konteynerin STDIN kanalı bağlıdır. Yəni terminaldan input göndərə bilməyəcəksən. 
+Amma bir çox servis prosesləri (məsələn, ASP.NET Core API) onsuz da STDIN-dən nəsə gözləmir, 
+sadəcə başlayıb stdout-a log yazır. Ona görə də -i verməsən belə işləyir.
+
+
+
+-t (tty)
+-t deməkdir ki, konteyner prosesinə pseudo-TTY (terminal emulyasiyası) verilir.
+Bu, real terminal təcrübəsini təmin edir: rənglər, kursor hərəkəti, interaktiv shell davranışı.
+
+docker run -i alpine sh
+Bu halda sadəcə sh açılır, amma görünüş “qarışıq” olur, çünki TTY yoxdur.
+
+docker run -it alpine sh
+Bu dəfə sanki normal Linux terminalına düşmüş kimi təcrübə alırsan.
+TTY olmadan bəzi interaktiv proqramlar (bash, top, nano və s.) işləyə bilmir və ya çox qəribə görünür.
+
+
+
+-d və terminal
+Buradakı -d detach rejimidir. “Arxa fon” deməkdir. 
+Komanda terminalı bloklamır, sənə dərhal konteyner ID qaytarır, servis isə fonda işləməyə davam edir. 
+Əgər detach olmasaydı, Kestrel-in stdout-u birbaşa terminalda qalardı və pəncərə bağlı qalana qədər proses də işləyərdi. 
+Detach rejimində logları terminala deyil, Docker toplayır; istədiyin an docker logs ilə baxırsan.
+
+
+--name api konteynerə sabit ad verir. Bu, əmrləri rahatlaşdırır. 
+ID əvəzinə adla müraciət edirsən: docker logs api, docker exec -it api sh, docker stop api. 
+Eyni adda ikinci konteyner açıla bilməz; bu, təsadüfi qarışıqlığın qarşısını alır.
+
+
+
+--restart unless-stopped servis davranışı verir. Dockerd yenidən başlasa və ya proses qəfil düşsə, Docker konteyneri avtomatik qaldıracaq. 
+Yalnız sən özün docker stop etmisənsə, “dayandırılıb” statusu yadda saxlanılır və avtomatik qaldırılmır. 
+Bu, inkişaf mühitində qəfil rebootlardan sonra servisin qalxmasına kömək edir.
+
+
+
+İndi bu konteynerlə gündəlik işə baxaq. Əvvəlcə işlədiyini yoxlamaq üçün aktiv siyahını görmək olur:
+docker ps
+
+
+Logları oxumaq üçün:
+docker logs api
+docker logs -f api
+docker logs --tail=100 -f api
+
+
+Birincisi bu günə kimi toplanan stdout/stderr çıxışını verir. 
+-f axını canlı izləmək üçündür. 
+--tail=100 yalnız son 100 sətri göstərərək başlayır, sonra axını izləyir.
 
 
 
