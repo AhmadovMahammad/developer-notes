@@ -5,7 +5,7 @@ Digərləri barədə məlumatı az da olsa digər əvvəlki sectionlarda almış
 Ona görə də bu sectionda biz əsas olaraq fokuslanaclıq nginx üzərinə.
 --------------------------------------------------
 
-Nginx nədir?
+1. Nginx nədir?
 
 Nginx bir web server proqramıdır. 
 Əsas işi budur ki: HTTP sorğularını qəbul eləsin və uyğun cavabı geri versin.
@@ -147,4 +147,119 @@ Mənim nəticəm - dərs kimi
    * `~* /count/[0-9]` → regex əsasında qayda yaz.
 5. mime.types - faylların Content-Type başlıqlarını düzgün təyin edir 
 (html → text/html, css → text/css və s.).
+
+
+----------------------------------------------------
+
+2. Sıxılma nə üçündür?
+
+Brauzer serverdən fayl alanda, əgər fayl sıxılmamış gəlirsə, hər dəfə daha çox MB ötürülür. 
+Xüsusilə JS, CSS, HTML və .wasm faylları böyük ola bilər. 
+Əgər gzip və ya brotli ilə sıxılsa, şəbəkədən daha az ölçüdə gedir və brauzer özü açır.
+
+Məsələn:
+
+app.js faylın 500 KB-dır.
+gzip ilə sıxsan → 150 KB.
+brotli ilə sıxsan → 120 KB.
+Yəni brauzerə 3-4 dəfə daha az data gəlir. Bu həm istifadəçi üçün sürət, həm də server üçün yükün azalmasıdır.
+
+
+2.1. gzip necə aktivləşdirilir?
+Nginx-də gzip çox sadə açılır. Konfiqurasiya belədir:
+
+http {
+    gzip on;                         # gzip-i açırıq
+    gzip_min_length 1024;            # minimum fayl ölçüsü (1 KB-dan böyük olsun)
+    gzip_types text/plain text/css application/json application/javascript application/xml application/wasm;
+}
+
+Burada gzip_types – hansı fayl tiplərinə tətbiq olunacağını göstərir. Əsas olanlar: html, css, js, json, xml, wasm.
+http://localhost/index.html gələndə, server cavabı header-larda belə görünür:
+
+Content-Encoding: gzip
+
+Qeyd: əgər həm gzip, həm brotli açıqdırsa, brauzer hansını dəstəkləyirsə, onu seçir. 
+Yəni brauzer sorğuda Accept-Encoding: br, gzip yazırsa, Nginx brotli ilə cavab verir.
+
+
+--------------------------------------------------
+
+3. Niyə caching vacibdir?
+
+Blazor WASM və ümumiyyətlə hər SPA tətbiqində yüzlərlə JS, CSS, .wasm faylı olur. 
+Əgər brauzer hər dəfə serverdən bunları yükləsə, həm serverin yükü artır, həm də istifadəçi üçün sayt yavaş açılar. 
+Amma fayllar dəyişmirsə (məsələn, app.bundle.12345.js), brauzer onları 1 il yadda saxlasın, yalnız dəyişəndə yenisini götürsün.
+
+3.1. Buna görə cache control iki məqsəd daşıyır:
+
+Sabit fayllar – uzun müddət yadda saxlanılır.
+Dinamik fayllar (index.html, API cavabları və s.) – tez-tez yenilənir, ona görə cache azaldılır və ya söndürülür.
+
+
+
+3.2. Nginx-də caching necə yazılır?
+Konfiqurasiya nümunəsi belədir:
+
+server {
+  listen 80;
+  server_name localhost;
+
+  root /usr/share/nginx/html;
+  index index.html;
+
+  # 1) Uzunmüddətli cache-lənəcək aktivlər
+  location ~* \.(?:js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot|wasm)$ {
+    expires 1y;
+    add_header Cache-Control "public, immutable";
+  }
+
+  # 2) SPA giriş faylı hər dəfə yoxlanılsın
+  location = /index.html {
+    expires -1;
+    add_header Cache-Control "no-cache, must-revalidate";
+  }
+
+  # 3) SPA fallback: fayl tapılmasa index.html verilsin
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}
+
+
+Caching davranışını iki yerə bölürük: 
+
+1. statik aktivlər və 2. index.html. 
+
+Statik aktivlər üçün yazdığımız location ~* \.(?:js|css|png|jpg|jpeg|gif|ico|svg|woff2?|ttf|eot|wasm)$ regex təyinatıdır. 
+Burada ~* “case-insensitive” regex deməkdir; yəni .CSS və ya .Css görünsə də uyğun sayılacaq. 
+\. nöqtənin özünü ifadə edir (regex-də nöqtə “istənilən simvol” deməkdir, ona görə qaçırdıq). 
+Sonra gələn (?:js|css|...) qrup seçmədir; 
+
+Bu blokun içində iki başlıq var: expires 1y və Cache-Control: public, immutable. 
+
+expires 1y serverin cavabına köhnə tip Expires başlığını (indiki tarixdən +1 il) əlavə edir; 
+
+
+location = /index.html sətirindəki = “tam bərabər uyğunluq”dur; bu, ən yüksək prioritetli location növüdür və məhz yalnız /index.html üçün işləyir. 
+Burada expires -1 deyərək Expires başlığını keçmişə qoyuruq (praktik effekti “cache etmə” deməkdir), 
+Cache-Control: no-cache, must-revalidate isə brauzerə “hər dəfə serverlə məsləhətləş” mesajını verir. 
+
+“no-cache” “heç vaxt saxlamama” demək deyil; “istifadədən əvvəl serverdən soruş” deməkdir. “no-store” desəydik, brauzer diskdə saxlamazdı, 
+amma bu da hər dəfə tam yükləmə demək olardı; SPA üçün adətən gərəksizdir. “must-revalidate” aralıq proxy-lərə “mütləq serverlə yoxla” deyir. 
+
+Nəticə belə olur: istifadəçi saytı yenidən açanda brauzer əvvəlcə index.html üçün şərtli sorğu göndərir (If-None-Match/If-Modified-Since), 
+server dəyişməyibsə 304 Not Modified qaytarır, əks halda yeni index gəlir və yeni bundle adları ilə resursları yenidən çəkir.
+
+Üçüncü location SPA fallback üçündür. try_files $uri $uri/ /index.html ardıcıllıqdır: 
+əvvəl real faylı yoxlayırıq, sonra qovluq kimi yoxlayırıq, heç biri yoxdursa index.html veririk. 
+
+
+
+
+
+
+
+
+
 
