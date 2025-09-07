@@ -1,4 +1,150 @@
 3. Dockerfile-ın anatomiyası: kontekst, laylar, multi-stage
 -----------------------------------------------------------
 
+Digərləri barədə məlumatı az da olsa digər əvvəlki sectionlarda almışıq.
+Ona görə də bu sectionda biz əsas olaraq fokuslanaclıq nginx üzərinə.
+--------------------------------------------------
+
+Nginx nədir?
+
+Nginx bir web server proqramıdır. 
+Əsas işi budur ki: HTTP sorğularını qəbul eləsin və uyğun cavabı geri versin.
+
+Məsələn, brauzerdə `http://localhost` yazanda sorğu Nginx-ə gəlir. 
+O isə `root` dediyim qovluğun içində həmin faylı axtarır. 
+`GET /` gəlirsə → `index.html` qaytarır, `GET /style.css` gəlirsə → `style.css` qaytarır.
+
+Amma Nginx təkcə “fayl verən” deyil. O həm də:
+
+Statik faylları (HTML, CSS, JS, şəkillər) çox sürətli verir.
+Reverse proxy ola bilir (sorğunu API-yə ötürmək üçün).
+URL-ləri yönləndirmək, alias, redirect, rewrite kimi qaydaları bacarır.
+Load balancer ola bilir (bir sorğunu bir neçə serverə paylaya bilir).
+HTTPS təmin edir (TLS/SSL ilə).
+Performansı artırmaq üçün gzip, brotli, cache kimi funksiyalar əlavə edir.
+
+Mənim indi öyrəndiklərim əsasən onun statik fayl verən hissəsi və URL idarəetmə qaydalarıdır.
+
+Mənim fayl strukturu
+
+```
+C:\Users\mahammada\Documents\test-nginx
+│   index.html
+│   style.css
+│
+├── languages\
+│     (burda HTML fayl var)
+│
+└── names\
+      (burda HTML fayl var)
+```
+
+Bu qovluq mənim üçün root oldu. Yəni:
+
+`http://localhost/` → `index.html` açılır.
+`http://localhost/style.css` → `style.css` faylı gəlir.
+`http://localhost/languages/` → `languages\index.html` varsa, o verilir.
+
+
+Konfiqurasiyanın izahı
+
+```nginx
+events {}
+http {
+    include mime.types;
+
+    server {
+        listen 80;
+        server_name localhost;
+        root "C:\\Users\\mahammada\\Documents\\test-nginx";
+        index index.html;
+```
+
+`listen 80` - Nginx 80 portunda qulaq asır, yəni adi HTTP portudur.
+`server_name localhost` - bu konfiq localhost üçün işləyir.
+`root` - bütün faylların yerləşdiyi əsas qovluq.
+`index` - əgər URI-də fayl göstərilməyibsə, default olaraq index.html verilsin.
+
+
+#location /languages
+
+```nginx
+location /languages {
+    root "C:\\Users\\mahammada\\Documents\\test-nginx";
+}
+```
+
+Burda deyirəm ki, `/languages` çağıranda `root` qovluğunun içindəki `languages` kataloqunu göstər.
+
+Məsələn: `http://localhost/languages/` gedəndə, 
+Nginx `...\test-nginx\languages\index.html` axtarır.
+
+
+#location /lang (redirect nümunəsi)
+
+```nginx
+location /lang {
+    return 307 /languages;
+}
+```
+
+Burda artıq başqa cür eləmişəm. `/lang` çağıranda Nginx heç fayl axtarmır, 
+sadəcə redirect edir `/languages`-ə.
+
+307 HTTP status kodudur. 
+Bu o deməkdir ki: brauzer `/lang` açanda avtomatik `/languages`-ə yönləndiriləcək.
+
+
+#location /names (try\_files nümunəsi)
+
+```nginx
+location /names {
+    root "C:\\Users\\mahammada\\Documents\\test-nginx";
+    try_files /names/randomizednames.html /index.html =404;
+}
+```
+
+Burda maraqlı nümunə var: `try_files`.
+
+Qayda belədir: `/names` açanda əvvəl `randomizednames.html` axtar. 
+Tapmasa `index.html` ver. 
+O da tapılmasa, 404 qaytar.
+
+Yəni “try\_files” - addım-addım variantları yoxlamaqdır. 
+Bu məntiq çox vaxt SPA (Blazor, React, Vue) üçün istifadə olunur: 
+“fayl yoxdursa, index.html ver, router özü həll eləsin”.
+
+
+#location \~\* /count/\[0-9] (regex nümunəsi)
+
+```nginx
+location ~* /count/[0-9] {
+    root "C:\\Users\\mahammada\\Documents\\test-nginx";
+    try_files /index.html =404;
+}
+```
+
+Burda `~*` yazanda regex işləyir.
+
+Qayda: `/count/`-dan sonra rəqəm varsa, bu işləsin.
+
+* `http://localhost/count/5` → index.html verilir.
+* `http://localhost/count/abc` → uyğun gəlmir, default qaydalar işləyir.
+
+Yəni regex ilə çox çevik qaydalar yazmaq mümkündür.
+
+
+Mənim nəticəm - dərs kimi
+
+1. Nginx web serverdir - HTTP sorğularını qəbul edir və faylları qaytarır.
+2. Root - əsas kataloqdur, yəni hansı qovluqdan fayl göstəriləcək.
+3. Index - default fayldır (adətən index.html).
+4. Location - xüsusi yollar üçün qaydadır:
+
+   * `/languages` → root-dakı languages qovluğunu göstər.
+   * `/lang` → 307 redirect et `/languages`-ə.
+   * `/names` → try\_files ilə ardıcıl yoxla.
+   * `~* /count/[0-9]` → regex əsasında qayda yaz.
+5. mime.types - faylların Content-Type başlıqlarını düzgün təyin edir 
+(html → text/html, css → text/css və s.).
 
