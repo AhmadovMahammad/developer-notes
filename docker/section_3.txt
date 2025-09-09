@@ -256,10 +256,57 @@ server dəyişməyibsə 304 Not Modified qaytarır, əks halda yeni index gəlir
 
 
 
+Dockerfile Client
+--------------------------------------------------
+
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+# Copy the solution file
+COPY ./src/client/ClientSolution.sln ./client/
+
+# Copy csproj files
+COPY ./src/shared/LearnKazakh.Shared/*.csproj ./shared/LearnKazakh.Shared/
+COPY ./src/client/*.csproj ./client/
+
+# Restore dependencies for ALL projects
+RUN dotnet restore ./client/ClientSolution.sln
+
+# Copy the rest of the source code
+COPY ./src/shared ./shared/
+COPY ./src/client ./client/
+
+# Publish stage: Publish API project
+RUN dotnet publish ./client/ClientSolution.sln -c Release -o /app/publish/ --no-restore
+
+# Runtime stage
+FROM nginx:alpine AS runtime
+
+# Copy custom nginx config
+COPY ./docker/nginx.conf /etc/nginx/nginx.conf
+RUN rm /etc/nginx/conf.d/default.conf
+
+# COPY ./docker/default.conf /etc/nginx/conf.d/default.conf
+
+# Copy published app to nginx web directory
+COPY --from=build /app/publish/wwwroot /usr/share/nginx/html
+
+CMD ["nginx", "-g", "daemon off;"]
 
 
+--------------------------------------------------
+
+/usr/share/nginx/html Nginx imiclərində defolt veb kökdür. 
+Nginx “fayl verən server” kimi çalışanda root direktivi ilə göstərilən path'dən fayl oxuyur. 
+Blazor WASM publish-dən çıxan wwwroot məzmununu məhz buna görə /usr/share/nginx/html altına kopyalayasan. 
+
+Blazor müştəri tərəfi sırf HTML, CSS, JS, wasm fayllarıdır; 
 
 
+/etc/nginx/nginx.conf isə Nginx-in əsas konfiqurasiya faylıdır. 
+Nginx-in konfiqurasiya iyerarxiyası belə işləyir: 
 
-
+əsas fayl nginx.conf içində “main”, events və http kontekstə sahib olur, http içində bir və ya bir neçə server bloku, 
+onların içində də location qaydaları yerləşir.
 
