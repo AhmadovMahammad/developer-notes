@@ -1,0 +1,85 @@
+Təsəvvür elə ki, sənin bir serverin var və sən orada ASP.NET Core tətbiqini işlədirsən. 
+Bu tətbiqə mütləq bir verilənlər bazası lazımdır. Seçimin PostgreSQL-dir.
+
+Ənənəvi yol belə idi: 
+
+Sən serverə daxil olurdun, `apt install postgresql` yazırdın və Postgres host əməliyyat sisteminə quraşdırılırdı. 
+İndi hər şey həmin hostun özündə idi. 
+Postgres-in proqram faylları `/usr/lib/postgresql`, konfiqurasiya faylları `/etc/postgresql`, məlumat faylları isə `/var/lib/postgresql` qovluğuna düşürdü. 
+Yəni hər şey sənin serverinlə sıx bağlı idi.
+
+Burada dərhal bir neçə problem çıxırdı. Məsələn, 
+
+1. sən sabah başqa serverə köçməlisən. O serverdə Ubuntu 22.04 deyil, CentOS var. 
+CentOS-un repolarında Postgres 12 var, amma sən tətbiqi 16 ilə sınaqdan keçirmisən. 
+Birdən versiya fərqi ucbatından kod işləməyəcək. 
+
+Digər problem: 
+
+2. sən Postgres-i upgrade etmək istəyirsən, amma `apt upgrade` desən, sistemdə başqa paketlər də dəyişəcək və yeni dependency-lər problem yaradacaq. 
+Ən pisi də odur ki, Postgres-i tam silib təmizləmək çətindir – fayllar bir az `etc`-də qalır, bir az `var`-da qalır.
+
+
+
+İndi isə təsəvvür elə ki, Docker ilə işləyirsən. `docker run postgres:16` deyirsən və sənə hazır PostgreSQL 16 serveri gəlir. 
+İçində hər şey var – server binar faylları, lazımi kitabxanalar, default konfiqurasiya. 
+Əgər sabah sən başqa serverə köçsən, yenə də sadəcə `docker run postgres:16` yazırsan və həmin eyni Postgres qalxır. 
+Heç hostun paketlərinə, hansı distributiv olduğuna baxmırsan.
+
+Praktik bir nümunə: 
+sən komandanın içindəsən, hər kəsdə fərqli laptop var – kimdə Mac, kimdə Windows, kimdə Linux. 
+Əvvəllər hər kəs öz kompüterinə Postgres qururdu. Birində 14 idi, birində 15, birdən kimsə `pg_dump` faylı yaradırdı və digərinin versiyası o faylı oxuya bilmirdi. 
+İndi isə hər kəs `docker run postgres:16` yazır və hamıda eyni Postgres, eyni versiya qalxır. Problem kökündən həll olunur.
+
+Başqa bir misal: sən test üçün 3 fərqli layihə işləyirsən. Birincisi Postgres 12 tələb edir, ikincisi 14, üçüncüsü isə ən sonuncu 16. 
+Əgər bunları hosta quraşdırmaq istəsən, çox qarışacaq, çünki eyni maşında eyni anda bir neçə versiyanı saxlamaq müşkül işdir. Amma Docker ilə çox rahatdır:
+
+```bash
+docker run --name pg12 -e POSTGRES_PASSWORD=pass -d postgres:12
+docker run --name pg14 -e POSTGRES_PASSWORD=pass -d postgres:14
+docker run --name pg16 -e POSTGRES_PASSWORD=pass -d postgres:16
+```
+
+Üçü də paralel işləyir. Bir-birinə qarışmır, çünki hər biri öz konteynerində, öz fayl sistemi ilə yaşayır.
+
+Bu, konteyner yanaşmasının ən böyük gücüdür: sən PostgreSQL-i artıq host sisteminə deyil, image-ə bağlayırsan. 
+Yəni Postgres bir “qutuda” gəlir. Qutuda onun versiyası, lazımi kitabxanaları, default konfiqurasiyası hazır olur. 
+Sən bu qutunu harada açsan, nəticə eynidir.
+
+Bunun üstünlüyü həm də təmizliyindədir. Əgər hostda Postgres-i silmək istəsən, bir az fayl burada qalır, bir az orada. 
+Konteynerdə isə sadəcə `docker rm -v mypostgres` yazırsan və hər şey tamamilə təmizlənir. 
+
+Beləcə, konteyner yanaşması sənə üç böyük fayda gətirir:
+
+1. Hara köçsən, eyni nəticə alırsan.
+2. Versiyaları dəyişmək və idarə etmək asan olur.
+3. Quraşdırmaq və təmizləmək çox rahatdır.
+
+----------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
