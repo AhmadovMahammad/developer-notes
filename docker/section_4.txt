@@ -1,0 +1,335 @@
+4. Volumeların mahiyyəti: bind, named, tmpfs, UID/GID
+-----------------------------------------------------
+
+--------------------------------------------------1. Konteynerin yazı qatının uçuculuğu--------------------------------------------------
+
+Konteyner açılarkən image laylarının üstünə bir copy-on-write (yazı qatı) qoyulur. 
+Bu qat müvəqqətidir və konteynerlə birlikdə yaranır. 
+Yəni sən konteynerdə hər hansı fayl yaratsan və ya dəyişsən, bu dəyişiklik yalnız həmin qatdadır. 
+Konteyner dayandıqda və ya silindikdə, yazı qatı da ləğv olunur.
+
+Məsələn:
+
+PS C:\Users\mahammada> docker run -it ubuntu
+
+root@ce3aabf07214:/# ls -la
+
+total 56
+drwxr-xr-x   1 root root 4096 Sep 12 19:59 .
+drwxr-xr-x   1 root root 4096 Sep 12 19:59 ..
+-rwxr-xr-x   1 root root    0 Sep 12 19:59 .dockerenv
+lrwxrwxrwx   1 root root    7 Apr 22  2024 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Apr 22  2024 boot
+drwxr-xr-x   5 root root  360 Sep 12 19:59 dev
+drwxr-xr-x   1 root root 4096 Sep 12 19:59 etc
+drwxr-xr-x   3 root root 4096 Jul 30 02:19 home
+lrwxrwxrwx   1 root root    7 Apr 22  2024 lib -> usr/lib
+lrwxrwxrwx   1 root root    9 Apr 22  2024 lib64 -> usr/lib64
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 media
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 mnt
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 opt
+dr-xr-xr-x 249 root root    0 Sep 12 19:59 proc
+drwx------   2 root root 4096 Jul 30 02:19 root
+drwxr-xr-x   4 root root 4096 Jul 30 02:19 run
+lrwxrwxrwx   1 root root    8 Apr 22  2024 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 srv
+dr-xr-xr-x  11 root root    0 Sep 12 19:59 sys
+drwxrwxrwt   2 root root 4096 Jul 30 02:19 tmp
+drwxr-xr-x  12 root root 4096 Jul 30 02:11 usr
+drwxr-xr-x  11 root root 4096 Jul 30 02:19 var
+
+root@ce3aabf07214:/# echo 'salam, dunya' > hello-world.txt
+
+root@ce3aabf07214:/# ls -la
+
+total 60
+drwxr-xr-x   1 root root 4096 Sep 12 20:00 .
+drwxr-xr-x   1 root root 4096 Sep 12 20:00 ..
+-rwxr-xr-x   1 root root    0 Sep 12 19:59 .dockerenv
+lrwxrwxrwx   1 root root    7 Apr 22  2024 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Apr 22  2024 boot
+drwxr-xr-x   5 root root  360 Sep 12 19:59 dev
+drwxr-xr-x   1 root root 4096 Sep 12 19:59 etc
+-rw-r--r--   1 root root   13 Sep 12 20:00 hello-world.txt
+drwxr-xr-x   3 root root 4096 Jul 30 02:19 home
+lrwxrwxrwx   1 root root    7 Apr 22  2024 lib -> usr/lib
+lrwxrwxrwx   1 root root    9 Apr 22  2024 lib64 -> usr/lib64
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 media
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 mnt
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 opt
+dr-xr-xr-x 249 root root    0 Sep 12 19:59 proc
+drwx------   2 root root 4096 Jul 30 02:19 root
+drwxr-xr-x   4 root root 4096 Jul 30 02:19 run
+lrwxrwxrwx   1 root root    8 Apr 22  2024 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 srv
+dr-xr-xr-x  11 root root    0 Sep 12 19:59 sys
+drwxrwxrwt   2 root root 4096 Jul 30 02:19 tmp
+drwxr-xr-x  12 root root 4096 Jul 30 02:11 usr
+drwxr-xr-x  11 root root 4096 Jul 30 02:19 var
+
+root@ce3aabf07214:/# cat hello-world.txt
+salam, dunya
+
+root@ce3aabf07214:/# exit
+exit
+
+PS C:\Users\mahammada> docker ps --all
+
+CONTAINER ID   IMAGE         COMMAND       CREATED              STATUS                       PORTS     NAMES
+ce3aabf07214   ubuntu        "/bin/bash"   About a minute ago   Exited (0) 18 seconds ago              vibrant_euler
+
+PS C:\Users\mahammada> docker start -ai ce3
+
+root@ce3aabf07214:/# ls -la
+
+total 60
+drwxr-xr-x   1 root root 4096 Sep 12 20:00 .
+drwxr-xr-x   1 root root 4096 Sep 12 20:00 ..
+-rwxr-xr-x   1 root root    0 Sep 12 19:59 .dockerenv
+lrwxrwxrwx   1 root root    7 Apr 22  2024 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Apr 22  2024 boot
+drwxr-xr-x   5 root root  360 Sep 12 20:02 dev
+drwxr-xr-x   1 root root 4096 Sep 12 19:59 etc
+-rw-r--r--   1 root root   13 Sep 12 20:00 hello-world.txt
+drwxr-xr-x   3 root root 4096 Jul 30 02:19 home
+lrwxrwxrwx   1 root root    7 Apr 22  2024 lib -> usr/lib
+lrwxrwxrwx   1 root root    9 Apr 22  2024 lib64 -> usr/lib64
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 media
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 mnt
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 opt
+dr-xr-xr-x 250 root root    0 Sep 12 20:02 proc
+drwx------   1 root root 4096 Sep 12 20:01 root
+drwxr-xr-x   4 root root 4096 Jul 30 02:19 run
+lrwxrwxrwx   1 root root    8 Apr 22  2024 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 srv
+dr-xr-xr-x  11 root root    0 Sep 12 19:59 sys
+drwxrwxrwt   2 root root 4096 Jul 30 02:19 tmp
+drwxr-xr-x  12 root root 4096 Jul 30 02:11 usr
+drwxr-xr-x  11 root root 4096 Jul 30 02:19 var
+
+root@ce3aabf07214:/# cat hello-world-txt
+cat: hello-world-txt: No such file or directory
+
+--------------------------------------------------
+
+Fayl artıq yoxdur, çünki konteynerin müvəqqəti yazı qatı silinib.
+Bu davranış test üçün normaldır, amma real tətbiqlərdə sənə qalıcı data lazımdır. Çünki:
+
+1. Verilənlər bazası (məsələn, Postgres) data fayllarını qoruyub saxlamalıdır.
+2. Log faylları sistem dayansa belə itirilməməlidir.
+3. Media faylları (şəkil, video) konteyner silinsə də mövcud qalmalıdır.
+
+Əgər hər şey yalnız konteynerin müvəqqəti qatında saxlanılsa, konteyner restart olanda bütün data itəcək.
+Buna görə Docker volume mexanizmi gətirdi. 
+Volume deyəndə sadəcə “konteynerdən ayrılmış, daha davamlı bir saxlama sahəsi” başa düşülür. 
+Konteyner silinsə də, volume qalır. İstədiyin qədər konteyneri dəyiş, sil, yenidən qur – data hələ də volume-da duracaq.
+
+
+
+--------------------------------------------------2. Üç yol var: bind, named, tmpfs--------------------------------------------------
+
+1. Bind mount nədir?
+
+Bind mount o deməkdir ki, hostdakı real qovluq konteynerin içində müəyyən bir yolda görünür. 
+Yəni konteyner içində gördüyün fayl sistemi həmin host kataloquna “bağlanır”.
+
+Bu halda:
+
+1. Fayllar həqiqətən host diskindədir.
+2. Konteyner sadəcə həmin qovluğa pəncərə açır.
+3. Dəyişikliklər iki tərəfli işləyir: hostda fayl əlavə etsən, konteynerdə də görünür; konteynerdə dəyişsən, hostda da dəyişir.
+
+
+
+
+Nümunə: sadə fayl paylaşımı
+
+PS C:\Users\mahammada> mkdir data
+
+    Directory: C:\Users\mahammada
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+d----          14.09.2025    13:29                data
+
+
+PS C:\Users\mahammada\data> nvim note.txt
+
+PS C:\Users\mahammada\data> Get-Content .\note.txt
+hi there, it is just a 'hello world' text for testing purposes.
+
+--- 
+Hostda ~/data qovluğu var. İçində note.txt faylı var.
+İndi bunu konteynerə bağlayaq:
+
+PS C:\Users\mahammada> docker run -it --rm -v ~/data:/app ubuntu:latest
+Burada -v ~/data:/app deyir: hostdakı ~/data qovluğu konteynerdə /app kimi görünməlidir.
+
+root@5ae70d4dd952:/# ls -la
+
+total 56
+drwxr-xr-x   1 root root 4096 Sep 14 09:34 .
+drwxr-xr-x   1 root root 4096 Sep 14 09:34 ..
+-rwxr-xr-x   1 root root    0 Sep 14 09:34 .dockerenv
+drwxr-xr-x   2 root root   40 Sep 14 09:34 app
+lrwxrwxrwx   1 root root    7 Apr 22  2024 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Apr 22  2024 boot
+drwxr-xr-x   5 root root  360 Sep 14 09:34 dev
+drwxr-xr-x   1 root root 4096 Sep 14 09:34 etc
+drwxr-xr-x   3 root root 4096 Jul 30 02:19 home
+lrwxrwxrwx   1 root root    7 Apr 22  2024 lib -> usr/lib
+lrwxrwxrwx   1 root root    9 Apr 22  2024 lib64 -> usr/lib64
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 media
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 mnt
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 opt
+dr-xr-xr-x 243 root root    0 Sep 14 09:34 proc
+drwx------   2 root root 4096 Jul 30 02:19 root
+drwxr-xr-x   4 root root 4096 Jul 30 02:19 run
+lrwxrwxrwx   1 root root    8 Apr 22  2024 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 srv
+dr-xr-xr-x  11 root root    0 Sep 14 09:34 sys
+drwxrwxrwt   2 root root 4096 Jul 30 02:19 tmp
+drwxr-xr-x  12 root root 4096 Jul 30 02:11 usr
+drwxr-xr-x  11 root root 4096 Jul 30 02:19 var
+
+root@5ae70d4dd952:/# cd app/
+root@5ae70d4dd952:/app# ls
+root@5ae70d4dd952:/app# ls -la
+
+total 4
+drwxr-xr-x 2 root root   40 Sep 14 09:34 .
+drwxr-xr-x 1 root root 4096 Sep 14 09:34 ..
+
+
+
+Mən PowerShell-də docker run -it --rm -v ~/data:/app ubuntu:latest yazdım.
+Powershell də ~ yazıb tab basanda məni aparır kök qovluğuna və mən də elə düşündüm ki, burada düzgün işləyəcək. İşləmədi.
+
+
+Rənim mühitim Windows + PowerShell idi, Docker isə arxa planda WSL2 ilə Linux kernelində işləyir. 
+Bu qarışıq vəziyyətdə ~ düzgün tərcümə olunmadı. Docker dedi ki: “hostda ~/data qovluğu yoxdur”, amma yenə də konteynerin içində boş app qovluğu yaratdı. 
+Mən də konteynerin içində ls /app edəndə heç bir fayl görmədim.
+
+
+
+Əslində düzgün yol Windows üslubunda tam yol göstərmək idi. Məsələn:
+docker run -it --rm -v C:\Users\mahammada\data:/app ubuntu
+
+
+PS C:\Users\mahammada> docker run -it --rm -v C:\Users\mahammada\data:/app ubuntu:latest
+
+root@012691220f36:/# ls -la
+
+total 56
+drwxr-xr-x   1 root root 4096 Sep 14 09:44 .
+drwxr-xr-x   1 root root 4096 Sep 14 09:44 ..
+-rwxr-xr-x   1 root root    0 Sep 14 09:44 .dockerenv
+drwxrwxrwx   1 root root  512 Sep 14 09:30 app
+lrwxrwxrwx   1 root root    7 Apr 22  2024 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Apr 22  2024 boot
+drwxr-xr-x   5 root root  360 Sep 14 09:44 dev
+drwxr-xr-x   1 root root 4096 Sep 14 09:44 etc
+drwxr-xr-x   3 root root 4096 Jul 30 02:19 home
+lrwxrwxrwx   1 root root    7 Apr 22  2024 lib -> usr/lib
+lrwxrwxrwx   1 root root    9 Apr 22  2024 lib64 -> usr/lib64
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 media
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 mnt
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 opt
+dr-xr-xr-x 237 root root    0 Sep 14 09:44 proc
+drwx------   2 root root 4096 Jul 30 02:19 root
+drwxr-xr-x   4 root root 4096 Jul 30 02:19 run
+lrwxrwxrwx   1 root root    8 Apr 22  2024 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 srv
+dr-xr-xr-x  11 root root    0 Sep 14 09:34 sys
+drwxrwxrwt   2 root root 4096 Jul 30 02:19 tmp
+drwxr-xr-x  12 root root 4096 Jul 30 02:11 usr
+drwxr-xr-x  11 root root 4096 Jul 30 02:19 var
+
+root@012691220f36:/# ls app/
+note.txt
+
+root@012691220f36:/# cat app/note.txt
+hi there, it is just a 'hello world' text for testing purposes.
+
+
+
+
+Əgər konteyner içində yeni fayl yaratsan:
+
+root@012691220f36:/# echo 'this file is coming from container into host' > app/notes-2.txt
+
+root@012691220f36:/# cat app/notes-2.txt
+this file is coming from container into host
+
+
+
+Sonra konteyneri bağla (exit) və hostda bax:
+
+PS C:\Users\mahammada> cd .\data\
+PS C:\Users\mahammada\data> ls
+
+    Directory: C:\Users\mahammada\data
+
+Mode                 LastWriteTime         Length Name
+----                 -------------         ------ ----
+-a---          14.09.2025    13:30             65 note.txt
+-a---          14.09.2025    13:46             45 notes-2.txt
+
+
+PS C:\Users\mahammada\data> Get-ChildItem -Path . | Get-Content
+
+hi there, it is just a 'hello world' text for testing purposes.
+this file is coming from container into host
+
+
+Yəni data hostda qalır, konteyner getdi, amma fayllar itmədi.
+
+
+
+
+Bind mount-un xüsusiyyətləri
+
+1. Semantika hostdandır
+Fayl icazələri, UID/GID hostdakı kimi işləyir. Əgər hostda ~/data yalnız root-a icazə verirsə, konteynerdə də eyni olacaq.
+
+2. Çox çevikdir
+Dev mühitdə proqram kodunu konteynerə mount edirsən → hər dəyişiklik dərhal təsir edir. 
+Buna görə developer-lər ən çox bind mount istifadə edir.
+
+
+
+
+Real Nümunə
+
+Tutaq ki, hostda C:\Users\mahammada\apilogs adlı bir qovluq yaradırsan. Bu, logların düşəcəyi real yer olacaq.
+API konteynerini işə salarkən deyirsən:
+docker run -d -p 8080:8080 -v C:\Users\mahammada\apilogs:/app/logs learn-kazakh-api
+
+
+Burada -v deyir ki, hostdakı C:\Users\mahammada\apilogs konteynerin içində /app/logs kimi görünsün.
+
+
+API kodunda sadəcə belə edirsən:
+
+{
+    // docker log for bind mount
+    string filePath = "/app/logs/my-app.log";
+    File.AppendAllText(filePath, $"{DateTime.UtcNow}: API Solution has started.\n");
+}
+
+Konteyner içində /app/logs/myapp.log faylı yaranacaq → eyni anda hostda da C:\Users\mahammada\apilogs\myapp.log faylı olacaq.
+Beləliklə, sən konteyneri silsən də (docker rm -f api), log faylları hostda qalır, 
+çünki onlar konteynerin öz yazı qatında deyil, bind mount ilə host diskindədir.
+
+-------------------------------------------------
+
+2. Named Volume
+
+
+
+
+
+
+
+
+
