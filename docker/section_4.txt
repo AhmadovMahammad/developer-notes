@@ -325,10 +325,112 @@ Beləliklə, sən konteyneri silsən də (docker rm -f api), log faylları hostd
 
 2. Named Volume
 
+Bind mount-da sən hostdakı real bir qovluğu göstərirdin. Named volume-da isə qovluğu Docker özü yaradır və idarə edir.
+
+1. Adı var (mydata, pgdata, apilogs və s.).
+2. Fiziki olaraq hostda saxlanılır, amma Docker onu gizli bir yerdə idarə edir. (Linux-da adətən: /var/lib/docker/volumes/<name>/_data)
+3. Konteyneri silsən belə, named volume qalır.
 
 
 
 
+Necə yaradılır və istifadə olunur?
+
+a) Əl ilə yaratmaq
+
+PS C:\Users\mahammada\data>       docker volume create learn-kazakh-data
+learn-kazakh-data
+
+
+PS C:\Users\mahammada\data>       docker volume ls
+DRIVER    VOLUME NAME
+local     learn-kazakh-data
+
+Bu əmrlə learn-kazakh-data adlı boş volume yaranır.
+
+
+b) Konteynerdə istifadə
+
+docker run -it --rm  -v learn-kazakh-data:/app/data ubuntu
+
+root@f2587915307d:/# ls -la
+
+total 60
+drwxr-xr-x   1 root root 4096 Sep 14 13:31 .
+drwxr-xr-x   1 root root 4096 Sep 14 13:31 ..
+-rwxr-xr-x   1 root root    0 Sep 14 13:31 .dockerenv
+drwxr-xr-x   3 root root 4096 Sep 14 13:31 app
+lrwxrwxrwx   1 root root    7 Apr 22  2024 bin -> usr/bin
+drwxr-xr-x   2 root root 4096 Apr 22  2024 boot
+drwxr-xr-x   5 root root  360 Sep 14 13:31 dev
+drwxr-xr-x   1 root root 4096 Sep 14 13:31 etc
+drwxr-xr-x   3 root root 4096 Jul 30 02:19 home
+lrwxrwxrwx   1 root root    7 Apr 22  2024 lib -> usr/lib
+lrwxrwxrwx   1 root root    9 Apr 22  2024 lib64 -> usr/lib64
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 media
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 mnt
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 opt
+dr-xr-xr-x 249 root root    0 Sep 14 13:31 proc
+drwx------   2 root root 4096 Jul 30 02:19 root
+drwxr-xr-x   4 root root 4096 Jul 30 02:19 run
+lrwxrwxrwx   1 root root    8 Apr 22  2024 sbin -> usr/sbin
+drwxr-xr-x   2 root root 4096 Jul 30 02:11 srv
+dr-xr-xr-x  11 root root    0 Sep 14 09:34 sys
+drwxrwxrwt   2 root root 4096 Jul 30 02:19 tmp
+drwxr-xr-x  12 root root 4096 Jul 30 02:11 usr
+drwxr-xr-x  11 root root 4096 Jul 30 02:19 var
+
+
+root@f2587915307d:/# cd app/data/
+root@f2587915307d:/app/data# echo 'hi guys again, it is test message from named volume and i am writing this from ubuntu to the host machine' > hi.txt
+root@f2587915307d:/app/data# cat hi.txt
+hi guys again, it is test message from named volume and i am writing this from ubuntu to the host machine
+root@f2587915307d:/app/data# exit
+exit
+
+
+PS C:\Users\mahammada\source\repos\side-projects\learn-kazakh-development> docker run -it --rm  -v learn-kazakh-data:/app/data ubuntu
+root@a3123bcfc347:/# ls
+app  bin  boot  dev  etc  home  lib  lib64  media  mnt  opt  proc  root  run  sbin  srv  sys  tmp  usr  var
+root@a3123bcfc347:/# cat app/data/hi.txt
+hi guys again, it is test message from named volume and i am writing this from ubuntu to the host machine
+
+
+
+
+
+Harada saxlanılır?
+
+Linux hostda baxsan:
+
+ls /var/lib/docker/volumes/mydata/_data
+# hi.txt
+
+
+
+Real istifadə nümunəsi: PostgreSQL
+Əgər Postgres-i belə açsan:
+
+docker run -d --name pg -e POSTGRES_PASSWORD=123 -v pgdata:/var/lib/postgresql/data postgres
+
+pgdata adlı volume yaranır.
+Postgres-in bütün database faylları oraya yazılır.
+Konteyneri silsən (docker rm -f pg), sonra yenidən açsan, köhnə datanı olduğu kimi görürsən.
+
+
+
+
+
+Named volume-un xüsusiyyətləri
+
+Konteynerdən müstəqildir – yəni konteyner silinsə də data qalır.
+Prod mühitdə daha çox istifadə olunur – çünki host yoluna bağlılıq yaratmır.
+
+
+Bind mount ilə əsas fərqlər
+
+Bind mount → sən öz host yolunu göstərirsən, hostda necədirsə, elədir.
+Named volume → Docker özü idarə edir, host yolunu sən seçmirsən, sadəcə adı ilə çağırırsan.
 
 
 
