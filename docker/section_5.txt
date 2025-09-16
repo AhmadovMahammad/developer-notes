@@ -57,29 +57,94 @@ Beləcə, konteyner yanaşması sənə üç böyük fayda gətirir:
 
 ----------------------------------------------------------------------------------------------------
 
+1. Volume məsələsi niyə bu qədər vacibdir?
+
+Postgres bir verilənlər bazasıdır, yəni bütün işini fayllar üzərində görür.
+Sən bir CREATE TABLE, INSERT INTO etsən, əslində bunlar diskdə fayllara yazılır. Amma konteynerin özünün yazı qatı müvəqqətidir.
+
+
+Sadə nümunə: docker run --name pgtest -e POSTGRES_PASSWORD=1234 -d postgres:16
+commandını icra etsək, postgres16 image istifadə edib detach modda yeni kontainer yaradacıyıq.
+
+
+İndi docker exec -it pgtest psql -U postgres ilə bazaya gir və bir cədvəl yaradaq:
+
+postgres=# CREATE DATABASE mydb;
+CREATE DATABASE
+
+
+postgres=# \c mydb
+You are now connected to database "mydb" as user "postgres".
+
+mydb-# \l
+                                                      List of databases
+   Name    |  Owner   | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |   Access privileges
+-----------+----------+----------+-----------------+------------+------------+------------+-----------+-----------------------
+ mydb      | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ postgres  | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ template0 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+ template1 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+(4 rows)
+
+
+mydb-# \dt
+         List of relations
+ Schema | Name  | Type  |  Owner
+--------+-------+-------+----------
+ public | users | table | postgres
+(1 row)
+
+
+mydb=# CREATE TABLE users(id SERIAL PRIMARY KEY, name TEXT);
+CREATE TABLE
+
+
+mydb=# INSERT INTO users(name) VALUES('Mahammad');
+INSERT 0 1
+
+
+mydb=# \dt
+         List of relations
+ Schema | Name  | Type  |  Owner
+--------+-------+-------+----------
+ public | users | table | postgres
+(1 row)
+
+
+mydb=# select * from users;
+ id |   name
+----+----------
+  1 | Mahammad
+(1 row)
+
+
+Hamısı işləyir. Amma indi:
+
+docker rm -f pgtest
+docker run --name pgtest -e POSTGRES_PASSWORD=1234 -d postgres:16
+docker exec -it pgtest psql -U postgres 
+
+Yenidən girəndə görəcəksən ki, mydb yoxdur, users cədvəli də getdi. Çünki konteyner silinəndə onun yazı qatı da silinir.
+
+postgres-# \l
+                                                      List of databases
+   Name    |  Owner   | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |   Access privileges
+-----------+----------+----------+-----------------+------------+------------+------------+-----------+-----------------------
+ postgres  | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ template0 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+ template1 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+(3 rows)
 
 
 
 
 
+----------------------------------------------------------------------------------------------------
 
+Volume ilə necə dəyişir?
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+İndi belə edək:
