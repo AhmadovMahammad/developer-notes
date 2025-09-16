@@ -309,6 +309,88 @@ learnkazakh adlı baza yaradır və sahibini appuser edir.
 Yəni artıq default postgres useri ilə işləmək məcburiyyətində deyilsən, öz app-ına aid user və db hazır olur.
 
 
+----------------------------------------------------------------------------------------------------
+
+Əmrlərin siyahısı, vacib olanlar.
+
+1. Bütün verilənlər bazalarını görmək
+psql içində \l yazırsan (kiçik L hərfi).
+
+Bu, serverdə mövcud olan bütün bazaları siyahıya alır: ad, sahib, kodlaşdırma, icazələr.
+
+learnkazakh=# \l
+                                                          List of databases
+    Name     |   Owner    | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |     Access privileges
+-------------+------------+----------+-----------------+------------+------------+------------+-----------+---------------------------
+ learnkazakh | SUPERADMIN | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ postgres    | SUPERADMIN | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ template0   | SUPERADMIN | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/SUPERADMIN            +
+             |            |          |                 |            |            |            |           | SUPERADMIN=CTc/SUPERADMIN
+ template1   | SUPERADMIN | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/SUPERADMIN            +
+             |            |          |                 |            |            |            |           | SUPERADMIN=CTc/SUPERADMIN
+(4 rows)
+
+
+
+2. Bazanı dəyişmək
+Məsələn, hazırda postgres bazasındasan, amma mydb-ə keçmək istəyirsən:
+
+\c mydb
+
+Buradakı \c connect deməkdir. İndi sən artıq mydb içindəsən və bütün əmrlər bu bazaya təsir edir.
+
+
+
+3. Cədvəlləri görmək
+İstədiyin bazaya keçdikdən sonra \dt yazırsan:
+
+Bu, həmin bazadakı bütün cədvəlləri göstərir: ad, sahib, növ, schema. Əgər cədvəl yoxdursa, sadəcə “No relations found” deyir.
+
+learnkazakh=# \dt
+
+          List of relations
+ Schema | Name  | Type  |   Owner
+--------+-------+-------+------------
+ public | users | table | SUPERADMIN
+
+(1 row)
+
+
+
+4. Cədvəl yaratmaq və məlumat əlavə etmək
+CREATE TABLE users(
+    id SERIAL PRIMARY KEY,
+    name TEXT
+);
+
+INSERT INTO users(name) VALUES('Mahammad');
+INSERT INTO users(name) VALUES('Ulpan');
+
+
+
+6. Digər faydalı psql əmrləri
+
+\d users → konkret users cədvəlinin strukturunu göstərir.
+
+learnkazakh=# \d users
+                            Table "public.users"
+ Column |  Type   | Collation | Nullable |              Default
+--------+---------+-----------+----------+-----------------------------------
+ id     | integer |           | not null | nextval('users_id_seq'::regclass)
+ name   | text    |           |          |
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (id)
+
+\q → psql-dən çıxmaq.
+\? → bütün psql qısa əmrlərinin siyahısı.
+
+
+
+
+
+
+
+
 
 
 
