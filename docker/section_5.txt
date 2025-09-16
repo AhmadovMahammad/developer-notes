@@ -148,3 +148,127 @@ postgres-# \l
 Volume ilə necə dəyişir?
 
 İndi belə edək:
+
+PS C:\Users\mahammada> docker run --name pgvolume --detach -e POSTGRES_PASSWORD=1234 -v pg_data:/var/lib/postgresql/data  postgres:16
+b0b50bef5b4827df566eda7f2181501d0d100206d41c9724edb121e5431523ec
+
+PS C:\Users\mahammada> docker exec -it pgvolume psql -U postgres
+psql (16.10 (Debian 16.10-1.pgdg13+1))
+Type "help" for help.
+
+
+
+postgres-# \l
+                                                      List of databases
+   Name    |  Owner   | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |   Access privileges
+-----------+----------+----------+-----------------+------------+------------+------------+-----------+-----------------------
+ postgres  | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ template0 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+ template1 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+(3 rows)
+
+
+
+
+postgres=# CREATE DATABASE mydb;
+CREATE DATABASE
+
+
+postgres=# \c mydb;
+You are now connected to database "mydb" as user "postgres".
+
+
+mydb=# \l
+                                                      List of databases
+   Name    |  Owner   | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |   Access privileges
+-----------+----------+----------+-----------------+------------+------------+------------+-----------+-----------------------
+ mydb      | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ postgres  | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ template0 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+ template1 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+(4 rows)
+
+
+
+mydb=# CREATE TABLE users(id SERIAL PRIMARY KEY, name TEXT);
+CREATE TABLE
+
+
+mydb=# \dt
+         List of relations
+ Schema | Name  | Type  |  Owner
+--------+-------+-------+----------
+ public | users | table | postgres
+(1 row)
+
+
+
+mydb=# insert into users(name) values('mahammad');
+INSERT 0 1
+
+
+mydb=# select * from users;
+ id |   name
+----+----------
+  1 | mahammad
+(1 row)
+
+
+mydb=# exit
+
+
+
+Bu dəfə Postgres-in data qovluğu pg_data adlı named volume-a yazılır.
+Indi konteyneri silib yeniden daxil oluruq hemin image ile containere.
+
+
+
+PS C:\Users\mahammada> docker ps --all
+CONTAINER ID   IMAGE                        COMMAND                  CREATED          STATUS                     PORTS                    NAMES
+b0b50bef5b48   postgres:16                  "docker-entrypoint.s…"   10 minutes ago   Up 10 minutes              5432/tcp                 pgvolume
+d389957cb1ba   learn-kazakh-client:latest   "/docker-entrypoint.…"   3 hours ago      Up 3 hours                 0.0.0.0:8081->80/tcp     client
+3a0b8f1489d7   learn-kazakh-api:latest      "dotnet LearnKazakh.…"   4 hours ago      Up 4 hours                 0.0.0.0:8080->8080/tcp   api
+
+PS C:\Users\mahammada> docker stop pgvolume
+pgvolume
+
+
+PS C:\Users\mahammada> docker rm b0b
+b0b
+
+
+PS C:\Users\mahammada> docker run --name pgvolume --detach -e POSTGRES_PASSWORD=1234 -v pg_data:/var/lib/postgresql/data  postgres:16
+0c42ae4b9e2f1818367c00afe18153bcd204e9ab9c1ffbac7cd92f2963409aac
+
+
+PS C:\Users\mahammada> docker exec -it pgvolume psql -U postgres
+psql (16.10 (Debian 16.10-1.pgdg13+1))
+Type "help" for help.
+
+postgres=# \l
+                                                      List of databases
+   Name    |  Owner   | Encoding | Locale Provider |  Collate   |   Ctype    | ICU Locale | ICU Rules |   Access privileges
+-----------+----------+----------+-----------------+------------+------------+------------+-----------+-----------------------
+ mydb      | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ postgres  | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           |
+ template0 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+ template1 | postgres | UTF8     | libc            | en_US.utf8 | en_US.utf8 |            |           | =c/postgres          +
+           |          |          |                 |            |            |            |           | postgres=CTc/postgres
+(4 rows)
+
+
+
+Bu dəfə mydb və users cədvəli olduğu kimi qaldı. Çünki məlumat konteynerlə birlikdə ölmədi, volume-da saxlanıldı.
+
+
+----------------------------------------------------------------------------------------------------
+
+
+
+
+
