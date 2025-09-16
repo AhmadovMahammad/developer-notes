@@ -268,6 +268,49 @@ Bu dəfə mydb və users cədvəli olduğu kimi qaldı. Çünki məlumat konteyn
 
 ----------------------------------------------------------------------------------------------------
 
+Mühit dəyişənləri (Environment variables)
+Rəsmi Postgres image-i ilk dəfə qalxanda bəzi environment dəyişənlərini oxuyur və ona görə ilkin qurulum edir.
+
+
+Ən əsas üçü:
+
+1. POSTGRES_USER – hansı istifadəçi yaradılsın.
+2. POSTGRES_PASSWORD – o istifadəçinin parolu.
+3. POSTGRES_DB – başlanğıcda yaradılacaq verilənlər bazası.
+
+
+
+Default davranış (verməsən nə olur?)
+
+Əgər bunları heç birini verməsən: docker run --detach --name pgdefault postgres:16
+
+Image default olaraq postgres adlı superuser yaradır. Amma parolsuz. 
+Bu, sənin lokal test mühitində rahat ola bilər, amma prod mühitdə çox təhlükəlidir – hər kəs bu istifadəçiyə qoşula bilər.
+
+
+
+
+Öz istifadəçini və bazanı yaratmaq
+Məsələn:
+
+
+docker run --detach --name pgapp -e POSTGRES_USER=appuser -e POSTGRES_PASSWORD=secret123 -e POSTGRES_DB=learnkazakh -v pg_data:/var/lib/postgres/data postgres:16
+
+
+İlk dəfə qalxanda Postgres belə edir:
+
+appuser adlı istifadəçi yaradır.
+Ona secret123 parolu təyin edir.
+learnkazakh adlı baza yaradır və sahibini appuser edir.
+
+
+
+İndi sən birbaşa belə qoşula bilərsən: psql -h localhost -U appuser -d learnkazakh
+Yəni artıq default postgres useri ilə işləmək məcburiyyətində deyilsən, öz app-ına aid user və db hazır olur.
+
+
+
+
 
 
 
