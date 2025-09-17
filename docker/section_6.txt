@@ -1,0 +1,473 @@
+Compose fəlsəfəsi: niyə var?
+
+Əvvəl Docker CLI ilə işləyəndə hər şeyi əl ilə yazırsan:
+docker run --detach -t --rm --env-file .\docker\app.env.server --name api -p 8080:8080 learn-kazakh-api:latest
+
+Sonra başqa bir konteyner:
+docker run --detach -t --rm --name client -p 8081:80 learn-kazakh-client:latest
+
+Sonra yeni bir konteyner daha:
+docker run --name pgapp --env-file .\docker\app.env.postgres -v pg_data:/var/lib/postgres/data  --detach postgres:16
+
+
+İki konteynerdə dözülür, amma 4–5 olduqda hər birində port, env, volume, network əllə yazmaq artıq baş ağrısıdır. 
+Üstəlik, başqasına layihəni vermək istəsən, sən ona “bu əmrləri yaz” deməlisən.
+
+
+Compose nə gətirir?
+Compose deyir: “Sən əmrləri tək-tək yazma, mənə bir YAML faylında hamısını de.”
+
+Məsələn:
+
+services:
+  api:
+    image: myapi:1.0
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__Default: ...
+    networks:
+      - appnet
+
+  postgres:
+    image: postgres:16
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ...
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - appnet
+
+volumes:
+  pgdata:
+
+networks:
+  appnet:
+
+
+
+
+Fərq nədir?
+
+1. Artıq əmrləri əzbərləmək yox, bir “manifest” yazırsan.
+2. docker compose up dedinsə, bütün servislər qalxır. docker compose down dedinsə, hamısı bağlanır.
+3. Eyni networks altında olan konteynerlər bir-birinə adları ilə çatır (api, postgres və s.). DNS həllini Docker özü edir.
+4. Volumeları, .env fayllarını YAML-də bağlayırsan. Sirrləri koda qarışdırmırsan.
+
+----------------------------------------------------------------------------------------------------
+
+Compose-un əsas hissələri.
+
+1. Faylın başlanğıcı – version
+Ən yuxarıda version yazmaq adətdir:
+
+version: "3.9"
+
+Bu, Compose faylının sintaksisini bildirir. Ən stabil seçim 3.9-dur. 
+Əgər yazmasan, yeni Compose özü default olaraq son sintaksisi götürür, amma yazmaq yaxşı vərdişdir → 
+gələcəkdə başqası oxuyanda dəqiq biləcək hansı versiyanı nəzərdə tutmusan.
+
+
+PS C:\Users\mahammada> docker-compose --version
+Docker Compose version v2.33.1-desktop.1
+
+Bu, sənin kompüterində quraşdırılmış Compose proqramının öz versiyasıdır.
+Yaml faylındakı version isə sintaksisin versiyasıdır - yəni Compose faylında hansı funksiyalar mövcuddur.
+
+Docker Compose-un ilk illərində version: "2" və version: "3" kimi sintaksis var idi.
+
+2.x daha çox single-host istifadə üçündür.
+3.x Swarm ilə də uyğun gəlməsi üçün gətirilmişdi.
+
+İllər keçdikcə “3.7”, “3.8”, “3.9” kimi alt versiyalar çıxdı (hər birində yeni xüsusiyyətlər əlavə olundu, məsələn, depends_on-un condition dəstəyi).
+
+--------------------------------------------------
+
+2. services – layihənin ürəyi
+
+Bütün konteynerlər burada sadalanır. 
+Hər xidmətə bir ad verirsən (api, client, postgres, redis, nginx və s.). 
+O ad həm YAML açarı olur, həm də şəbəkədə DNS adı kimi işləyir.
+
+a) Servisə image və ya build göstərmək üçün iki yol var:
+
+a.1. Əgər özündə hazır Dockerfile varsa:
+
+build:
+  context: .
+  dockerfile: ./src/server/Dockerfile
+
+Burada context – Docker build-ə göndərilən qovluq, dockerfile isə istifadə ediləcək fayldır.
+
+
+a.2. Əgər hazır image-dən istifadə edirsənsə:
+image: postgres:16
+
+version: "3.9"
+
+services:
+    api:
+        build:
+            context: .
+            dockerfile: ./docker-compose.yml
+    
+    client:
+        build:
+            context: .
+            dockerfile: Dockerfile.client
+
+    postgres:
+        image: postgres:16
+
+
+
+b) Port mapping
+Host ilə konteyner portlarını bağlamaq üçün:
+
+ports:
+  - "8080:8080"
+
+Format host:container. Yəni localhost:8080 → konteynerin 8080 portuna gedir.
+
+version: "3.9"
+
+services:
+    api:
+        build:
+            context: .
+            dockerfile: ./docker-compose.yml
+        ports:
+            - "8080:8080"
+    
+    client:
+        build:
+            context: .
+            dockerfile: Dockerfile.client
+        ports:
+            - "8081:80"
+
+    postgres:
+        image: postgres:16
+        ports:
+            - "5432:5432"
+
+
+
+c) Environment dəyişənləri üçün də 2 yol var.
+
+c.1. YAML içində birbaşa:
+
+environment:
+  POSTGRES_USER: myuser
+  POSTGRES_PASSWORD: secret
+
+c.2. .env faylından oxumaq:
+
+env_file:
+  - .env
+
+.env faylında isə sadəcə belə yazılır:
+POSTGRES_USER=myuser
+POSTGRES_PASSWORD=secret
+
+
+
+d) Volumes
+Əgər konteynerdə olan məlumatı saxlamaq istəyirsənsə, volume əlavə edirsən.
+Məsələn, Postgres üçün:
+
+
+volumes:
+  - pgdata:/var/lib/postgresql/data
+
+Bu deməkdir ki, pgdata adlı named volume konteynerdə /var/lib/postgresql/data qovluğuna qoşulur.
+
+version: "3.9"
+
+services:
+    api:
+        build:
+            context: .
+            dockerfile: ./docker-compose.yml
+        ports:
+            - "8080:8080"
+        env_file:
+            - app.env.server
+        volumes:
+            - applogs:/api/logs
+
+    client:
+        build:
+            context: .
+            dockerfile: Dockerfile.client
+        ports:
+            - "8081:80"
+
+    postgres:
+        image: postgres:16
+        ports:
+            - "5432:5432"
+        env_file:
+            - app.env.postgres
+        volumes:
+            - pgdata:/var/lib/postgres/data
+
+
+
+e) depends_on və healthcheck
+
+Əgər sən api servisində yazırsansa:
+depends_on:
+  - postgres
+
+bu sadəcə başlama ardıcıllığı verir: əvvəl postgres konteyneri start komandasını alır, sonra api.
+
+Amma diqqət: Postgres konteyneri “start komandasını aldı” ≠ “DB artıq hazırdır”. 
+Ola bilər ki, proses hələ init edir, konfiqurasiya faylları yüklənir, əlaqə qəbul etməyə hazır deyil. 
+Bu vaxt API özündə connection açmağa çalışsa, “connection refused” xətası ala bilər.
+
+------------------------------
+
+healthcheck konteynerin içində periodik olaraq bir test əmri işlədir.
+
+healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U {POSTGRES:USER} -d {POSTGRES_DB}"]
+            interval: 1m30s
+            timeout: 30s
+            retries: 5
+            start_period: 30s
+
+pg_isready Postgres-in öz utilitidir. Bu, “verilən DB-ə qoşulmaq mümkündürmü?” sualına cavab verir.
+
+Əgər cavab “accepting connections” gəlirsə → test uğurludur.
+Əgər cavab “no response” və ya “rejecting connections” isə → test uğursuzdur.
+
+Docker hər belə testdən sonra konteynerin health statusunu yeniləyir:
+
+Sağlam → healthy
+Hazırlıqda / gözləmədə → starting
+Sağlam deyil → unhealthy
+
+
+
+İndi api servisində belə yazırsan:
+depends_on:
+  postgres:
+    condition: service_healthy
+
+
+version: "3.9"
+
+services:
+    api:
+        build:
+            context: .
+            dockerfile: ./docker-compose.yml
+        ports:
+            - "8080:8080"
+        env_file:
+            - app.env.server
+        volumes:
+            - applogs:/api/logs
+        depends_on:
+            postgres:
+                condition: service_healthy
+
+    client:
+        build:
+            context: .
+            dockerfile: Dockerfile.client
+        ports:
+            - "8081:80"
+
+    postgres:
+        image: postgres:16
+        ports:
+            - "5432:5432"
+        env_file:
+            - app.env.postgres
+        volumes:
+            - pgdata:/var/lib/postgres/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U {POSTGRES:USER} -d {POSTGRES_DB}"]
+            interval: 1m30s
+            timeout: 30s
+            retries: 5
+            start_period: 30s
+
+
+
+Bu o deməkdir ki:
+
+postgres konteyneri yalnız healthy statusunu alandan sonra api start götürəcək.
+Əgər Postgres hələ də “starting”dirsə, API gözləyəcək.
+Əgər Postgres “unhealthy” olarsa, API heç başlamayacaq və ya fail edəcək.
+
+
+--------------------------------------------------
+
+3. volumes – davamlı saxlama
+
+YAML-in ən altında bütün volumeları elan etməlisən.
+
+volumes:
+  pgdata:
+  app-logs:
+
+Bu hissədə sadəcə ad vermək kifayətdir. Docker avtomatik onları yaradacaq.
+
+
+--------------------------------------------------
+
+4. Network
+
+4.1. Ən əsas: Docker-da şəbəkə niyə var?
+Konteynerlər bir-biri ilə danışa bilsin deyə.
+
+Məsələn, sənin API konteynerin Postgres-ə qoşulmalıdır. 
+Bunun üçün şəbəkə olmadan sadəcə “localhost” desən, bu yalnız həmin konteynerin öz içi deməkdir. 
+Yəni API konteynerində localhost = yalnız API prosesi.
+
+
+
+Konteynerin içində localhost və ya 127.0.0.1 yazanda, bu yalnız həmin konteynerin öz daxilində çalışan proseslərə gedir.
+
+API konteynerində localhost → yalnız API-nin öz prosesi.
+Postgres konteynerində localhost → yalnız Postgres prosesi.
+
+İki konteyner eyni maşında olsa da, onların “localhost”u bir-birindən tam ayrıdır, çünki hərəsinin öz network namespace-i var.
+
+
+
+Eyni maşında işləsələr də niyə görə bilmir ???
+
+Çünki hər konteyner öz izolyasiya olunmuş şəbəkə stack-indədir.
+Onların loopback interfeysi (lo) var, amma o interfeys yalnız konteynerin özünə aiddir.
+Default olaraq başqa konteynerlərlə paylaşılmır.
+
+
+Bunun üçün Docker bridge şəbəkəsi yaradır.
+Əgər api və postgres eyni user-defined şəbəkəyə qoşulubsa, onda API Postgres-i postgres:5432 deyərək görə bilər.
+Buradakı postgres adı Compose faylındakı service name-dir və Docker DNS vasitəsilə həll edir.
+
+-------------------------
+
+Default davranış (yazmasan nə olur?)
+
+Əgər sən docker run edirsənsə və ya compose faylında heç networks: yazmamısansa:
+
+1. Docker avtomatik “default bridge network” yaradır (bridge adlanan).
+2. Bütün konteynerlər bu default şəbəkəyə qoşulur.
+3. Amma burada bir məhdudiyyət var: konteynerlər bir-birini yalnız IP ilə görə bilirlər, adla (DNS ilə) yox.
+
+Yəni belə bir vəziyyətdə API konteynerin Postgres-ə qoşulmaq istəsə, Host=postgres işləməyəcək. 
+O yalnız “172.17.0.2” tipli IP ilə qoşula bilər.
+Bu, əlbəttə, real layihələr üçün çox çətinləşdirici olur. Çünki hər dəfə IP dəyişə bilər.
+
+-------------------------
+
+3. User-defined bridge (öz şəbəkəmizi yaratmaq)
+
+Bunu həll etmək üçün Docker imkan verir ki, sən öz “bridge” şəbəkəni yaradasan.
+Məsələn:
+
+networks:
+  appnet:
+    driver: bridge
+
+İndi sən servislərin içinə yazırsan:
+
+networks:
+  - appnet
+
+
+Compose həmin appnet adlı şəbəkəni yaradır.
+Oradakı bütün konteynerlər DNS ilə bir-birini görə bilirlər. Yəni API artıq Host=postgres yazaraq Postgres-ə qoşula bilər.
+IP ilə işləməyə ehtiyac yoxdur.
+
+
+----------------------------------------------------------------------------------------------------
+
+version: "3.9"
+
+services:
+    api:
+        build:
+            context: .
+            dockerfile: ./docker-compose.yml
+        ports:
+            - "8080:8080"
+        env_file:
+            - app.env.server
+        volumes:
+            - app-logs:/api/logs
+        depends_on:
+            postgres:
+                condition: service_healthy
+        networks:
+            - appnet
+
+    client:
+        build:
+            context: .
+            dockerfile: Dockerfile.client
+        ports:
+            - "8081:80"
+        networks:
+            - appnet
+
+    postgres:
+        image: postgres:16
+        ports:
+            - "5432:5432"
+        env_file:
+            - app.env.postgres
+        volumes:
+            - pgdata:/var/lib/postgres/data
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U {POSTGRES:USER} -d {POSTGRES_DB}"]
+            interval: 1m30s
+            timeout: 30s
+            retries: 5
+            start_period: 30s
+        networks:
+            - appnet
+
+volumes:
+    pgdata:
+    app-logs:
+
+networks:
+    appnet:
+        driver: bridge
+
+----------------------------------------------------------------------------------------------------
+
+1. Şəbəkə varsa, DNS işləyir
+Sənin compose faylında bütün servislər appnet adlı şəbəkəyə qoşulub:
+
+networks:
+  - appnet
+
+Bu o deməkdir ki, hər servis digərini service name ilə görə bilir.
+
+API postgres servisinə qoşulmaq istəyirsə, sadəcə Host=postgres yazmaq kifayətdir.
+Docker DNS bu postgres adını avtomatik həmin konteynerin IP-sinə həll edir.
+
+Burada host.docker.internal və ya localhost işləməyəcək, çünki onlar ya host maşına, ya da öz konteynerinə aiddir.
+
+
+
+2. Port məsələsi (daxildə və çöldə fərqlidir)
+Postgres image default olaraq konteynerdə 5432 portunu dinləyir.
+Yəni API üçün connection string:
+
+ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=LearnKazakh;Username=SUPERADMIN;Password=ChangeMe
+
+
+
+
+
+
