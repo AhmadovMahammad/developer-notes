@@ -614,15 +614,24 @@ This moves report.txt into the Documents folder. The file disappears from your c
 If both locations are on the same filesystem (same hard drive partition), it's still just a label change. The inode stays the same. The computer just updates the directory information to say "this file is now in Documents instead of here".
 
 Still instant. Still no data copying.
-Moving Across Different Filesystems
 
-Here's where it gets different. Imagine you have an external USB drive or a separate partition on your hard drive. You want to move a file from your main disk to the USB drive:
+
+
+### Moving Across Different Filesystems
+
+Here's where it gets different. Imagine you have an external USB drive or a separate partition on your hard drive. 
+
+You want to move a file from your main disk to the USB drive:
 
 mv /home/user/photo.jpg /media/usb-drive/
 
-Now the computer can't just change a label. Why? Because different filesystems have completely separate inode systems. They don't share the same ID cards.
+Now the computer can't just change a label. 
 
-Your main disk has its own set of inodes. The USB drive has its own separate set of inodes. An inode number from one doesn't mean anything on the other.
+Why? Because different filesystems have completely separate inode systems. They don't share the same ID cards.
+
+Your main disk has its own set of inodes. The USB drive has its own separate set of inodes. 
+
+An inode number from one doesn't mean anything on the other.
 
 So in this case, mv has to do this:
 
@@ -632,7 +641,10 @@ So in this case, mv has to do this:
 It's essentially doing cp and then rm (remove) behind the scenes.
 
 That's why moving across different disks takes time, especially for large files. It's actually copying all the data.
-Renaming Folders
+
+
+
+### Renaming Folders
 
 Same rules apply:
 
@@ -640,7 +652,10 @@ mv old-folder-name new-folder-name
 
 If it's on the same filesystem, it's instant - just a label change.
 
-If it's across different filesystems, it copies everything inside recursively (all files and subfolders), then deletes the original. This can take a very long time for large folders.
+If it's across different filesystems, it copies everything inside recursively (all files and subfolders), then deletes the original. 
+
+This can take a very long time for large folders.
+
 Important Warning About Overwriting
 
 If you do this:
@@ -654,7 +669,10 @@ This is dangerous. To be safe, use the -i flag:
 mv -i draft.txt final.txt
 
 Now it asks: "overwrite 'final.txt'? (y/n)". You can choose. If you type n, nothing happens. The command is cancelled.
-Useful Options for mv
+
+
+
+### Useful Options for mv
 
 Interactive mode:
 
@@ -673,6 +691,11 @@ Verbose mode:
 mv -v file.txt new-location/
 
 Shows you what was moved: 'file.txt' -> 'new-location/file.txt'
+
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
+
+
 The touch Command - Creating Files and Updating Timestamps
 
 The name touch is interesting. It doesn't mean "fill with content" or "open for editing". It means "touch the file's metadata" - specifically, its time information.
@@ -684,7 +707,10 @@ Every file on your computer has timestamps. Your operating system tracks:
     When its content was last changed
 
 These timestamps are stored in the file's inode (its ID card).
-Creating an Empty File
+
+
+
+### Creating an Empty File
 
 Type this:
 
@@ -708,8 +734,13 @@ You'll see something like:
 
 That 0 means zero bytes.
 
-This is useful when you want to create a file quickly before putting anything in it. Or when you need a file to exist for a program to work with.
-Updating Timestamps
+This is useful when you want to create a file quickly before putting anything in it. 
+
+Or when you need a file to exist for a program to work with.
+
+
+
+### Updating Timestamps
 
 Now type this again:
 
@@ -717,20 +748,37 @@ touch notes.txt
 
 The file already exists. So what happens?
 
-Nothing visible. The file size doesn't change. The content doesn't change. But behind the scenes, the timestamps in the inode are updated to right now - this very moment.
+Nothing visible. The file size doesn't change. The content doesn't change. But behind the scenes, 
 
-Why Timestamps Matter
+the timestamps in the inode are updated to right now - this very moment.
+
+
+
+#### Why Timestamps Matter
 
 Many programs make decisions based on file timestamps:
 
-Backup programs only back up files that changed since the last backup. They check the modification time. If a file's timestamp is older than the last backup, it's skipped.
+Backup programs only back up files that changed since the last backup.
 
-Build systems (like when compiling code) only recompile files that changed. They compare timestamps. If your source code is newer than the compiled program, they rebuild. If it's older, they skip it.
+They check the modification time. 
+
+If a file's timestamp is older than the last backup, it's skipped.
+
+Build systems (like when compiling code) only recompile files that changed. 
+
+They compare timestamps. 
+
+If your source code is newer than the compiled program, they rebuild. If it's older, they skip it.
 
 Cache systems expire old files. If a cached file hasn't been accessed in 30 days, delete it.
 
-By using touch, you can trick these systems. You can make a file look "freshly modified" even if you didn't change anything inside it.
-Seeing Timestamps
+By using touch, you can trick these systems. 
+
+You can make a file look "freshly modified" even if you didn't change anything inside it.
+
+
+
+### Seeing Timestamps
 
 Want to see these timestamps? Use the stat command:
 
@@ -764,7 +812,10 @@ Change: 2025-06-06 20:14:29.633280250 +0400
  Birth: 2025-05-27 23:39:43.662440310 +0400
 
 Notice that Birth stayed the same. That never changes. But Access, Modify, and Change all updated to the new time.
-A Real Example
+
+
+
+### A Real Example
 
 Imagine you have a config file:
 
@@ -777,37 +828,56 @@ But you didn't actually change anything. You just want to force the program to r
 touch config.cfg
 
 Now the file appears "freshly modified" even though the content is identical. The program sees the new timestamp and reloads.
-Useful Options for touch
 
-Don't create if missing:
+
+
+### Useful Options for touch
+
+-- Don't create if missing:
 
 touch -c file.txt
 
-This only updates the timestamps if the file already exists. If it doesn't exist, nothing happens. No file is created. Useful when you only want to update existing files.
+This only updates the timestamps if the file already exists. If it doesn't exist, nothing happens. 
 
-Update only access time:
+No file is created. Useful when you only want to update existing files.
+
+
+-- Update only access time:
 
 touch -a file.txt
 
 Changes when the file was "last accessed", but leaves the modification time alone.
 
-Update only modify time:
+
+-- Update only modify time:
 
 touch -m file.txt
 
 Changes when the file was "last modified", but leaves the access time alone.
+
+
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
+
+
 The cat Command - Displaying and Joining File Content
 
 The name cat is short for "concatenate", which means "join things together". But most of the time, people use it just to display what's inside a file.
-Basic Usage
 
-Type this:
+
+Basic Usage
 
 cat notes.txt
 
-Everything inside notes.txt gets printed to your screen. The file is opened, read from beginning to end, and all the content appears in your terminal.
+Everything inside notes.txt gets printed to your screen. 
 
-The content doesn't stop or pause. It all appears at once. If the file has 1000 lines, all 1000 lines scroll past. You might only see the last screenful.
+The file is opened, read from beginning to end, and all the content appears in your terminal.
+
+The content doesn't stop or pause. It all appears at once. 
+
+If the file has 1000 lines, all 1000 lines scroll past. You might only see the last screenful.
+
+
+
 What "Standard Output" Means
 
 This is important to understand because you'll see this term everywhere.
@@ -832,28 +902,35 @@ When you type cat notes.txt:
     Standard output connects to your screen by default
     So you see the content
 
-But here's the powerful part: you can redirect these pipes. You can make standard output go somewhere else instead of your screen.
-Redirecting Output to a File
 
-Type this:
+But here's the powerful part: you can redirect these pipes. You can make standard output go somewhere else instead of your screen.
+
+
+### 1. Redirecting Output to a File
 
 cat notes.txt > output.txt
 
-The > symbol is called a redirect operator. It says: "take everything that would normally go to standard output (your screen), and send it to this file instead".
+The > symbol is called a redirect operator. 
+
+It says: "take everything that would normally go to standard output (your screen), and send it to this file instead".
 
 So now the content of notes.txt doesn't appear on your screen. Instead, it's written into output.txt.
 
 If output.txt already existed, it gets completely replaced. The old content is erased. If it didn't exist, it gets created.
-Appending Instead of Replacing
 
-Type this:
+
+### 2. Appending Instead of Replacing
 
 cat more.txt >> output.txt
 
-The >> symbol is different. It means "append to the end". So the content of more.txt gets added to the end of output.txt. The existing content in output.txt is kept.
+The >> symbol is different. It means "append to the end". 
+
+So the content of more.txt gets added to the end of output.txt. The existing content in output.txt is kept.
 
 This is very useful for adding to log files or building files gradually.
-Joining Multiple Files Together
+
+
+### 3. Joining Multiple Files Together
 
 This is where the name "concatenate" makes sense.
 
@@ -861,7 +938,9 @@ Type this:
 
 cat file1.txt file2.txt file3.txt
 
-This reads file1.txt first, all the way to the end. Then it reads file2.txt, all the way to the end. Then file3.txt. All three are displayed one after another.
+This reads file1.txt first, all the way to the end. Then it reads file2.txt, all the way to the end. Then file3.txt. 
+
+All three are displayed one after another.
 
 Now combine this with redirection:
 
@@ -870,7 +949,9 @@ cat file1.txt file2.txt file3.txt > combined.txt
 Now combined.txt contains all three files joined together in order. First all of file1.txt, then all of file2.txt, then all of file3.txt.
 
 This is the original purpose of cat - to concatenate (join) files.
-Creating a File by Typing
+
+
+### 4. Creating a File by Typing
 
 Here's a neat trick. Type this:
 
@@ -888,8 +969,12 @@ I am typing directly
 
 When you're done, press Ctrl + D. This sends an "end of input" signal.
 
-Now newfile.txt exists and contains exactly what you typed. You just created a file from your keyboard without opening any editor.
-Useful Options for cat
+Now newfile.txt exists and contains exactly what you typed. 
+
+You just created a file from your keyboard without opening any editor.
+
+
+### Useful Options for cat
 
 Show line numbers:
 
@@ -901,139 +986,17 @@ Every line gets a number on the left:
      2  Second line
      3  Third line
 
-Very useful when you're looking at code or logs and you need to reference specific lines. You can say "look at line 47" and everyone knows exactly where to look.
-The nano Command - Editing Files
+Very useful when you're looking at code or logs and you need to reference specific lines. 
 
-So far, all the commands just display or move files around. But what if you want to actually write something? Change the content? Fix a typo? Add a line?
+You can say "look at line 47" and everyone knows exactly where to look.
 
-That's where text editors come in. And nano is the simplest one.
-Opening a File
 
-Type this:
+-_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_--_-_-
 
-nano notes.txt
 
-Your entire terminal screen changes. You're no longer at the command prompt. You're inside the editor now.
-
-If the file notes.txt exists, you see its content. If it doesn't exist, you see a blank screen with [ New File ] at the top.
-
-Either way, you can now:
-
-    Type new content anywhere
-    Use arrow keys to move the cursor around
-    Delete text with Backspace or Delete
-    Copy and paste sections
-
-The Interface
-
-At the top, you see the filename.
-
-In the middle, you see your file content (or blank space if it's new).
-
-At the bottom, you see a menu of shortcuts:
-
-^G Help     ^O Write Out    ^W Where Is    ^K Cut
-^X Exit     ^R Read File    ^\ Replace     ^U Paste
-
-The ^ symbol means "hold the Ctrl key". So ^O means "press Ctrl and O at the same time".
-The Most Important Shortcuts
-
-Ctrl + O - Write Out (Save the file)
-
-When you press this, a line appears at the bottom asking: "File Name to Write: notes.txt".
-
-If the filename is correct, just press Enter. The file is saved.
-
-If you want to save it as a different name, type the new name and press Enter.
-
-Ctrl + X - Exit nano
-
-This closes the editor and returns you to the normal command prompt.
-
-But if you made changes and didn't save yet, it will ask: "Save modified buffer? (Y/N)".
-
-Press Y for yes (save and exit), or N for no (exit without saving).
-
-Ctrl + K - Cut Text
-
-This cuts (deletes) the entire line where your cursor is. The line is removed from the screen and saved in a buffer (like a clipboard).
-
-You can cut multiple lines by pressing Ctrl + K multiple times.
-
-Ctrl + U - Uncut (Paste)
-
-This pastes whatever you cut with Ctrl + K. It inserts the text at the current cursor position.
-
-So Ctrl + K and Ctrl + U together let you move lines around.
-
-Ctrl + W - Where Is (Search)
-
-This lets you search for text in the file. It asks: "Search:". Type a word and press Enter. The cursor jumps to the first occurrence.
-
-Press Ctrl + W again and Enter to find the next occurrence.
-
-Ctrl + G - Get Help
-
-This shows you a full list of all shortcuts. Very useful when you forget something.
-A Full Workflow Example
-
-Let's say you want to create a shopping list.
-
-    Type: nano shopping.txt
-    The editor opens with a blank screen
-    Type your list:
-
-    milk
-    bread
-    eggs
-    cheese
-    apples
-
-    Press Ctrl + O to save
-    It asks for the filename. It says shopping.txt. Press Enter.
-    It shows: "[ Wrote 5 lines ]"
-    Press Ctrl + X to exit
-    You're back at the command prompt
-
-Now shopping.txt exists. You can check:
-
-cat shopping.txt
-
-Later, you want to add more items:
-
-    Type: nano shopping.txt
-    The file opens with your existing list
-    Use arrow keys to go to the end
-    Add more items:
-
-    butter
-    coffee
-
-    Press Ctrl + O, then Enter to save
-    Press Ctrl + X to exit
-
-Why Use Nano?
-
-There are other editors like vim and emacs. They are extremely powerful. Professional programmers use them. But they have very steep learning curves.
-
-In vim, you can't even type normally when you first open it. You have to press i to enter "insert mode" first. The commands are cryptic: dd to delete a line, :wq to save and quit. It takes weeks to learn.
-
-Nano is different. The shortcuts are shown on screen at all times. You can start using it immediately without memorizing anything. You just open it and start typing. It behaves like most text editors you've used before.
-
-It's perfect for:
-
-    Quick edits to config files
-    Writing short scripts
-    Taking notes
-    Fixing typos
-    Changing system settings
-
-Once you get comfortable with Linux, you might learn vim for more advanced editing. But nano will always be there for quick, simple edits.
 The echo Command - Printing Text
 
 The echo command does one simple thing: it prints whatever you tell it to print.
-
-Type this:
 
 echo Hello
 
@@ -1042,6 +1005,7 @@ It prints:
 Hello
 
 That's it. But this simplicity is powerful when you understand how it works.
+
 What Is Actually Happening
 
 When you type echo Hello, here's the process:
@@ -1053,30 +1017,32 @@ When you type echo Hello, here's the process:
     Standard output goes to your screen
     You see: Hello
 
-Remember standard output from earlier? That's the default channel where output flows. echo is one of the simplest programs - it just takes input and sends it straight to standard output.
-Printing Variables
+Remember standard output from earlier? That's the default channel where output flows. 
+
+echo is one of the simplest programs - it just takes input and sends it straight to standard output.
+
+
+### Printing Variables
 
 Your system has things called environment variables. These are like named storage boxes that hold information. Programs can look up these values.
 
 For example, there's a variable called HOME that contains the path to your home folder.
 
-Type this:
-
 echo $HOME
 
-The $ symbol means "get the value of this variable". So the shell sees $HOME, looks it up, finds the value (like /home/john), and replaces $HOME with that value before running echo.
+The $ symbol means "get the value of this variable". So the shell sees $HOME, looks it up, finds the value (like /home/john), 
+
+and replaces $HOME with that value before running echo.
 
 So if your home folder is /home/john, it prints:
 
 /home/john
 
-Try this:
 
 echo $USER
 
 This prints your username. The shell looks up the USER variable and prints its value.
 
-Try this:
 
 echo "My name is $USER and I live in $HOME"
 
@@ -1107,48 +1073,21 @@ Hello $USER
 
 The dollar sign is just a dollar sign. Nothing is looked up.
 
-So use double quotes when you want variables to be replaced. Use single quotes when you want exact literal text.
-Special Characters with -e
+So use double quotes when you want variables to be replaced. 
 
-Normally, if you type:
+Use single quotes when you want exact literal text.
 
-echo "Line 1\nLine 2"
 
-It prints:
-
-Line 1\nLine 2
-
-The \n is supposed to mean "new line" (a line break), but it's being treated as literal characters: a backslash and an 'n'.
-
-To make echo interpret these special sequences, use the -e flag:
-
-echo -e "Line 1\nLine 2"
-
-Now it prints:
-
-Line 1
-Line 2
-
-The \n was converted into an actual line break.
-
-Other special sequences:
-
-    \t - tab character
-    \n - new line
-    \\ - literal backslash
-
-All of these only work with echo -e.
-Writing to Files
 
 You can use echo with redirection to quickly create or modify files.
-
-Type this:
 
 echo "Hello World" > greeting.txt
 
 This creates a file called greeting.txt with "Hello World" inside it.
 
-Remember the > redirect operator? It sends standard output to a file instead of the screen. So echo prints "Hello World", but instead of going to your screen, it goes into greeting.txt.
+Remember the > redirect operator? It sends standard output to a file instead of the screen. 
+
+So echo prints "Hello World", but instead of going to your screen, it goes into greeting.txt.
 
 If greeting.txt already existed, it gets completely replaced.
 
