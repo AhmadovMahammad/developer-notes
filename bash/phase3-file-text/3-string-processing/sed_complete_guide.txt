@@ -1,0 +1,1319 @@
+================================================================================
+PART 1 — WHAT IS SED AND HOW DOES IT ACTUALLY WORK
+
+sed stands for "stream editor". The name tells you exactly what it is — it
+edits a stream of text. Unlike a text editor (like nano or vim) where you open
+a file, click around, and save, sed processes text automatically, line by line,
+without any human interaction.
+
+You give sed a command. sed reads a file (or piped input), applies your command
+to each line, and prints the result. The original file is NOT changed unless you
+explicitly tell sed to change it.
+
+
+HOW SED PROCESSES TEXT — THE LOOP
+----------------------------------
+
+This is the most important thing to understand. sed does not load your whole
+file into memory. It runs a loop. Here is exactly what happens for every single
+line in your file:
+
+    Step 1 — sed reads one line from the file (without the newline character)
+    Step 2 — sed puts that line into something called the "Pattern Space"
+    Step 3 — sed runs your commands on whatever is in the Pattern Space
+    Step 4 — sed prints the Pattern Space to stdout (your terminal)
+    Step 5 — sed clears the Pattern Space
+    Step 6 — go back to Step 1, read the next line
+
+This loop runs until there are no more lines. That is literally all sed is doing.
+
+The "Pattern Space" is just a temporary buffer — a scratchpad — where sed holds
+the current line while it works. Think of it like a sticky note. sed reads a
+line, writes it on the sticky note, does stuff to it, reads it out, throws the
+note away, and grabs a new one for the next line.
+
+There is also a second buffer called the "Hold Space" — we will get to that
+later. For now, just know the Pattern Space is where all the action happens.
+
+
+THE SIMPLEST POSSIBLE EXAMPLE
+------------------------------
+
+    sed 's/hello/world/' file.txt
+
+What this does:
+    - reads file.txt line by line
+    - on each line, replaces the first occurrence of "hello" with "world"
+    - prints every line to your terminal
+    - does NOT touch file.txt itself
+
+If file.txt contains:
+    hello there
+    goodbye
+    say hello again
+
+The output would be:
+    world there
+    goodbye
+    say world again
+
+Notice "goodbye" also printed — sed prints every line, even if it did nothing
+to it. And "say hello again" became "say world again" because sed found "hello"
+on that line too.
+
+
+WHERE DOES THE OUTPUT GO
+------------------------
+
+By default, output goes to your terminal (stdout). You control where it ends up:
+
+    sed 's/a/b/' file.txt              output goes to terminal, file unchanged
+    sed 's/a/b/' file.txt > new.txt    output saved to new.txt, file unchanged
+    sed -i 's/a/b/' file.txt           file is edited IN PLACE (the file changes)
+
+The -i flag is the only way to actually modify the original file. We will cover
+it in detail in the Flags section.
+
+
+================================================================================
+PART 2 — THE FULL STRUCTURE OF EVERY SED COMMAND
+
+Every sed command you will ever write follows this structure:
+
+    sed  [flags]  '[address][command][arguments]'  filename
+
+Let's break down each piece:
+
+    [flags]       These come between "sed" and the quoted command.
+                  They control how sed behaves overall.
+                  Examples: -n, -i, -e, -E
+
+    [address]     OPTIONAL. This tells sed WHICH lines to work on.
+                  If you leave it out, the command runs on every line.
+                  Examples: 5 (line 5), /error/ (lines containing "error")
+
+    [command]     What to DO. A single letter.
+                  Examples: p (print), d (delete), s (substitute), q (quit)
+
+    [arguments]   The details for the command.
+                  For s, this is the pattern and replacement.
+                  For p and d, there are no arguments needed.
+
+    filename      The file to process. You can also pipe text into sed instead.
+
+
+REAL EXAMPLES BROKEN DOWN
+--------------------------
+
+    sed 'p' file.txt
+
+    No flags. No address. Command is p (print).
+    Result: prints every line TWICE (once from p, once from sed's automatic print).
+
+
+    sed -n 'p' file.txt
+
+    Flag: -n (silence automatic printing). No address. Command is p.
+    Result: prints every line ONCE (only from the explicit p).
+    This seems pointless but becomes useful when you add an address.
+
+
+    sed -n '5p' file.txt
+
+    Flag: -n. Address: line 5. Command: p.
+    Result: prints ONLY line 5.
+
+
+    sed '/error/d' file.txt
+
+    No flags. Address: /error/ (lines containing "error"). Command: d (delete).
+    Result: prints every line EXCEPT lines containing "error".
+    Note: "delete" in sed means "skip printing this line", not remove from file.
+
+
+    sed '2,5s/old/new/' file.txt
+
+    No flags. Address: lines 2 through 5. Command: s. Arguments: /old/new/.
+    Result: replaces "old" with "new", but only on lines 2, 3, 4, and 5.
+    All other lines are printed unchanged.
+
+
+THE DELIMITER — IT DOES NOT HAVE TO BE /
+------------------------------------------
+
+Look at this command:
+
+    sed 's/\/home\/user\/docs/\/tmp\/backup/' file.txt
+
+That is unreadable. All those backslashes are there because / is the default
+delimiter, but / also appears in file paths. So we have to escape every / in
+the pattern with \/.
+
+The solution: you can use ANY character as the delimiter. The character right
+after 's' becomes the delimiter. All three of these do the exact same thing:
+
+    sed 's/\/home\/user\/docs/\/tmp\/backup/' file.txt    (ugly, hard to read)
+    sed 's|/home/user/docs|/tmp/backup|' file.txt         (clean with |)
+    sed 's:/home/user/docs:/tmp/backup:' file.txt         (clean with :)
+    sed 's@/home/user/docs@/tmp/backup@' file.txt         (clean with @)
+
+This also applies to address patterns. When your pattern contains /, you can
+write:
+
+    sed -n '\:/home/user:p' file.txt
+
+The \ before the : tells sed "I am about to use : as my delimiter for this
+address". After the first :, sed knows the delimiter, so no more \ needed.
+
+
+================================================================================
+PART 3 — FLAGS
+
+Flags go between the word "sed" and your quoted command. They change how sed
+behaves for the entire run.
+
+
+-n (silent mode / quiet mode)
+------------------------------
+
+By default, sed prints every line it processes, whether you did anything to it
+or not. -n turns that automatic printing OFF.
+
+After using -n, the only output you get is from an explicit p command (or w).
+
+Without -n:
+    sed 's/hello/world/' file.txt
+    Prints ALL lines. Lines with "hello" are printed with the substitution done.
+    Lines without "hello" are also printed, unchanged.
+
+With -n:
+    sed -n 's/hello/world/' file.txt
+    Prints NOTHING. The substitution still happens internally, but since -n
+    silenced the auto-print and you didn't say p, nothing shows up.
+
+With -n and p:
+    sed -n 's/hello/world/p' file.txt
+    Prints ONLY lines where a substitution happened.
+
+This is the pattern you use constantly for filtering:
+    sed -n '/error/p' file.txt     prints only lines containing "error"
+    (same result as grep 'error' file.txt, but sed can do more on top of it)
+
+
+-i (in-place editing)
+----------------------
+
+Without -i, sed never touches your files. With -i, sed modifies the file
+directly. This is how you use sed to permanently change a file.
+
+    sed -i 's/foo/bar/' file.txt
+
+After this command, file.txt itself now has all first-occurrence "foo" replaced
+with "bar" on each line. There is no output to the terminal.
+
+BACKUP SYNTAX: You can give -i a suffix to create a backup before editing:
+
+    sed -i.bak 's/foo/bar/' file.txt
+
+This creates file.txt.bak with the original content, then modifies file.txt.
+The suffix can be anything: .bak, .orig, .old, _backup, etc.
+
+IMPORTANT — macOS vs Linux difference:
+On Linux:   sed -i 's/foo/bar/' file.txt         works fine
+On macOS:   sed -i '' 's/foo/bar/' file.txt      must provide suffix (even empty '')
+            sed -i.bak 's/foo/bar/' file.txt      or use a real suffix
+
+Always test without -i first. Run the command without -i, check the output
+looks right, then add -i to actually apply the changes.
+
+
+-e (multiple expressions)
+--------------------------
+
+-e lets you chain multiple commands in a single sed call:
+
+    sed -e 's/foo/bar/' -e 's/hello/world/' -e '/^#/d' file.txt
+
+Each -e adds one command. They run in order on each line. So for every line:
+    first it runs s/foo/bar/
+    then it runs s/hello/world/
+    then it runs /^#/d
+
+You can also separate commands with a semicolon, which is shorter:
+
+    sed 's/foo/bar/; s/hello/world/; /^#/d' file.txt
+
+Both do the exact same thing. The semicolon style is shorter. The -e style is
+easier to read when commands get complex.
+
+Why use this instead of piping multiple seds?
+
+    sed 's/foo/bar/' file.txt | sed 's/hello/world/'    SLOWER
+
+With piping, the file is read once, then the output is read again by the second
+sed. With -e or semicolons, the file is read once and all commands run in one
+pass. For big files this is significantly faster.
+
+
+-E (extended regular expressions)
+-----------------------------------
+
+sed supports two regex flavors. Basic regex (the default) and extended regex
+(enabled with -E).
+
+With basic regex (no -E flag), these characters need backslashes to work as
+special operators:
+    \( \)    for capture groups
+    \|       for alternation (OR)
+    \+       for "one or more"
+    \?       for "zero or one"
+    \{ \}    for repetition counts
+
+With -E, those same characters work WITHOUT backslashes:
+    ( )      for capture groups
+    |        for alternation (OR)
+    +        for "one or more"
+    ?        for "zero or one"
+    { }      for repetition counts
+
+Example without -E:
+    sed 's/\(hello\)\|\(world\)/found/g' file.txt
+
+Same thing with -E:
+    sed -E 's/(hello)|(world)/found/g' file.txt
+
+Use -E whenever your pattern is anything beyond simple text. It is much cleaner.
+
+
+================================================================================
+PART 4 — ADDRESSES (TELLING SED WHICH LINES TO WORK ON)
+
+An address restricts a command to specific lines. Without an address, the
+command runs on every single line. With an address, only matching lines get the
+command applied.
+
+Address types: line numbers, patterns (regex), ranges, and combinations.
+
+
+LINE NUMBER ADDRESSES
+----------------------
+
+    sed -n '1p' file.txt          only line 1 (the first line)
+    sed -n '5p' file.txt          only line 5
+    sed -n '$p' file.txt          only the last line ($ always means last line)
+    sed -n '1,5p' file.txt        lines 1 through 5 (inclusive)
+    sed -n '3,$p' file.txt        line 3 through the end of the file
+    sed -n '5,10p' file.txt       lines 5 through 10
+
+
+STEP ADDRESSES (every Nth line)
+---------------------------------
+
+    sed -n '1~2p' file.txt        every 2nd line starting from 1 (1, 3, 5, 7...)
+    sed -n '2~2p' file.txt        every 2nd line starting from 2 (2, 4, 6, 8...)
+    sed -n '0~3p' file.txt        every 3rd line (3, 6, 9, 12...)
+    sed -n '1~1p' file.txt        every line (same as no address)
+
+The format is FIRST~STEP.
+    first = which line to start on
+    step  = how many lines to skip between matches
+
+Note: step addresses (the ~ syntax) are a GNU sed extension. They work on Linux
+but may not work on macOS's built-in sed. On macOS, use gsed (install with brew install gnu-sed).
+
+
+PATTERN (REGEX) ADDRESSES
+---------------------------
+
+Wrap your pattern in / / and sed will apply the command to lines that match:
+
+    sed -n '/error/p' file.txt         lines containing "error"
+    sed -n '/^#/p' file.txt            lines that START with #
+    sed -n '/\.txt$/p' file.txt        lines that END with .txt
+    sed '/^$/d' file.txt               delete empty lines
+    sed '/error/d' file.txt            delete lines containing "error"
+    sed -n '/ERROR\|WARNING/p' file.txt   lines containing ERROR or WARNING
+                                          (with -E flag: /ERROR|WARNING/)
+
+What "containing" means: /error/ matches any line that has "error" anywhere in
+it. It does not have to be the whole line. "there was an error here" matches.
+"errors" also matches. To match only the exact word, use more specific patterns
+like /\berror\b/ (word boundaries — GNU sed supports this).
+
+
+RANGE ADDRESSES
+----------------
+
+You can combine two addresses with a comma to create a range. The command runs
+on all lines from the first match to the next match of the second pattern.
+
+    sed -n '/start/,/end/p' file.txt
+
+This means: when you see a line matching "start", start printing. Keep printing
+until you see a line matching "end". Print that line too. Then stop.
+
+If "start" appears again later in the file, the range activates again.
+
+You can mix line numbers and patterns in ranges:
+
+    sed -n '1,/end/p' file.txt        from line 1 until the first "end" match
+    sed -n '/start/,$p' file.txt      from first "start" match to end of file
+    sed -n '5,/end/p' file.txt        from line 5 until first "end" match
+
+Real-world example — extract an XML block:
+
+    sed -n '/<tlLogic/,/<\/tlLogic>/p' baku.net.xml
+
+This prints everything from a line containing <tlLogic to the line containing
+</tlLogic>, inclusive. If there are multiple such blocks, it prints all of them.
+
+
+NEGATING AN ADDRESS WITH !
+---------------------------
+
+Put ! right after any address to invert it — the command runs on lines that
+do NOT match:
+
+    sed -n '/error/!p' file.txt         print lines that do NOT contain "error"
+    sed '1!d' file.txt                  delete everything EXCEPT line 1
+    sed '2,5!d' file.txt                delete everything OUTSIDE lines 2-5
+    sed '/^#/!s/foo/bar/' file.txt      substitute on non-comment lines only
+
+The ! goes between the address and the command, with nothing in between.
+
+
+================================================================================
+PART 5 — COMMANDS (WHAT TO DO WITH THE MATCHING LINES)
+
+The command letter goes right after the address (or at the start if no address).
+
+
+p — print
+----------
+
+Prints the current Pattern Space (the current line) to stdout.
+
+    sed -n '/error/p' file.txt
+
+Without -n, p causes lines to print twice — once from p and once from the
+automatic print at the end of the cycle. That is almost never what you want.
+Almost always use -n with p.
+
+What happens if you use p without -n:
+
+    If file.txt has 3 lines and none contain "error":
+        sed '/error/p' file.txt
+    Output: all 3 lines once each (auto-print only, p never triggered)
+
+    If line 2 contains "error":
+        sed '/error/p' file.txt
+    Output: line 1 (once), line 2 (TWICE — from p and auto-print), line 3 (once)
+
+    This double-printing is why -n and p almost always go together.
+
+
+d — delete
+-----------
+
+Removes the current line from output. sed skips the rest of the commands for
+this line, does NOT print it, and moves to the next line.
+
+    sed '/^#/d' file.txt          remove all comment lines (starting with #)
+    sed '/^$/d' file.txt          remove all empty lines
+    sed '1d' file.txt             remove the first line (useful to skip headers)
+    sed '$d' file.txt             remove the last line
+    sed '1,3d' file.txt           remove lines 1, 2, and 3
+
+Remember: this only removes from the OUTPUT. Without -i, the original file is
+unchanged. With -i, the lines are gone from the file.
+
+What happens when you try to delete without -i:
+
+    sed '/error/d' file.txt       the output has no error lines
+    cat file.txt                  the file still has all lines — correct behavior
+    sed -i '/error/d' file.txt    NOW the file is modified
+
+
+q — quit
+---------
+
+Stop processing after the current line. sed exits immediately.
+
+    sed '10q' file.txt            print lines 1-10, then stop (like head -10)
+    sed '/error/q' file.txt       print lines until the first "error" line, then stop
+                                  (the error line IS printed before quitting)
+
+Q (capital Q) is like q but does NOT print the current line before quitting:
+
+    sed '10Q' file.txt            print lines 1-9, stop before printing line 10
+
+This is useful for large files when you only need the beginning. sed stops
+reading after the quit, so it is much faster than reading the whole file.
+
+
+= — print line number
+----------------------
+
+Prints the line number of the current line to stdout (not the line content itself).
+
+    sed -n '/error/=' file.txt    prints the line numbers where "error" appears
+    sed '=' file.txt              prints line number before every line
+
+What you get when combining = with p to see numbers AND content:
+
+    sed -n '/error/{=;p}' file.txt
+
+The { } groups multiple commands. For lines matching /error/, first run =
+(print line number), then run p (print the line). Output looks like:
+    42
+    this line has an error in it
+    78
+    another error here
+
+
+a — append (add text after a line)
+------------------------------------
+
+Adds a new line of text AFTER the matched line.
+
+    sed '/pattern/a\New line of text here' file.txt
+
+Or on GNU sed you can write it without the backslash:
+    sed '/pattern/a New line of text here' file.txt
+
+Example — add a blank line after every section header:
+    sed '/^==/a\\' file.txt
+
+What happens when multiple lines match:
+
+    If three lines match /pattern/, the new text is inserted after EACH of them.
+    The file grows by three lines — one after each match.
+
+
+i — insert (add text before a line)
+-------------------------------------
+
+Like a, but adds the new text BEFORE the matched line.
+
+    sed '/pattern/i\New line inserted before match' file.txt
+
+Example — add a header before the first line:
+    sed '1i\--- START OF FILE ---' file.txt
+
+
+c — change (replace the entire line)
+--------------------------------------
+
+Replaces the entire matched line with new text.
+
+    sed '/pattern/c\This line replaces the matched one' file.txt
+
+This is different from s///. The s command replaces part of a line.
+c replaces the whole line regardless of what was in it.
+
+What happens when you use c on a range (this surprises people):
+
+    sed '2,4c\LINES 2-4 WERE REPLACED' file.txt
+
+You might expect three new lines (one per replaced line). But c on a range
+outputs just ONE new line for the entire range. If you want one replacement
+per line in a range, use s/// instead:
+    sed '2,4s/.*/new content/' file.txt
+    (the .* matches the whole line content and replaces it)
+
+
+r — read from file (insert file contents)
+------------------------------------------
+
+Inserts the contents of another file into the output after each matched line.
+
+    sed '/INSERT_HERE/r extra.txt' main.txt
+
+For every line in main.txt that contains "INSERT_HERE", the full contents of
+extra.txt are inserted right after that line.
+
+What happens when the pattern matches multiple times:
+
+    extra.txt contents get inserted multiple times — once after each match.
+    If you only want it inserted once, use a line number address:
+    sed '5r extra.txt' file.txt    (insert after line 5 specifically)
+
+
+w — write to file
+------------------
+
+Writes the matched lines to a file.
+
+    sed -n '/error/w errors.txt' file.txt
+
+This pulls out all lines containing "error" and saves them to errors.txt.
+The rest of the lines are ignored (because of -n).
+
+The file is created (or overwritten) at the start of the sed run. If no lines
+match, you get an empty file.
+
+
+y — transliterate (character by character replacement)
+-------------------------------------------------------
+
+Replaces individual characters. Similar to the tr command.
+
+    sed 'y/abc/ABC/' file.txt    replace a with A, b with B, c with C
+    sed 'y/aeiou/AEIOU/' file.txt    capitalize all vowels
+
+The two character sets must be the same length. Each character in the first set
+is replaced by the corresponding character in the second set.
+
+What happens if you try multi-character strings with y:
+
+    y works one character at a time. 'y/hello/world/' replaces h with w, e with
+    o, l with r, l with l (no change), o with d. It does NOT replace the string
+    "hello" with "world". For string replacement, use s///.
+
+
+================================================================================
+PART 6 — THE s COMMAND (SUBSTITUTE) — COMPLETE BREAKDOWN
+
+s is the most used command in sed. It replaces text. It has many options that
+most people never learn.
+
+
+BASIC STRUCTURE
+----------------
+
+    s/pattern/replacement/flags
+
+Three parts separated by the delimiter (/ by default):
+    pattern      what to search for (a regular expression)
+    replacement  what to replace it with
+    flags        optional modifiers
+
+
+WHAT HAPPENS WITHOUT FLAGS
+---------------------------
+
+    sed 's/the/THE/' file.txt
+
+For each line, finds the FIRST occurrence of "the" and replaces it. If a line
+has "the" five times, only the first one changes.
+
+    Input:  the cat and the dog and the fish
+    Output: THE cat and the dog and the fish
+
+Only the first "the" became "THE". This catches people off guard.
+
+
+THE g FLAG — GLOBAL (REPLACE ALL OCCURRENCES)
+----------------------------------------------
+
+    sed 's/the/THE/g' file.txt
+
+    Input:  the cat and the dog and the fish
+    Output: THE cat and THE dog and THE fish
+
+Now all three were replaced. g means "keep going after the first match".
+
+Without g: replaces first match per line.
+With g: replaces all matches per line.
+
+
+THE NUMBER FLAG — REPLACE ONLY THE Nth OCCURRENCE
+---------------------------------------------------
+
+    sed 's/the/THE/2' file.txt    replace only the 2nd occurrence per line
+    sed 's/the/THE/3' file.txt    replace only the 3rd occurrence per line
+
+    Input:  the cat and the dog and the fish
+    With /2: the cat and THE dog and the fish
+    With /3: the cat and the dog and THE fish
+
+You can combine the number with g to start replacing from the Nth occurrence:
+
+    sed 's/the/THE/2g' file.txt   replace 2nd, 3rd, 4th... all from 2nd onward
+
+    Input:  the cat and the dog and the fish
+    Output: the cat and THE dog and THE fish
+
+
+THE I FLAG — CASE INSENSITIVE
+------------------------------
+
+    sed 's/hello/world/I' file.txt
+
+Matches "hello", "Hello", "HELLO", "HeLLo" — any capitalization. The
+replacement "world" is always exactly what you write (case insensitive only
+affects the search, not the replacement).
+
+    Input:  Hello there, HELLO world, hello friend
+    Output: world there, world world, world friend
+
+Combine with g for all occurrences: sed 's/hello/world/gI' file.txt
+
+
+THE p FLAG — PRINT IF SUBSTITUTION HAPPENED
+--------------------------------------------
+
+    sed -n 's/error/ERROR/p' file.txt
+
+With -n, nothing prints by default. The p flag on s makes it print the line
+only if the substitution actually happened. This lets you see which lines changed.
+
+Without -n, the p flag causes changed lines to print twice (once from p, once
+from auto-print). So always use -n when using /p on a substitution.
+
+
+THE & SYMBOL — REUSE THE MATCHED TEXT IN REPLACEMENT
+------------------------------------------------------
+
+In the replacement part, & means "whatever the pattern matched". You do not
+need to know in advance what the match will be.
+
+    echo "hello" | sed 's/hello/[&]/'
+    Output: [hello]
+
+    sed 's/[0-9]\+/(&)/g' file.txt
+    This wraps every number in parentheses without knowing the numbers.
+    Input:  I have 42 apples and 7 oranges
+    Output: I have (42) apples and (7) oranges
+
+Another example — quote every word starting with a capital letter:
+
+    sed 's/[A-Z][a-z]*/"&"/g' file.txt
+    Input:  The quick Brown fox
+    Output: "The" quick "Brown" fox
+
+What & captures: & captures EVERYTHING the entire pattern matched. If your
+pattern is [0-9]\+ and the line has "42", & is "42". If the line has "1234",
+& is "1234". You do not know the value — sed fills it in automatically.
+
+
+CAPTURE GROUPS — REUSE PARTS OF THE MATCH
+-------------------------------------------
+
+With -E, put ( ) around part of the pattern to capture it. Then use \1 for
+the first group, \2 for the second, and so on in the replacement.
+
+Without -E, use \( and \) for groups — same concept, just uglier to write.
+
+Example — swap first and last name:
+
+    echo "John Smith" | sed -E 's/([A-Za-z]+) ([A-Za-z]+)/\2, \1/'
+    Output: Smith, John
+
+    \1 captured "John" (first group)
+    \2 captured "Smith" (second group)
+    The replacement \2, \1 becomes "Smith, John"
+
+Example — reformat a date from YYYY-MM-DD to DD/MM/YYYY:
+
+    echo "2024-03-15" | sed -E 's/([0-9]{4})-([0-9]{2})-([0-9]{2})/\3\/\2\/\1/'
+    Output: 15/03/2024
+
+    \1 = 2024, \2 = 03, \3 = 15, rearranged as \3/\2/\1
+
+Example — wrap all numbers in square brackets:
+
+    sed -E 's/([0-9]+)/[\1]/g' file.txt
+    Input:  I have 42 apples
+    Output: I have [42] apples
+
+What happens if you try more than 9 groups:
+
+    sed supports \1 through \9 only. If you need more than 9 capture groups,
+    use perl or awk instead.
+
+
+SUBSTITUTION ON SPECIFIC LINE RANGES
+--------------------------------------
+
+Combine an address range with s/// to limit where substitution happens:
+
+    sed '/blockStart/,/blockEnd/ s/old/new/g' file.txt
+
+This runs the substitution only on lines between blockStart and blockEnd.
+Lines outside that range are untouched.
+
+Real-world example — change a value only inside a specific XML block:
+
+    sed '/tlLogic id="9733"/,/<\/tlLogic>/ s/duration="39"/duration="60"/g' baku.net.xml
+
+The duration replacement ONLY happens inside that one tlLogic block. Even if
+"duration=39" appears elsewhere in the file, those are safe.
+
+
+================================================================================
+PART 7 — REGULAR EXPRESSIONS IN SED
+
+sed uses regular expressions to find text. Understanding regex is what separates
+beginner sed from advanced sed.
+
+
+ANCHORS — MATCHING POSITIONS
+------------------------------
+
+Anchors match positions in the line, not actual characters.
+
+    ^    start of line
+    $    end of line
+
+    /^hello/    matches lines that START with "hello"
+                "hello world" — matches
+                "say hello"   — does NOT match (hello is not at the start)
+
+    /world$/    matches lines that END with "world"
+                "hello world" — matches
+                "world hello" — does NOT match
+
+    /^$/        matches empty lines (start immediately followed by end)
+
+    /^hello$/   matches lines that contain ONLY "hello" and nothing else
+
+
+THE DOT — MATCH ANY CHARACTER
+-------------------------------
+
+    .    matches any single character except newline
+
+    /h.t/   matches hat, hit, hot, hut, h8t, h t, h!t
+
+What happens if you forget to escape a literal dot:
+
+    /file.txt/ matches "file.txt" but ALSO "fileXtxt", "file1txt", etc.
+    because . means any character.
+    To match a literal dot, escape it: /file\.txt/
+    The backslash tells sed "this dot is a real dot, not the any-char operator".
+
+
+CHARACTER CLASSES — MATCH A SET OF CHARACTERS
+-----------------------------------------------
+
+Square brackets define a set of characters to match (any one of them):
+
+    [abc]       matches a, b, or c
+    [a-z]       matches any lowercase letter
+    [A-Z]       matches any uppercase letter
+    [0-9]       matches any digit
+    [a-zA-Z]    matches any letter (upper or lower)
+    [a-zA-Z0-9] matches any letter or digit
+    [^abc]      matches anything EXCEPT a, b, c (^ inside [] means NOT)
+    [^0-9]      matches anything that is NOT a digit
+
+Examples:
+
+    sed 's/[aeiou]/*/g' file.txt      replace all vowels with *
+    sed '/^[0-9]/d' file.txt          delete lines starting with a digit
+    sed -n '/^[A-Z]/p' file.txt       print lines starting with a capital letter
+
+
+POSIX CLASSES — PORTABLE CHARACTER CLASSES
+-------------------------------------------
+
+Named character classes that work the same on all systems:
+
+    [[:alpha:]]    any letter (same as [a-zA-Z] for ASCII)
+    [[:digit:]]    any digit (same as [0-9])
+    [[:alnum:]]    any letter or digit
+    [[:space:]]    any whitespace (space, tab, newline)
+    [[:upper:]]    uppercase letters
+    [[:lower:]]    lowercase letters
+    [[:punct:]]    punctuation characters
+
+Note the double brackets — [[:alpha:]] not [:alpha:].
+
+    sed 's/[[:digit:]]//g' file.txt     remove all digits from every line
+    sed 's/[[:space:]]*$//' file.txt    remove trailing whitespace
+
+
+QUANTIFIERS — HOW MANY TIMES SOMETHING REPEATS
+------------------------------------------------
+
+Quantifiers go after a character or group and say how many times it appears.
+
+Without -E (basic regex):
+    *     zero or more
+    \+    one or more
+    \?    zero or one
+    \{n\}    exactly n times
+    \{n,\}   n or more times
+    \{n,m\}  between n and m times
+
+With -E (extended regex, cleaner):
+    *     zero or more
+    +     one or more
+    ?     zero or one
+    {n}   exactly n times
+    {n,}  n or more times
+    {n,m} between n and m times
+
+Examples with -E:
+
+    /a+/        matches a, aa, aaa (one or more a's)
+    /a*/        matches empty string, a, aa, aaa (zero or more)
+    /ab?c/      matches ac or abc (the b is optional)
+    /[0-9]{4}/  matches exactly four digits in a row
+    /[0-9]{2,4}/ matches two to four digits
+
+What happens with * when you expect "one or more":
+
+    This is a common confusion. * means ZERO or more.
+    /ab*c/ matches: ac, abc, abbc — but ALSO just ac (zero b's allowed)
+    If you want at least one b, use +: /ab+c/ matches abc, abbc
+    but NOT ac (requires at least one b).
+
+
+ALTERNATION — MATCH THIS OR THAT
+----------------------------------
+
+With -E:
+    /cat|dog/   matches lines containing "cat" or "dog"
+
+Without -E:
+    /cat\|dog/  same thing, but needs backslash before |
+
+Example:
+
+    sed -E -n '/error|warning|critical/p' log.txt
+    Prints lines that contain any of those three words.
+
+
+ESCAPING SPECIAL CHARACTERS
+-----------------------------
+
+These characters have special meaning in regex: . * [ ] ^ $ \ /
+
+To match the literal character, escape it with \:
+
+    \.    literal dot
+    \*    literal asterisk
+    \[    literal opening bracket
+    \$    literal dollar sign
+    \\    literal backslash
+    \/    literal forward slash (or just change the delimiter instead)
+
+    sed 's/file\.txt/file.log/' data.txt    replaces "file.txt" not "fileXtxt"
+    sed 's/1\+1/2/' math.txt               replaces literal "1+1" with "2"
+
+
+================================================================================
+PART 8 — GROUPING COMMANDS WITH { }
+
+When you want to run multiple commands on the same address, put them inside { }:
+
+    sed -n '/error/{=;p}' file.txt
+
+For lines matching /error/, run = (print line number) then p (print the line).
+
+You can also write each command on its own line for readability:
+
+    sed -n '/error/{
+        =
+        p
+    }' file.txt
+
+Grouping with ranges:
+
+    sed -n '/start/,/end/{
+        /important/p
+    }' file.txt
+
+This means: within the start/end range, print only lines containing "important".
+Lines outside the range are ignored. Lines inside but not matching "important"
+are also ignored (because of -n).
+
+
+================================================================================
+PART 9 — ADVANCED PATTERNS USED IN REAL WORK
+
+
+REMOVE TRAILING WHITESPACE
+---------------------------
+
+    sed 's/[[:space:]]*$//' file.txt
+
+[[:space:]]* matches zero or more whitespace characters.
+$ anchors to the end of the line.
+Together: find whitespace at the end of each line, replace with nothing.
+
+What happens on lines with no trailing whitespace:
+
+    [[:space:]]* matches zero whitespace too (zero or more). That means it matches
+    the end position even on clean lines. Replacing "nothing" with nothing is a
+    no-op — the line is unchanged. The * quantifier makes this safe on all lines.
+
+
+ADD TEXT TO EVERY LINE
+-----------------------
+
+    sed 's/^/PREFIX: /' file.txt     add "PREFIX: " to the start of every line
+    sed 's/$/ SUFFIX/' file.txt      add " SUFFIX" to the end of every line
+    sed 's/^/    /' file.txt         indent every line by 4 spaces
+
+^ and $ match positions, not characters. "Replacing ^" means inserting text
+at position zero — before any character. "Replacing $" means inserting after
+the last character.
+
+
+EXTRACT A BLOCK TO A SEPARATE FILE
+------------------------------------
+
+    sed -n '/<section>/,/<\/section>/p' file.xml > section.xml
+
+-n silences everything. The range matches opening to closing tag. p prints only
+the matched range. > redirects just that block to a new file.
+
+What happens if there are multiple sections:
+
+    They all get extracted into section.xml. To get only the FIRST block, add
+    a quit after the closing tag:
+    sed -n '/<section>/,/<\/section>/{ p; /<\/section>/q }' file.xml > section.xml
+
+
+DELETE A SPECIFIC BLOCK
+------------------------
+
+    sed '/<section>/,/<\/section>/d' file.xml
+
+Deletes all lines from opening to closing tag. The rest of the file remains.
+This also removes multiple blocks if there are more than one.
+
+
+REPLACE WITHIN A SPECIFIC BLOCK ONLY
+--------------------------------------
+
+    sed '/blockStart/,/blockEnd/ s/old/new/g' file.txt
+
+The substitution only runs inside the block. Everything else is safe.
+
+What happens if blockEnd never appears:
+
+    Once /blockStart/ matches, the range stays active until /blockEnd/ matches.
+    If blockEnd never appears after blockStart, the range extends to the end of
+    the file. So everything from blockStart onward would get the substitution.
+    Be careful with this — always verify your end pattern matches.
+
+
+REMOVE HTML/XML TAGS
+---------------------
+
+    sed 's/<[^>]*>//g' file.html
+
+<       matches the opening <
+[^>]*   matches any characters that are NOT > (zero or more of them)
+>       matches the closing >
+Together: matches a complete tag and removes it.
+
+    Input:  <b>Hello</b> <i>world</i>
+    Output: Hello world
+
+What happens with multi-line tags:
+
+    This does not work for tags that span multiple lines. sed processes line
+    by line, so it never sees across line boundaries. For multi-line tags,
+    use awk or perl.
+
+
+REMOVE BLANK LINES
+-------------------
+
+    sed '/^$/d' file.txt
+
+^$ means start immediately followed by end — a completely empty line.
+
+What happens with lines that have only spaces (not truly empty):
+
+    /^$/ only matches completely empty lines. A line with just spaces does not
+    match because there are characters between ^ and $.
+    To also remove whitespace-only lines:
+    sed '/^[[:space:]]*$/d' file.txt
+    This matches lines with zero or more whitespace characters and nothing else.
+
+
+PRINT LINES BETWEEN TWO PATTERNS (NOT INCLUDING THE MARKER LINES)
+-------------------------------------------------------------------
+
+    sed -n '/start/,/end/{ /start/d; /end/d; p }' file.txt
+
+The range /start/,/end/ activates. Inside the block, we delete lines matching
+/start/ and /end/ before printing. Result: only the lines BETWEEN the markers
+are printed, not the markers themselves.
+
+
+SIMULATE head — PRINT FIRST N LINES
+--------------------------------------
+
+    sed -n '1,10p' file.txt      print lines 1-10
+    sed '11,$d' file.txt         delete from line 11 to end (same result)
+    sed '10q' file.txt           print lines 1-10 then quit (most efficient)
+
+The q version is fastest for large files because sed actually stops reading
+after line 10. The other two still read the whole file even though they only
+output the first 10 lines.
+
+
+IN-PLACE EDIT WITH MULTIPLE CHANGES AND BACKUP
+------------------------------------------------
+
+    sed -i.bak \
+        -e 's/foo/bar/g' \
+        -e 's/hello/world/g' \
+        -e '/^#/d' \
+        file.txt
+
+This modifies file.txt in place, making three changes in one pass, and saves
+a backup as file.txt.bak. Better than running three separate sed -i commands
+because the file is only written once.
+
+
+================================================================================
+PART 10 — HOLD SPACE (THE SECOND BUFFER)
+
+sed has two buffers:
+    Pattern Space   the current line (where all normal work happens)
+    Hold Space      a save area you control manually (starts empty each file)
+
+Hold Space commands:
+
+    h    copy Pattern Space into Hold Space (overwrites Hold Space)
+    H    append Pattern Space to Hold Space (adds to what is already there)
+    g    copy Hold Space into Pattern Space (overwrites Pattern Space)
+    G    append Hold Space to Pattern Space (adds below current line)
+    x    swap Pattern Space and Hold Space
+
+This is the most advanced part of sed. Most everyday tasks do not need it.
+But understanding it shows you what sed can really do.
+
+
+PRACTICAL EXAMPLE — PRINT THE LINE BEFORE A MATCH
+---------------------------------------------------
+
+Problem: print the line that comes BEFORE a line containing "error".
+
+    sed -n '/error/{x;p}; h' file.txt
+
+How this works, step by step:
+
+    For every line, sed does two things (in order):
+    First: check if it matches /error/. If yes, swap x (Pattern Space and Hold
+    Space exchange contents — now Pattern Space has the PREVIOUS line), then p
+    (print it). Then swap back is NOT done, but h below re-saves it.
+    Second: h — copy the current line into Hold Space, overwriting whatever
+    was there.
+
+    So Hold Space always has the PREVIOUS line. When we find an error line,
+    we swap to get the previous line into Pattern Space, print it, and move on.
+
+
+PRACTICAL EXAMPLE — REVERSE ORDER OF ALL LINES
+------------------------------------------------
+
+    sed -n '1!G; h; $p' file.txt
+
+Line by line explanation for a 3-line file ("A", "B", "C"):
+
+    Processing A (line 1):
+        1! means "not line 1" — G is skipped.
+        h: copy A into Hold Space. Hold Space = A.
+        $ check: not last line, no print.
+
+    Processing B (line 2):
+        1!G: append Hold Space (A) to Pattern Space (B). Pattern Space = B\nA.
+        h: save B\nA to Hold Space.
+        $ check: not last line, no print.
+
+    Processing C (line 3, the last):
+        1!G: append Hold Space (B\nA) to Pattern Space (C). Pattern Space = C\nB\nA.
+        h: save C\nB\nA to Hold Space.
+        $ check: this IS the last line — p prints C\nB\nA.
+
+    Output: C, then B, then A. Lines reversed.
+
+
+PRACTICAL EXAMPLE — JOIN CONSECUTIVE LINES
+--------------------------------------------
+
+The N command reads the NEXT line and appends it to the Pattern Space
+with a \n in between:
+
+    sed 'N; s/\n/ /' file.txt
+
+N reads the next line into Pattern Space. Then s/\n/ / replaces the newline
+between them with a space. Result: pairs of lines get joined.
+
+    Input:       Output:
+    line one     line one line two
+    line two     line three line four
+    line three
+    line four
+
+What happens if the file has an odd number of lines:
+
+    The last line has no "next line" to join with. On GNU sed, that last line
+    is just printed alone. The behavior varies by sed version, so test it.
+
+
+================================================================================
+PART 11 — SED IN PIPELINES AND WITH OTHER COMMANDS
+
+sed works great as part of a pipeline. The output of one command becomes
+sed's input. No file is needed.
+
+    cat file.txt | sed 's/foo/bar/'
+    echo "hello world" | sed 's/world/sed/'
+    ls -la | sed '/^total/d'                   remove the "total" line from ls output
+    ps aux | sed -n '/nginx/p'                 show only nginx processes
+    curl -s https://example.com | sed 's/<[^>]*>//g'   strip HTML tags from a webpage
+
+
+COMBINING WITH grep
+--------------------
+
+    grep "error" log.txt | sed 's/error/ERROR/'
+
+grep finds the lines first, sed modifies them. This is more efficient than
+having sed search through every line when grep can do the filtering faster.
+
+    sed -n '/error/p' log.txt | sed 's/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/DATE/g'
+
+Find error lines, then replace dates with the word DATE.
+
+
+EDITING CONFIG FILES IN SCRIPTS
+---------------------------------
+
+    sed -i "s/version = .*/version = 2.0/" config.txt
+
+The .* after "version = " matches the rest of the line, so it replaces the
+entire value regardless of what it was before. This is the standard pattern for
+updating config values in shell scripts.
+
+    sed -i "s/^#*\s*PORT=.*/PORT=8080/" /etc/myapp.conf
+
+This handles lines with or without a leading # comment marker and changes the
+PORT value. The ^#* matches zero or more # signs at the start.
+
+
+USING sed ON COMMAND OUTPUT
+----------------------------
+
+    date | sed 's/ /-/g'
+    (replace spaces in date output with dashes)
+
+    hostname | sed 's/\..*//'
+    (remove everything from the first dot onward — strip domain from hostname)
+
+    cat /etc/passwd | sed -n '/^root/p'
+    (show only the root entry from passwd)
+
+
+================================================================================
+PART 12 — COMMON MISTAKES AND WHAT ACTUALLY HAPPENS
+
+
+MISTAKE 1: forgetting -n with p
+---------------------------------
+
+    sed '/error/p' log.txt
+
+You expected to see only error lines. Instead you see all lines, with error
+lines appearing twice.
+
+What actually happens: sed auto-prints every line. Then for lines matching
+/error/, p prints again. Result: non-error lines appear once, error lines twice.
+
+Fix: add -n to suppress auto-printing:
+    sed -n '/error/p' log.txt
+
+
+MISTAKE 2: using / in patterns without handling it
+----------------------------------------------------
+
+    sed 's/<\/div>//' file.html       works but ugly with all the backslashes
+    sed 's|</div>||' file.html        cleaner — use | as delimiter instead
+
+
+MISTAKE 3: expecting . to mean a literal dot
+---------------------------------------------
+
+    sed '/file.txt/d' listing.txt
+
+You expected to delete lines with "file.txt". But . means any character, so
+this also deletes "fileXtxt", "file1txt", "file_txt", etc.
+
+Fix: escape the dot:
+    sed '/file\.txt/d' listing.txt
+
+
+MISTAKE 4: running -i without testing first
+--------------------------------------------
+
+    sed -i 's/old/new/' important_file.txt
+
+And then realizing the pattern was wrong and the file is now messed up.
+
+Fix: always test first:
+    sed 's/old/new/' important_file.txt       look at the output carefully
+    sed -i.bak 's/old/new/' important_file.txt    then apply with backup
+
+
+MISTAKE 5: range never ending
+-------------------------------
+
+    sed -n '/start/,/end/p' file.txt
+
+If "end" never appears after "start" in your file, sed prints from "start"
+all the way to the end of the file. It does not error out — it just keeps
+the range active. Always verify your end pattern actually matches.
+
+
+MISTAKE 6: substitution not matching because of case
+-----------------------------------------------------
+
+    sed 's/Error/ERROR/' log.txt
+
+This does not match "error" or "ERROR" — only "Error" (capital E, lowercase rest).
+
+Fix: use the I flag for case-insensitive matching:
+    sed 's/Error/ERROR/I' log.txt
+    or match all variants:
+    sed 's/[Ee]rror/ERROR/' log.txt
+
+
+MISTAKE 7: c command on a range replacing everything with one line
+-------------------------------------------------------------------
+
+    sed '2,4c\new content' file.txt
+
+You expected lines 2, 3, and 4 to each become "new content" (three lines).
+Instead you get just ONE "new content" line replacing the entire range.
+
+Fix: use s/// if you want per-line replacement:
+    sed '2,4s/.*/new content/' file.txt
+    (.* matches the entire line content, replacing it with "new content")
+
+
+MISTAKE 8: * matching empty strings unexpectedly
+--------------------------------------------------
+
+    sed 's/[0-9]*/(&)/' file.txt
+
+[0-9]* means zero or more digits. Zero is included. So on a line like
+"hello world", [0-9]* matches the empty string at the very start, and the
+output becomes "()hello world" — wrapping nothing in parentheses.
+
+Fix: use [0-9]+ (with -E) to require at least one digit:
+    sed -E 's/[0-9]+/(&)/' file.txt
+
+
+MISTAKE 9: sed on macOS behaving differently from Linux
+---------------------------------------------------------
+
+macOS ships with BSD sed. Linux ships with GNU sed. They have differences:
+
+    sed -i 's/foo/bar/' file.txt       works on Linux
+    sed -i 's/foo/bar/' file.txt       FAILS on macOS (needs empty string suffix)
+    sed -i '' 's/foo/bar/' file.txt    works on macOS
+
+    The ~ step address syntax (1~2) is GNU only, does not work on macOS sed.
+
+Fix for macOS: install GNU sed with brew install gnu-sed. It installs as gsed.
+Then use gsed instead of sed for full GNU compatibility.
