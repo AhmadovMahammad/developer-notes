@@ -1,0 +1,80 @@
+--- START OF FILE ---
+
+# Server Configuration File
+# Last updated: 2024-03-15
+# Author: admin
+
+server_name = OldServer
+server_ip = 192.168.1.100
+PORT = 8080
+PORT = 8080
+debug_mode = true
+version = 1.4.2
+
+# Database settings
+db_host = localhost
+db_name = myDatabase
+db_user = root
+db_pass = secret123
+db_port = 5432
+
+# allowed users
+john smith
+mary jones
+bob brown
+alice cooper
+dave wilson
+
+# Log entries
+2024-01-10 INFO  Server started successfully
+2024-01-10 INFO  Listening on port 8080
+2024-01-11 ERROR Database connection failed
+2024-01-11 ERROR Retrying connection... attempt 1
+2024-01-11 ERROR Retrying connection... attempt 2
+2024-01-12 INFO  Database reconnected
+2024-01-12 WARNING Disk usage above 80 percent
+2024-01-13 INFO  Backup completed
+
+# HTML snippet
+new line after snippets
+new line after snippet
+new line after snippets
+<div class="container">
+  <h1>Welcome to OldServer</h1>
+  <p>Version 1.4.2 is running</p>
+  <p>Contact: admin@oldserver.com</p>
+</div>
+
+this line has   trailing spaces   
+   this line has leading spaces
+this line is perfectly clean
+
+hello hello hello
+text1.txt
+text2.txt
+avatar-updated.png
+<tlLogic id="10258723423" type="static" programID="0" offset="0">
+        <phase duration="79" state="GG"/>
+        <phase duration="6"  state="yy"/>
+        <phase duration="5"  state="rr"/>
+    </tlLogic>
+    <tlLogic id="10258723424" type="static" programID="0" offset="0">
+        <phase duration="79" state="GG"/>
+        <phase duration="6"  state="yy"/>
+        <phase duration="5"  state="rr"/>
+    </tlLogic>
+    <tlLogic id="11045925725" type="static" programID="0" offset="0">
+        <phase duration="79" state="GG"/>
+        <phase duration="6"  state="yy"/>
+        <phase duration="5"  state="rr"/>
+    </tlLogic>
+    <tlLogic id="11045925726" type="static" programID="0" offset="0">
+        <phase duration="79" state="GGGG"/>
+        <phase duration="6"  state="yyyy"/>
+        <phase duration="5"  state="rrrr"/>
+    </tlLogic>
+    <tlLogic id="11313952017" type="static" programID="0" offset="0">
+        <phase duration="79" state="GG"/>
+        <phase duration="6"  state="yy"/>
+        <phase duration="5"  state="rr"/>
+    </tlLogic>

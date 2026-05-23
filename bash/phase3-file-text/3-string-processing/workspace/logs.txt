@@ -1,0 +1,8 @@
+2024-01-10 INFO  Server started successfully
+2024-01-10 INFO  Listening on port 8080
+2024-01-11 ERROR Database connection failed
+2024-01-11 ERROR Retrying connection... attempt 1
+2024-01-11 ERROR Retrying connection... attempt 2
+2024-01-12 INFO  Database reconnected
+2024-01-12 WARNING Disk usage above 80 percent
+2024-01-13 INFO  Backup completed
